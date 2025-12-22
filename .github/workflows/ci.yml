@@ -1,0 +1,26 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ "main", "dev", "staging" ]
+  pull_request:
+    branches: [ "main", "dev", "staging" ]
+
+jobs:
+  flutter-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout the repo
+      - uses: actions/checkout@v4
+
+      # 2️⃣ Install Flutter
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.38.5"  # or your Flutter version
+
+      # 3️⃣ Get dependencies
+      - run: flutter pub get
+
+      # 4️⃣ Run unit and widget tests
+      - run: flutter test --coverage

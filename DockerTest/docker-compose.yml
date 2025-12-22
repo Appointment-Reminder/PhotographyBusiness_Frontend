@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  flutter-runner:
+    build: .
+    container_name: flutter-runner
+    environment:
+      RUNNER_TOKEN: YOUR_GITHUB_TOKEN      # short-lived token from GitHub
+      REPO_URL: https://github.com/your-org/your-flutter-repo
+      RUNNER_NAME: my-flutter-runner       # optional
+      RUNNER_LABELS: flutter,docker,linux  # optional
+    volumes:
+      - flutter-runner-data:/home/runner   # persist runner registration and _work
+    restart: always
+
+volumes:
+  flutter-runner-data:
