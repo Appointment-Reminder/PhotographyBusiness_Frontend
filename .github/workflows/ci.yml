@@ -17,10 +17,6 @@ jobs:
         run: |
           flutter channel stable
           flutter upgrade
-          flutter doctor -v
-
-      - name: Navigate to project
-        run: cd flutter_app
 
       - name: Get dependencies
         run: flutter pub get
