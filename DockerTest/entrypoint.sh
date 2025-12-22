@@ -23,9 +23,7 @@ if [ ! -f .runner ]; then
   touch .runner
 fi
 
-# Ensure Flutter dependencies are installed
-flutter doctor -v
-flutter pub get
+
 
 # Start the runner
 ./run.sh
