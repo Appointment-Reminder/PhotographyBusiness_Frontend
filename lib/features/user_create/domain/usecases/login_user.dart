@@ -13,8 +13,7 @@ class LoginUser implements Usecase<AuthResult, LoginParams> {
 
   @override
   Future<Either<Failure, AuthResult>> call(LoginParams params) {
-    // TODO: implement call
-
+    print('Login user use case called');
     if(params.email.isEmpty || params.password.isEmpty){
       return Future.value(
         const Left(ServerFailure('Email and password are required')),

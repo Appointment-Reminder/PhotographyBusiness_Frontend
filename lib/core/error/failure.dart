@@ -14,11 +14,7 @@ class ServerFailure extends Failure{
   const ServerFailure(super.message);
 }
 
-class NetworkFailure extends Failure{
-  const NetworkFailure(): super('No internet connection');
-}
-
-class InvalidCredentialsFailure extends Failure{
-  const InvalidCredentialsFailure(): super('Invalid email or password');
+class CacheFailure extends Failure{
+  const CacheFailure(super.message);
 }
 
