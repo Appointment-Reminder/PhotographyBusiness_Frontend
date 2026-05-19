@@ -12,6 +12,5 @@ class User extends Equatable {
     required this.id});
 
   @override
-  // TODO: implement props
   List<Object?> get props => [id, name, email];
 }

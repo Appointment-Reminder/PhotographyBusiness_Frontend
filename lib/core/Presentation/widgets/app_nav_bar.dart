@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
 import 'package:photography_business_frontend/features/user_create/presentation/providers/auth_provders.dart';
 import 'package:photography_business_frontend/features/user_create/presentation/providers/state/auth_state.dart';
 
@@ -25,43 +26,58 @@ class AppNavBar extends ConsumerWidget{
       child: Column(
         children: [
           if(authState is AuthAuthenticated)
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 35,
-                    backgroundColor: Colors.blue,
-                    child: Text(
-                      authState.user.name[0].toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 28,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+            Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 35,
+                        backgroundColor: Colors.blue,
+                        child: Text(
+                          authState.user.name[0].toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 28,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 16,),
+                      Text(
+                        authState.user.name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4,),
+                      Text(
+                        authState.user.email,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16,),
-                  Text(
-                    authState.user.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4,),
-                  Text(
-                    authState.user.email,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.business),
+                  title: const Text('Business'),
+                  onTap: (){
+                    ref.read(businessNotifierProvider.notifier).loadMyBusinesses();
+                    Navigator.pushReplacementNamed(context, '/business');
+                  },
+                ),
+              ],
             ),
 
-          const Divider(),
+
+
+
 
           Expanded(
             child: ListView(

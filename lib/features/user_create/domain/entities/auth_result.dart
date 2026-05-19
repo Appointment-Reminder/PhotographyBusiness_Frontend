@@ -12,7 +12,6 @@ class AuthResult extends Equatable{
   });
 
   @override
-  // TODO: implement props
   List<Object?> get props => [token, user];
 
 }
