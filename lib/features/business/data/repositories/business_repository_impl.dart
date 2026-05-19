@@ -96,10 +96,13 @@ class BusinessRepositoryImpl implements BusinessRepository {
       }
 
       final businesses = await remoteDatasource.getMyBusinesses(isActive: isActive);
+      print(businesses);
       return Right(businesses);
     } on DioException catch (e) {
+      print('DIO Exception ${e.message}');
       return Left(DioErrorHandler.handleError(e));
     } catch (e) {
+      print(' Exception ');
       return Left(ServerFailure('Unexpected error'));
     }
   }

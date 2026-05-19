@@ -6,10 +6,10 @@ import 'package:photography_business_frontend/features/business/domain/usecases/
 
 import '../repositories/business_repository.dart';
 
-class GetBusinessMembers extends Usecase<List<BusinessMember>, GetBusinessMembersParams>{
+class GetBusinessMembersUser extends Usecase<List<BusinessMember>, GetBusinessMembersParams>{
   final BusinessRepository repository;
 
-  GetBusinessMembers({required this.repository});
+  GetBusinessMembersUser({required this.repository});
 
   @override
   Future<Either<Failure, List<BusinessMember>>> call(GetBusinessMembersParams params) {

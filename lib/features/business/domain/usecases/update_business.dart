@@ -7,10 +7,10 @@ import '../../../../core/usecases/usecase.dart';
 import '../entities/business.dart';
 import 'business_params.dart';
 
-class UpdateBusiness extends Usecase<Business, UpdateBusinessParams>{
+class UpdateBusinessUser extends Usecase<Business, UpdateBusinessParams>{
   final BusinessRepository repository;
 
-  UpdateBusiness({required this.repository});
+  UpdateBusinessUser({required this.repository});
 
   @override
   Future<Either<Failure, Business>> call(UpdateBusinessParams params) {

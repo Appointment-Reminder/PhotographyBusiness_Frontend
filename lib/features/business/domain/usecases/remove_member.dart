@@ -5,10 +5,10 @@ import 'package:photography_business_frontend/features/business/domain/usecases/
 import '../../../../core/usecases/usecase.dart';
 import '../repositories/business_repository.dart';
 
-class RemoveMember extends Usecase<void, RemoveMemberParams>{
+class RemoveMemberUser extends Usecase<void, RemoveMemberParams>{
   final BusinessRepository repository;
 
-  RemoveMember({required this.repository});
+  RemoveMemberUser({required this.repository});
 
   @override
   Future<Either<Failure, void>> call(RemoveMemberParams params) {

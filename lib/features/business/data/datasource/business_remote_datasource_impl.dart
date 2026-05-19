@@ -50,17 +50,22 @@ class BusinessRemoteDatasourceImpl implements BusinessRemoteDatasource {
 
   @override
   Future<List<Business>> getMyBusinesses({bool? isActive}) async {
+    print("Get my businesses");
     final queryParams = <String, dynamic>{};
     if (isActive != null){
       queryParams['is_active'] = isActive;
     }
+    print('query params : ${queryParams}');
 
     final response = await client.get(
       '/business/businesses/me',
       queryParameters: queryParams,
     );
 
+    print('response ${response}');
+
     final List<dynamic> businessList = response.data;
+    print(businessList);
     return businessList
         .map((json) => BusinessModel.fromJson(json))
         .toList();

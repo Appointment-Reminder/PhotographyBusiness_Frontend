@@ -6,10 +6,10 @@ import '../entities/business.dart';
 import '../repositories/business_repository.dart';
 import 'business_params.dart';
 
-class GetBusinessById extends Usecase<Business, GetBusinessByIdParams> {
+class GetBusinessByIdUser extends Usecase<Business, GetBusinessByIdParams> {
   final BusinessRepository repository;
 
-  GetBusinessById(this.repository);
+  GetBusinessByIdUser({required this.repository});
 
   @override
   Future<Either<Failure, Business>> call(GetBusinessByIdParams params) async {

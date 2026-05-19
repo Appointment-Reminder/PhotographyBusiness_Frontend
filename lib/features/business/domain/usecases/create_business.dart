@@ -6,10 +6,10 @@ import '../entities/business.dart';
 import '../repositories/business_repository.dart';
 import 'business_params.dart';
 
-class CreateBusiness extends Usecase<Business, CreateBusinessParams> {
+class CreateBusinessUser extends Usecase<Business, CreateBusinessParams> {
   final BusinessRepository repository;
 
-  CreateBusiness({required this.repository});
+  CreateBusinessUser({required this.repository});
 
   @override
   Future<Either<Failure, Business>> call(CreateBusinessParams params) {

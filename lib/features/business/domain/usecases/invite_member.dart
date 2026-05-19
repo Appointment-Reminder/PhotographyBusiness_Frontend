@@ -7,10 +7,10 @@ import 'package:photography_business_frontend/features/business/domain/repositor
 import '../entities/business_member.dart';
 import 'business_params.dart';
 
-class InviteMember extends Usecase<BusinessMember, InviteMemberParams>{
+class InviteMemberUser extends Usecase<BusinessMember, InviteMemberParams>{
   final BusinessRepository repository;
 
-  InviteMember({required this.repository});
+  InviteMemberUser({required this.repository});
 
   @override
   Future<Either<Failure, BusinessMember>> call(InviteMemberParams params) {

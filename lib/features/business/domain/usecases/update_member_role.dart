@@ -6,10 +6,10 @@ import '../../../../core/usecases/usecase.dart';
 import '../entities/business_member.dart';
 import '../repositories/business_repository.dart';
 
-class UpdateMemberRole extends Usecase<BusinessMember, UpdateMemberRoleParams>{
+class UpdateMemberRoleUser extends Usecase<BusinessMember, UpdateMemberRoleParams>{
   final BusinessRepository repository;
 
-  UpdateMemberRole({required this.repository});
+  UpdateMemberRoleUser({required this.repository});
 
   @override
   Future<Either<Failure, BusinessMember>> call(UpdateMemberRoleParams params) {

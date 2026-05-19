@@ -6,10 +6,10 @@ import '../../../../core/error/failure.dart';
 import '../entities/business.dart';
 import '../repositories/business_repository.dart';
 
-class GetMyBusinesses extends Usecase<List<Business>, GetMyBusinessesParams>{
+class GetMyBusinessesUser extends Usecase<List<Business>, GetMyBusinessesParams>{
   final BusinessRepository repository;
 
-  GetMyBusinesses(this.repository);
+  GetMyBusinessesUser({required this.repository});
 
   @override
   Future<Either<Failure, List<Business>>> call(GetMyBusinessesParams params) async {
