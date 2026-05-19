@@ -41,6 +41,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomePage(), // You'll create this
         '/register': (context) => const RegisterScreen(),
+        '/business': (context) => const HomePage(),
       },
     );
   }
