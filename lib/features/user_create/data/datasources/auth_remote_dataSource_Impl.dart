@@ -54,7 +54,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   Future<User> validateToken(String token) async {
     print('Validate token to server');
     final response = await client.get(
-      '/users/',
+      '/users/me',
       options: Options(
         headers: {'Authorization': 'Bearer $token'},
       ),
@@ -62,7 +62,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
 
     print('🔵 Response: ${response.data}');
 
-    return UserModel.fromJson(response.data['User']);
+    return UserModel.fromJson(response.data);
   }
 
 }
