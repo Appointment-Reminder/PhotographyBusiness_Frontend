@@ -50,19 +50,15 @@ class BusinessRemoteDatasourceImpl implements BusinessRemoteDatasource {
 
   @override
   Future<List<Business>> getMyBusinesses({bool? isActive}) async {
-    print("Get my businesses");
     final queryParams = <String, dynamic>{};
     if (isActive != null){
       queryParams['is_active'] = isActive;
     }
-    print('query params : ${queryParams}');
 
     final response = await client.get(
       '/business/businesses/me',
       queryParameters: queryParams,
     );
-
-    print('response ${response}');
 
     final List<dynamic> businessList = response.data;
     print(businessList);
@@ -73,14 +69,16 @@ class BusinessRemoteDatasourceImpl implements BusinessRemoteDatasource {
 
   @override
   Future<BusinessMember> inviteMember({required int businessId, required String userEmail, required String role}) async {
+    print('Try to invite member ${userEmail} to $businessId');
     final response = await client.post(
-      'business/businesses/$businessId/members',
+      '/business/businesses/$businessId/invite',
       queryParameters: {'business_id': businessId},
       data: {
         'user_email': userEmail,
         'role': role,
       },
     );
+    print('Response data ${response.data}');
 
     return BusinessMemberModel.fromJson(response.data);
   }
@@ -107,8 +105,9 @@ class BusinessRemoteDatasourceImpl implements BusinessRemoteDatasource {
 
   @override
   Future<BusinessMember> updateMemberRole({required int businessId, required int memberId, required String role, required bool isActive}) async {
+    print('Update the member for member id : ${memberId}');
     final response = await client.patch(
-      'business/businesses/$businessId/members/$memberId',
+      '/business/businesses/$businessId/members/$memberId',
       data: {
         'role': role,
         'is_active': isActive,

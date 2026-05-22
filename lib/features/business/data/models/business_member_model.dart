@@ -21,16 +21,16 @@ class BusinessMemberModel extends BusinessMember {
     return BusinessMemberModel(
         id: json['id'],
         businessId: json['business_id'],
-        userId: json['user_id'],
+        userId: json['user']['id'],
         role: json['role'],
         webhookToken: json['webhook_token'],
         invitedAt: DateTime.parse(json['invited_at']),
         invitedBy: json['invited_by'],
-        joinedAt: json['joined_at'] != null ? DateTime.parse(json['joinec_at']) : null,
+        joinedAt: json['joined_at'] != null ? DateTime.parse(json['joined_at']) : null,
         isActive: json['is_active'],
         createdAt: DateTime.parse(json['created_at']),
-        userName: json['user_name'],
-        userEmail: json['user_email'],
+        userName: json['user']['name'],
+        userEmail: json['user']['email'],
     );
   }
 
