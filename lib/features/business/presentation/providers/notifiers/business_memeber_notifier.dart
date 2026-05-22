@@ -18,7 +18,7 @@ class BusinessMemberNotifier extends StateNotifier<BusinessMemberState> {
     required this.inviteMember,
     required this.updateMemberRole,
     required this.removeMember,
-  }) : super( MemberInitial()); // <-- Initialize with const state
+  }) : super(const MemberInitial()); // <-- Initialize with const state
 
   Future<void> loadMembers(int businessId) async {
     state =  MemberLoading();

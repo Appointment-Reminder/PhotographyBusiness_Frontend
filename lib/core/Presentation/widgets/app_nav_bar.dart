@@ -66,12 +66,28 @@ class AppNavBar extends ConsumerWidget{
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.business),
-                  title: const Text('Business'),
-                  onTap: (){
-                    ref.read(businessNotifierProvider.notifier).loadMyBusinesses();
-                    Navigator.pushReplacementNamed(context, '/business');
+                  title: const Text('Businesses'),
+                  onTap: () {
+                    Navigator.pushReplacementNamed(context, '/businesses'); // Use pushReplacementNamed
                   },
                 ),
+                ListTile(
+                  leading: const Icon(Icons.calendar_month),
+                  title: const Text('Appointment'),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Appointments are coming soon')),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.home),
+                  title: const Text('Home'),
+                  onTap: () {
+                    Navigator.pushReplacementNamed(context, '/home'); // Use pushReplacementNamed
+                  },
+                ),
+
               ],
             ),
 
