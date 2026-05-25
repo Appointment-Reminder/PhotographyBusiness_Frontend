@@ -75,9 +75,7 @@ class AppNavBar extends ConsumerWidget{
                   leading: const Icon(Icons.calendar_month),
                   title: const Text('Appointment'),
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Appointments are coming soon')),
-                    );
+                   Navigator.pushReplacementNamed(context, '/appointments');
                   },
                 ),
                 ListTile(
