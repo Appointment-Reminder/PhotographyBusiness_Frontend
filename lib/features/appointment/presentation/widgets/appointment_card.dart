@@ -14,9 +14,18 @@ class AppointmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final photographerColor = _getPhotographerColor(appointment.photographerId);
+
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: photographerColor,
+          width: 3,
+        ),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
@@ -56,18 +65,36 @@ class AppointmentCard extends StatelessWidget {
                             color: Colors.grey[600],
                           ),
                         ),
-                        Text(
-                          appointment.photographerName,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.red[600],
-                          ),
-                        ),
                       ],
                     ),
                   ),
                   Icon(Icons.chevron_right, color: Colors.grey[400]),
                 ],
+              ),
+              const SizedBox(height: 12),
+              // Photographer badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: photographerColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: photographerColor),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.camera_alt, size: 14, color: photographerColor),
+                    const SizedBox(width: 4),
+                    Text(
+                      appointment.photographerName,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: photographerColor,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 12),
               const Divider(),
@@ -118,6 +145,24 @@ class AppointmentCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _getPhotographerColor(int photographerId) {
+    // Generate consistent color based on photographer ID
+    final colors = [
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.red,
+      Colors.teal,
+      Colors.indigo,
+      Colors.pink,
+      Colors.amber,
+      Colors.cyan,
+    ];
+
+    return colors[photographerId % colors.length];
   }
 
   String _formatDate(DateTime date) {
