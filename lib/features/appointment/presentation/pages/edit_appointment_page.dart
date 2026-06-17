@@ -4,6 +4,10 @@ import 'package:photography_business_frontend/core/Presentation/layouts/main_lay
 import 'package:photography_business_frontend/features/appointment/domain/entities/appointment.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/providers/appointment_providers.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/providers/state/appointment_state.dart';
+import 'package:photography_business_frontend/features/appointment/presentation/widgets/user_selector.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_state.dart';
+
 
 class EditAppointmentPage extends ConsumerStatefulWidget {
   final Appointment appointment;
@@ -25,6 +29,7 @@ class _EditAppointmentPageState extends ConsumerState<EditAppointmentPage> {
 
   late DateTime _selectedDate;
   late TimeOfDay _selectedTime;
+  int? _selectedUserId;
 
   @override
   void initState() {
@@ -38,7 +43,17 @@ class _EditAppointmentPageState extends ConsumerState<EditAppointmentPage> {
       hour: widget.appointment.appointmentDate.hour,
       minute: widget.appointment.appointmentDate.minute,
     );
+
+    // Load members for the business
+    if (widget.appointment.businessId != null) {
+      Future.microtask(() {
+        ref.read(businessMemberNotifierProvider.notifier)
+            .loadMembers(widget.appointment.businessId!);
+      });
+    }
   }
+
+
 
   @override
   void dispose() {
@@ -102,6 +117,35 @@ class _EditAppointmentPageState extends ConsumerState<EditAppointmentPage> {
                         ],
                       ),
                     ),
+                  const SizedBox(height: 16),
+
+                  // Photographer selector
+                  Builder(
+                    builder: (context) {
+                      final memberState = ref.watch(businessMemberNotifierProvider);
+
+                      if (memberState is MembersLoaded) {
+                        return UserSelector(
+                          members: memberState.members,
+                          selectedUserId: _selectedUserId ?? widget.appointment.userId,
+                          onUserSelected: (userId) {
+                            setState(() {
+                              _selectedUserId = userId;
+                            });
+                          },
+                        );
+                      } else if (memberState is MemberLoading) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+
+                      return const SizedBox.shrink();
+                    },
+                  ),
                   const SizedBox(height: 16),
 
                   // Client name
@@ -229,6 +273,7 @@ class _EditAppointmentPageState extends ConsumerState<EditAppointmentPage> {
     );
   }
 
+  // Then update _updateAppointment method to use _selectedUserId:
   void _updateAppointment() {
     if (_formKey.currentState!.validate()) {
       if (widget.appointment.businessId == null) {
@@ -255,7 +300,7 @@ class _EditAppointmentPageState extends ConsumerState<EditAppointmentPage> {
             ? null
             : _clientPhoneController.text,
         appointmentDate: appointmentDateTime,
-        userId: widget.appointment.userId,
+        userId: _selectedUserId ?? widget.appointment.userId, // Use selected or keep current
       );
     }
   }

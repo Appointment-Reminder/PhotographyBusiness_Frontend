@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photography_business_frontend/core/Presentation/layouts/main_layout.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/providers/appointment_providers.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/providers/state/appointment_state.dart';
+import 'package:photography_business_frontend/features/appointment/presentation/widgets/user_selector.dart';
 import 'package:photography_business_frontend/features/business/domain/entities/business.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/business_state.dart';
-import 'package:photography_business_frontend/features/user_create/presentation/providers/auth_provders.dart';
-import 'package:photography_business_frontend/features/user_create/presentation/providers/state/auth_state.dart';
 
 class CreateAppointmentPage extends ConsumerStatefulWidget {
   const CreateAppointmentPage({super.key});
@@ -25,6 +25,7 @@ class _CreateAppointmentPageState extends ConsumerState<CreateAppointmentPage> {
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   Business? _selectedBusiness;
+  int? _selectedUserId;
 
   @override
   void initState() {
@@ -46,7 +47,7 @@ class _CreateAppointmentPageState extends ConsumerState<CreateAppointmentPage> {
   Widget build(BuildContext context) {
     final appointmentState = ref.watch(appointmentNotifierProvider);
     final businessState = ref.watch(businessNotifierProvider);
-    final authState = ref.watch(authNotifierProvider);
+    final memberState = ref.watch(businessMemberNotifierProvider);
 
     ref.listen<AppointmentState>(appointmentNotifierProvider, (previous, next) {
       if (next is AppointmentDetailLoaded) {
@@ -93,7 +94,14 @@ class _CreateAppointmentPageState extends ConsumerState<CreateAppointmentPage> {
                       onChanged: (value) {
                         setState(() {
                           _selectedBusiness = value;
+                          _selectedUserId = null; // Reset photographer selection
                         });
+
+                        // Load members for selected business
+                        if (value != null) {
+                          ref.read(businessMemberNotifierProvider.notifier)
+                              .loadMembers(value.id);
+                        }
                       },
                       validator: (value) {
                         if (value == null) {
@@ -103,6 +111,41 @@ class _CreateAppointmentPageState extends ConsumerState<CreateAppointmentPage> {
                       },
                     ),
                   const SizedBox(height: 16),
+
+                  // Photographer selector (shows after business selected)
+                  if (_selectedBusiness != null) ...[
+                    if (memberState is MembersLoaded)
+                      UserSelector(
+                        members: memberState.members,
+                        selectedUserId: _selectedUserId,
+                        onUserSelected: (userId) {
+                          setState(() {
+                            _selectedUserId = userId;
+                          });
+                        },
+                      )
+                    else if (memberState is MemberLoading)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    else if (memberState is MemberError)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red[200]!),
+                          ),
+                          child: Text(
+                            'Error loading team members: ${memberState.message}',
+                            style: TextStyle(color: Colors.red[700]),
+                          ),
+                        ),
+                    const SizedBox(height: 16),
+                  ],
 
                   // Client name
                   TextFormField(
@@ -231,10 +274,9 @@ class _CreateAppointmentPageState extends ConsumerState<CreateAppointmentPage> {
 
   void _createAppointment() {
     if (_formKey.currentState!.validate()) {
-      final authState = ref.read(authNotifierProvider);
-      if (authState is! AuthAuthenticated) {
+      if (_selectedUserId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('You must be logged in')),
+          const SnackBar(content: Text('Please select a photographer')),
         );
         return;
       }
@@ -254,7 +296,7 @@ class _CreateAppointmentPageState extends ConsumerState<CreateAppointmentPage> {
             ? null
             : _clientPhoneController.text,
         appointmentDate: appointmentDateTime,
-        userId: authState.user.id,
+        userId: _selectedUserId!,
         businessId: _selectedBusiness!.id,
       );
     }
