@@ -79,6 +79,13 @@ class AppNavBar extends ConsumerWidget{
                   },
                 ),
                 ListTile(
+                  leading: const Icon(Icons.inventory_2_outlined),
+                  title: const Text('Packages'),
+                  onTap: () {
+                    Navigator.pushReplacementNamed(context, '/packages');
+                  },
+                ),
+                ListTile(
                   leading: const Icon(Icons.home),
                   title: const Text('Home'),
                   onTap: () {
