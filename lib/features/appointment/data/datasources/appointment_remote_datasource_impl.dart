@@ -17,7 +17,7 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
     required int userId,
     required int businessId,
   }) async {
-    final response = await client.put(
+    final response = await client.post(
       '/appointments/appointments',
       data: {
         'client_name': clientName,
@@ -61,7 +61,7 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
     }
 
     final response = await client.get(
-      '/appointments/appointments/business/$businessId',
+      '/appointments/business/$businessId',
       queryParameters: queryParams,
     );
 
@@ -77,7 +77,7 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
     required int appointmentId,
   }) async {
     final response = await client.get(
-      '/appointments/appointments/business/$businessId/appointments/$appointmentId',
+      '/appointments/business/$businessId/appointments/$appointmentId',
     );
 
     return AppointmentModel.fromJson(response.data);
@@ -94,7 +94,7 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
     int? userId,
   }) async {
     final response = await client.patch(
-      '/appointments/appointments/business/$businessId/appointments/$appointmentId',
+      '/appointments/business/$businessId/appointments/$appointmentId',
       data: {
         if (clientName != null) 'client_name': clientName,
         if (clientEmail != null) 'client_email': clientEmail,
@@ -109,6 +109,6 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
 
   @override
   Future<void> deleteAppointment(int appointmentId) async {
-    await client.delete('/appointments/appointments/$appointmentId');
+    await client.delete('/appointments/$appointmentId');
   }
 }
