@@ -5,7 +5,11 @@ import 'package:photography_business_frontend/features/business/data/models/busi
 import 'package:photography_business_frontend/features/business/domain/entities/business.dart';
 import 'package:photography_business_frontend/features/business/domain/entities/business_member.dart';
 
+import '../../domain/entities/business_member_form.dart';
+import '../../domain/entities/member_commission.dart';
+import '../models/business_member_form_model.dart';
 import '../models/business_model.dart';
+import '../models/member_commission_model.dart';
 
 class BusinessRemoteDatasourceImpl implements BusinessRemoteDatasource {
   final Dio client;
@@ -120,5 +124,78 @@ class BusinessRemoteDatasourceImpl implements BusinessRemoteDatasource {
     );
 
     return BusinessMemberModel.fromJson(response.data);
+  }
+
+  @override
+  Future<MemberCommission> createMemberCommission({
+    required int businessMemberId,
+    required int packageId,
+    required int commissionPercent,
+    required DateTime effectiveFrom,
+  }) async {
+    final response = await client.post(
+      '/business/members/commissions',
+      data: {
+        'business_member_id': businessMemberId,
+        'package_id': packageId,
+        'commission_percent': commissionPercent,
+        'effective_from': effectiveFrom.toIso8601String(),
+      },
+    );
+    return MemberCommissionModel.fromJson(response.data);
+  }
+
+  @override
+  Future<MemberCommission> getMemberCommission({required int memberId, required int packageId}) async {
+    final response = await client.get('/business/members/$memberId/$packageId/commissions');
+    return MemberCommissionModel.fromJson(response.data);
+  }
+
+  @override
+  Future<BusinessMemberForm> createMemberForm({
+    required int businessMemberId,
+    required int categoryId,
+    required String jotformFieldMap,
+  }) async {
+    final response = await client.post(
+      '/business/members/forms',
+      data: {
+        'business_member_id': businessMemberId,
+        'category_id': categoryId,
+        'jotform_field_map': jotformFieldMap,
+      },
+    );
+    return BusinessMemberFormModel.fromJson(response.data);
+  }
+
+  @override
+  Future<BusinessMemberForm> updateMemberForm({
+    required int id,
+    required int businessMemberId,
+    required int categoryId,
+    required String jotformFieldMap,
+  }) async {
+    final response = await client.patch(
+      '/business/members/forms',
+      data: {
+        'id': id,
+        'business_member_id': businessMemberId,
+        'category_id': categoryId,
+        'jotform_field_map': jotformFieldMap,
+      },
+    );
+    return BusinessMemberFormModel.fromJson(response.data);
+  }
+
+  @override
+  Future<List<BusinessMemberForm>> getMemberForms({required int businessId, required int memberId}) async {
+    final response = await client.get('/business/$businessId/members/$memberId/forms');
+    final List<dynamic> list = response.data;
+    return list.map((json) => BusinessMemberFormModel.fromJson(json)).toList();
+  }
+
+  @override
+  Future<void> deleteMemberForm(int formId) async {
+    await client.delete('/business/members/forms/$formId');
   }
 }

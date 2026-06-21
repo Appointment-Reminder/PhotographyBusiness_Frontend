@@ -2,13 +2,14 @@
 import 'package:dartz/dartz.dart';
 import 'package:photography_business_frontend/core/error/failure.dart';
 import 'package:photography_business_frontend/core/usecases/usecase.dart';
+import 'package:photography_business_frontend/features/business/domain/repositories/business_member_repository.dart';
 import 'package:photography_business_frontend/features/business/domain/repositories/business_repository.dart';
 
 import '../entities/business_member.dart';
 import 'business_params.dart';
 
 class InviteMemberUser extends Usecase<BusinessMember, InviteMemberParams>{
-  final BusinessRepository repository;
+  final BusinessMemberRepository repository;
 
   InviteMemberUser({required this.repository});
 

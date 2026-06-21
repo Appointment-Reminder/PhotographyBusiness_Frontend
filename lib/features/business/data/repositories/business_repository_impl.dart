@@ -105,47 +105,6 @@ class BusinessRepositoryImpl implements BusinessRepository {
   }
 
   @override
-  Future<Either<Failure, BusinessMember>> inviteMember({required int businessId, required String userEmail, required String role}) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      final member = await remoteDatasource.inviteMember(
-        businessId: businessId,
-        userEmail: userEmail,
-        role: role,
-      );
-      return Right(member);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> removeMember({required int businessId, required int memberId}) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      await remoteDatasource.removeMember(
-        businessId: businessId,
-        memberId: memberId,
-      );
-      return const Right(null);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
-  }
-
-  @override
   Future<Either<Failure, Business>> updateBusiness({required int businessId, String? name, String? description}) async {
     try {
       final isOnline = await networkInfo.isConnected;
@@ -165,28 +124,5 @@ class BusinessRepositoryImpl implements BusinessRepository {
       return const Left(ServerFailure('Unexpected error'));
     }
   }
-
-  @override
-  Future<Either<Failure, BusinessMember>> updateMemberRole({required int businessId, required int memberId, required String role, required bool isActive}) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      final member = await remoteDatasource.updateMemberRole(
-        businessId: businessId,
-        memberId: memberId,
-        role: role,
-        isActive: isActive,
-      );
-      return Right(member);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
-  }
-
 
 }
