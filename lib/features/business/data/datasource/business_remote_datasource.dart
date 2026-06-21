@@ -2,6 +2,8 @@
 import 'package:photography_business_frontend/features/business/domain/entities/business.dart';
 
 import '../../domain/entities/business_member.dart';
+import '../../domain/entities/business_member_form.dart';
+import '../../domain/entities/member_commission.dart';
 
 abstract class BusinessRemoteDatasource {
   Future<List<Business>> getMyBusinesses({bool? isActive});
@@ -41,4 +43,35 @@ abstract class BusinessRemoteDatasource {
     required int memberId,
   });
 
+  Future<MemberCommission> createMemberCommission({
+    required int businessMemberId,
+    required int packageId,
+    required int commissionPercent,
+    required DateTime effectiveFrom,
+  });
+
+  Future<MemberCommission> getMemberCommission({
+    required int memberId,
+    required int packageId,
+  });
+
+  Future<BusinessMemberForm> createMemberForm({
+    required int businessMemberId,
+    required int categoryId,
+    required String jotformFieldMap,
+  });
+
+  Future<BusinessMemberForm> updateMemberForm({
+    required int id,
+    required int businessMemberId,
+    required int categoryId,
+    required String jotformFieldMap,
+  });
+
+  Future< List<BusinessMemberForm>> getMemberForms({
+    required int businessId,
+    required int memberId,
+  });
+
+  Future<void> deleteMemberForm(int formId);
 }
