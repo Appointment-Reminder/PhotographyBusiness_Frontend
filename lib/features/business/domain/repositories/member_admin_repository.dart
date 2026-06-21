@@ -1,0 +1,38 @@
+import 'package:dartz/dartz.dart';
+import 'package:photography_business_frontend/core/error/failure.dart';
+import '../entities/member_commission.dart';
+import '../entities/business_member_form.dart';
+
+abstract class MemberAdminRepository {
+  Future<Either<Failure, MemberCommission>> createMemberCommission({
+    required int businessMemberId,
+    required int packageId,
+    required int commissionPercent,
+    required DateTime effectiveFrom,
+  });
+
+  Future<Either<Failure, MemberCommission>> getMemberCommission({
+    required int memberId,
+    required int packageId,
+  });
+
+  Future<Either<Failure, BusinessMemberForm>> createMemberForm({
+    required int businessMemberId,
+    required int categoryId,
+    required String jotformFieldMap,
+  });
+
+  Future<Either<Failure, BusinessMemberForm>> updateMemberForm({
+    required int id,
+    required int businessMemberId,
+    required int categoryId,
+    required String jotformFieldMap,
+  });
+
+  Future<Either<Failure, List<BusinessMemberForm>>> getMemberForms({
+    required int businessId,
+    required int memberId,
+  });
+
+  Future<Either<Failure, void>> deleteMemberForm(int formId);
+}
