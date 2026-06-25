@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
+  //Base
+  static const mainBg = Color(0xFFF9FAFB);
+
   // Sidebar / Shell
   static const sidebarBg   = Color(0xFFF4F4F5);
-  static const mainBg      = Color(0xFFE4E4E7);
   static const active      = Color(0xFFFFFFFF);
 
   //NavBar

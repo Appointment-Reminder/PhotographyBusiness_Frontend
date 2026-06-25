@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photography_business_frontend/core/Presentation/theme/app_colors.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/business_card.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/widgets/appointment_card.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/member_list_item.dart';
@@ -43,7 +44,7 @@ final entries = <GalleryEntry>[
         (_) => Row(
       children: [
         const AppNavBar(),
-        Expanded(child: Container(color: Colors.grey[100])),
+        Expanded(child: Container(color: AppColors.mainBg)),
       ],
     ),
     needsAuth: true,

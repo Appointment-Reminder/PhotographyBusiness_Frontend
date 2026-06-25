@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_colors.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_text_styles.dart';
 import 'package:photography_business_frontend/core/Presentation/widgets/NavBar/NavBarButton.dart';
+import 'package:photography_business_frontend/core/Presentation/widgets/NavBar/NavBarUserCard.dart';
+import 'package:photography_business_frontend/features/business/domain/entities/business_role.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
 import 'package:photography_business_frontend/features/user_create/presentation/providers/auth_provders.dart';
 import 'package:photography_business_frontend/features/user_create/presentation/providers/state/auth_state.dart';
@@ -29,6 +31,7 @@ class AppNavBar extends ConsumerWidget{
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
+          mainAxisSize: MainAxisSize.max,
           children: [
             if(authState is AuthAuthenticated)
               SizedBox(
@@ -95,6 +98,9 @@ class AppNavBar extends ConsumerWidget{
                   ),
                 ],
               ),
+              Spacer(),
+              Divider(),
+              NavBarUserCard(FirstName: 'gael', LastName: 'Courmont', Role: BusinessRole.admin)
           ],
         ),
       ),
