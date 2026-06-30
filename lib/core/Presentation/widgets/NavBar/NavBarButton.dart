@@ -32,42 +32,33 @@ class _NavBarButtonState extends State<NavBarButton> {
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
+      onExit:  (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 10,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             color: style.backgroundColor,
             borderRadius: BorderRadius.circular(8),
-            boxShadow: widget.isSelected ? [
+            boxShadow: widget.isSelected
+                ? [
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
-            ] : null,
+            ]
+                : null,
           ),
-          child: Row(
-            spacing: 20,
-            children: [
-              Icon(
-                  Icons.verified_user,
-                  size: 20,
-                  color: AppColors.blackText),
-              Text(
-                widget.label,
-                style: TextStyle(
-                  color: style.textColor,
-                  fontWeight: style.fontWeight,
-                ),
-              ),
-            ],
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 150),
+            style: AppTextStyles.body14.copyWith(
+              color: style.textColor,
+              fontWeight: style.fontWeight,
+            ),
+            child: Text(widget.label),
           ),
         ),
       ),
