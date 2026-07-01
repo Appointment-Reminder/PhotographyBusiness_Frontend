@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photography_business_frontend/core/Presentation/theme/app_theme.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/pages/appointments_page.dart';
 import 'package:photography_business_frontend/features/business/presentation/pages/business_lis_page.dart';
+import 'package:photography_business_frontend/features/business/presentation/pages/business_page.dart';
 import 'package:photography_business_frontend/features/package/presentation/pages/packages_page.dart';
 import 'package:photography_business_frontend/features/user_create/presentation/pages/registerScreen.dart';
 import 'package:photography_business_frontend/features/user_create/presentation/pages/splashScreen.dart';
@@ -37,15 +39,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Photography Business',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: AppTheme.light,
       home: const SplashScreen(),
       routes: {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomePage(), // You'll create this
         '/register': (context) => const RegisterScreen(),
-        '/businesses': (context) => const BusinessesListPage(),
+        '/businesses': (context) => const BusinessPage(),
         '/appointments' : (context) => const AppointmentsPage(),
         '/packages': (context) => const PackagesPage(),
       },

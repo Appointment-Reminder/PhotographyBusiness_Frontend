@@ -7,6 +7,8 @@ import 'package:photography_business_frontend/features/business/data/datasource/
 import 'package:photography_business_frontend/features/business/data/repositories/business_member_repository_impl.dart';
 import 'package:photography_business_frontend/features/business/data/repositories/business_repository_impl.dart';
 import 'package:photography_business_frontend/features/business/data/repositories/member_admin_repository_impl.dart';
+import 'package:photography_business_frontend/features/business/domain/entities/business.dart';
+import 'package:photography_business_frontend/features/business/domain/entities/business_member_form.dart';
 import 'package:photography_business_frontend/features/business/domain/repositories/business_member_repository.dart';
 import 'package:photography_business_frontend/features/business/domain/repositories/business_repository.dart';
 import 'package:photography_business_frontend/features/business/domain/repositories/member_admin_repository.dart';
@@ -26,6 +28,7 @@ import 'package:photography_business_frontend/features/business/domain/usecases/
 import 'package:photography_business_frontend/features/business/domain/usecases/update_member_role.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business_memeber_notifier.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business_notifier.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/member_forms_map_notifier.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_commission_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_form_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_state.dart';
@@ -152,3 +155,11 @@ final memberFormNotifierProvider = StateNotifierProvider<MemberFormNotifier, Mem
     deleteMemberForm: ref.read(deleteMemberFormUserProvider),
   );
 });
+
+final memberFormsMapProvider = StateNotifierProvider<MemberFormsMapNotifier, Map<int, List<BusinessMemberForm>>>((ref) {
+  return MemberFormsMapNotifier(ref.read(memberAdminRepositoryProvider));
+});
+
+final selectedBusinessProvider = StateProvider<Business?>((ref) => null);
+
+final businessTabProvider = StateProvider<String>((ref) => 'overview');
