@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photography_business_frontend/core/Presentation/theme/app_colors.dart';
+import 'package:photography_business_frontend/core/Presentation/theme/app_text_styles.dart';
+import 'package:photography_business_frontend/core/Presentation/widgets/NavBar/NavBarButton.dart';
+import 'package:photography_business_frontend/core/Presentation/widgets/NavBar/NavBarUserCard.dart';
+import 'package:photography_business_frontend/features/business/domain/entities/business_role.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
 import 'package:photography_business_frontend/features/user_create/presentation/providers/auth_provders.dart';
 import 'package:photography_business_frontend/features/user_create/presentation/providers/state/auth_state.dart';
@@ -10,11 +15,12 @@ class AppNavBar extends ConsumerWidget{
   @override
   Widget build(BuildContext context, WidgetRef ref){
     final authState = ref.watch(authNotifierProvider);
+    final route = ModalRoute.of(context)?.settings.name;
 
     return Container(
       width: 250,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.navBarBg,
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -23,116 +29,82 @@ class AppNavBar extends ConsumerWidget{
           ),
         ],
       ),
-      child: Column(
-        children: [
-          if(authState is AuthAuthenticated)
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 35,
-                        backgroundColor: Colors.blue,
-                        child: Text(
-                          authState.user.name[0].toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 28,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16,),
-                      Text(
-                        authState.user.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4,),
-                      Text(
-                        authState.user.email,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            if(authState is AuthAuthenticated)
+              SizedBox(
+                height: 50,
+                width: double.infinity,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Workspace",
+                    textAlign: TextAlign.left,
+                    style: AppTextStyles.heading16,
                   ),
                 ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.business),
-                  title: const Text('Businesses'),
-                  onTap: () {
-                    Navigator.pushReplacementNamed(context, '/businesses'); // Use pushReplacementNamed
-                  },
+              ),
+              Divider(),
+              SizedBox(
+                height: 40,
+                width: double.infinity,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "MENU",
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      color: AppColors.greyText,
+                    )
+                  ),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.calendar_month),
-                  title: const Text('Appointment'),
-                  onTap: () {
-                   Navigator.pushReplacementNamed(context, '/appointments');
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.inventory_2_outlined),
-                  title: const Text('Packages'),
-                  onTap: () {
-                    Navigator.pushReplacementNamed(context, '/packages');
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.home),
-                  title: const Text('Home'),
-                  onTap: () {
-                    Navigator.pushReplacementNamed(context, '/home'); // Use pushReplacementNamed
-                  },
-                ),
-
-              ],
-            ),
-
-
-
-
-
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                //add navigation here later
-              ],
-            ),
-          ),
-
-          const Divider(),
-
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: (){
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings - Coming soon')),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red,),
-            title:  const Text(
-              'Logout',
-              style: TextStyle(color: Colors.red),
-            ),
-            onTap: () {
-              ref.read(authNotifierProvider.notifier).logout();
-              Navigator.pushReplacementNamed(context, '/login');
-            },
-          ),
-          const SizedBox(height: 16,),
-        ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  NavBarButton(
+                      label: 'Business',
+                      routes: '/',
+                      isSelected: route == '/businesses',
+                      onTap: () {
+                        Navigator.pushReplacementNamed(context, '/businesses');
+                      },
+                  ),
+                  NavBarButton(
+                    label: 'packages',
+                    routes: '/',
+                    isSelected: route == '/packages',
+                    onTap: () {
+                      Navigator.pushReplacementNamed(context, '/packages');
+                    },
+                  ),
+                  NavBarButton(
+                    label: 'appointments',
+                    routes: '/',
+                    isSelected: route == '/appointments',
+                    onTap: () {
+                      Navigator.pushReplacementNamed(context, '/appointments');
+                    },
+                  ),
+                  NavBarButton(
+                    label: 'home',
+                    routes: '/',
+                    isSelected: route == '/home',
+                    onTap: () {
+                      Navigator.pushReplacementNamed(context, '/home');
+                    },
+                  ),
+                ],
+              ),
+              Spacer(),
+              Divider(),
+              if(authState is AuthAuthenticated)
+                NavBarUserCard(FirstName: authState.user.name, LastName: 't', Role: BusinessRole.admin)
+          ],
+        ),
       ),
     );
   }

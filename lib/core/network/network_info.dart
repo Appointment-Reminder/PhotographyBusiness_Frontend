@@ -1,8 +1,6 @@
 
 import 'dart:io';
 
-import 'package:photography_business_frontend/core/network/network_info.dart';
-
 abstract class NetworkInfo {
   Future<bool> get isConnected;
 }
