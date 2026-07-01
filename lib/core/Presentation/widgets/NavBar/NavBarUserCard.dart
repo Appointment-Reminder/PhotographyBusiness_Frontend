@@ -24,7 +24,7 @@ class _NavBarUserCardState extends State<NavBarUserCard> {
   @override
   Widget build(BuildContext) {
     final style = _getStyle();
-    final initials = '${widget.FirstName[0]}${widget.LastName[0]}'.toUpperCase();
+    final initials = '${widget.FirstName[0]}'.toUpperCase();
     final roleLabel = widget.Role == BusinessRole.admin ? 'Admin' : 'User';
 
     return Container(
@@ -56,7 +56,7 @@ class _NavBarUserCardState extends State<NavBarUserCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${widget.FirstName.capitalize()} ${widget.LastName.capitalize()}',
+                      '${widget.FirstName.capitalize()}', //${widget.LastName.capitalize()}',
                       style: TextStyle(
                         fontWeight: style.headerWeight,
                         color: style.roleTextColor,

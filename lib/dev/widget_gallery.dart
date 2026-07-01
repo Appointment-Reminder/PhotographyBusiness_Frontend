@@ -605,7 +605,7 @@ final sections = <GallerySection>[
     ),
       GalleryEntry(
         'JotformMatrixView',
-            (_) => const JotformMatrixView(),
+            (_) => const JotformMatrixView(businessId: 1,),
       ),
   ]),
   GallerySection('Nav', [

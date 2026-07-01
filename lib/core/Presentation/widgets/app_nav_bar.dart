@@ -15,6 +15,7 @@ class AppNavBar extends ConsumerWidget{
   @override
   Widget build(BuildContext context, WidgetRef ref){
     final authState = ref.watch(authNotifierProvider);
+    final route = ModalRoute.of(context)?.settings.name;
 
     return Container(
       width: 250,
@@ -67,31 +68,31 @@ class AppNavBar extends ConsumerWidget{
                   NavBarButton(
                       label: 'Business',
                       routes: '/',
-                      isSelected: false,
+                      isSelected: route == '/businesses',
                       onTap: () {
                         Navigator.pushReplacementNamed(context, '/businesses');
                       },
                   ),
                   NavBarButton(
-                    label: 'Users',
+                    label: 'packages',
                     routes: '/',
-                    isSelected: true,
+                    isSelected: route == '/packages',
                     onTap: () {
-                      Navigator.pushReplacementNamed(context, '/Appointment');
+                      Navigator.pushReplacementNamed(context, '/packages');
                     },
                   ),
                   NavBarButton(
-                    label: 'Packages',
+                    label: 'appointments',
                     routes: '/',
-                    isSelected: false,
+                    isSelected: route == '/appointments',
                     onTap: () {
-                      Navigator.pushReplacementNamed(context, '/Packages');
+                      Navigator.pushReplacementNamed(context, '/appointments');
                     },
                   ),
                   NavBarButton(
                     label: 'home',
                     routes: '/',
-                    isSelected: false,
+                    isSelected: route == '/home',
                     onTap: () {
                       Navigator.pushReplacementNamed(context, '/home');
                     },
@@ -100,7 +101,8 @@ class AppNavBar extends ConsumerWidget{
               ),
               Spacer(),
               Divider(),
-              NavBarUserCard(FirstName: 'gael', LastName: 'Courmont', Role: BusinessRole.admin)
+              if(authState is AuthAuthenticated)
+                NavBarUserCard(FirstName: authState.user.name, LastName: 't', Role: BusinessRole.admin)
           ],
         ),
       ),

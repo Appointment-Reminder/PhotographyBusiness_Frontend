@@ -16,12 +16,15 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
   final String activeId;
   final ValueChanged<String> onItemSelected;
 
+  final Widget? trailing;
+
   const TopNavBar({
     super.key,
     required this.brandName,
     required this.items,
     required this.activeId,
     required this.onItemSelected,
+    this.trailing,
   });
 
   @override
@@ -56,6 +59,10 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
                       ),
                     )).toList(),
                   ),
+
+                  const Spacer(),
+
+                  if (trailing != null ) trailing!,
                 ],
               ),
             ),

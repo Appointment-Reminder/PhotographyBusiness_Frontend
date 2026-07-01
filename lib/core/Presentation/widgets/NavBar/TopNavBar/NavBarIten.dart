@@ -36,7 +36,6 @@ class _NavTabItemState extends State<NavTabItem> {
 
   _NavButtonStyle _getStyle() {
     if (widget.isSelected) {
-      print('is Selected');
       return const _NavButtonStyle(
         backgroundColor: AppColors.TNB_selectedButtonBg,
         textColor: AppColors.TNB_whiteText,
@@ -45,7 +44,6 @@ class _NavTabItemState extends State<NavTabItem> {
     }
 
     if (_isHovered) {
-      print('isHovered');
       return const _NavButtonStyle(
         backgroundColor: AppColors.TNB_hoveredButtonBg,
         textColor: AppColors.TNB_blackText,
@@ -53,7 +51,7 @@ class _NavTabItemState extends State<NavTabItem> {
       );
     }
 
-    print('is alone');
+
     return const _NavButtonStyle(
       backgroundColor: AppColors.active,
       textColor: AppColors.TNB_greyText,
