@@ -84,7 +84,8 @@ class _BusinessPageState extends ConsumerState<BusinessPage>{
       case 'Overview':
         return Center(child: Text('Overview of Business: ${selectedBusiness?.name} in progress'));
       case 'Teams & Commission':
-        return TeamCommissionsView();
+        if (selectedBusiness == null) return const Center(child: Text('Select a business'));
+        return TeamCommissionsView(businessId: selectedBusiness.id);
       case 'Packages & Pricing':
         if (selectedBusiness == null) return const Center(child: Text('Select a business'));
         return PackagesPricingView(businessId: selectedBusiness.id);

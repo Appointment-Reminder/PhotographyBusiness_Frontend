@@ -19,6 +19,15 @@ class CommissionData {
     required this.value,
     required this.isPercent, required this.categoryId,
   });
+
+  CommissionData copyWithCategoryName(String name) => CommissionData(
+    packageId: packageId,
+    packageName: packageName,
+    categoryName: name,
+    categoryId: categoryId,
+    value: value,
+    isPercent: isPercent,
+  );
 }
 
 class MemberCommissionsCard extends StatelessWidget {
