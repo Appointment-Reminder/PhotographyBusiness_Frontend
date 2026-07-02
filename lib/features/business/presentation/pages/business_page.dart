@@ -90,8 +90,8 @@ class _BusinessPageState extends ConsumerState<BusinessPage>{
         if (selectedBusiness == null) return const Center(child: Text('Select a business'));
         return PackagesPricingView(businessId: selectedBusiness.id);
       case 'Jotform':
-        if(selectedBusiness != null) return JotformMatrixView(businessId: selectedBusiness.id);
-        return Center(child: Text('Select a business'),);
+        if(selectedBusiness == null)  return Center(child: Text('Select a business'),);
+        return JotformMatrixView(businessId: selectedBusiness.id);
       case 'Settings':
         return Center(child: Text('Settings of : ${selectedBusiness?.name} Page in progress'));
     }

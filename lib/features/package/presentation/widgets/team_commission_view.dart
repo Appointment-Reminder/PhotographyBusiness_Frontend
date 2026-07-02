@@ -50,8 +50,10 @@ class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
     }).toList();
   }
 
-  String _categoryName(MemberCommissionMapState s, int categoryId) =>
-      s.categories.firstWhere((c) => c.id == categoryId, orElse: () => s.categories.first).name;
+  String _categoryName(MemberCommissionMapState s, int categoryId) {
+    final match = s.categories.where((c) => c.id == categoryId).firstOrNull;
+    return match?.name ?? 'Unknown';
+  }
 
   @override
   Widget build(BuildContext context) {

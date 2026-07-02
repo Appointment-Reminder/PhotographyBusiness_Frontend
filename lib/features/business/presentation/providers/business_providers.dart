@@ -28,12 +28,14 @@ import 'package:photography_business_frontend/features/business/domain/usecases/
 import 'package:photography_business_frontend/features/business/domain/usecases/update_member_role.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business_memeber_notifier.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business_notifier.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/jotform_matrix_notifier.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/member_commission_map_notifier.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/member_forms_map_notifier.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_commission_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_form_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/business_state.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/jotform_matrix_state.dart';
 
 import '../../../package/presentation/providers/package_providers.dart';
 import '../../domain/usecases/create_business.dart';
@@ -174,5 +176,17 @@ StateNotifierProvider<MemberCommissionMapNotifier, MemberCommissionMapState>((re
     getCategories: ref.read(getPackageCategoriesForBusinessProvider),
     createCommission: ref.read(createMemberCommissionUserProvider),
     getPackages: ref.read(getPackagesForBusinessProvider),
+  );
+});
+
+final jotformMatrixNotifierProvider =
+StateNotifierProvider<JotformMatrixNotifier, JotformMatrixState>((ref) {
+  return JotformMatrixNotifier(
+    getBusinessMembers: ref.read(getBusinessMembersUserProvider),
+    getCategories: ref.read(getPackageCategoriesForBusinessProvider), // from package_providers.dart
+    getMemberForms: ref.read(getMemberFormsUserProvider),
+    createMemberForm: ref.read(createMemberFormUserProvider),
+    updateMemberForm: ref.read(updateMemberFormUserProvider),
+    deleteMemberForm: ref.read(deleteMemberFormUserProvider),
   );
 });

@@ -104,7 +104,7 @@ class MemberCommissionsCard extends StatelessWidget {
               children: [
                 Expanded(child: SectionLabel('Package')),
                 SizedBox(width: 100, child: SectionLabel('Category')),
-                SizedBox(width: 26,),
+                SizedBox(width: 55,),
                 SizedBox(width: 140, child: SectionLabel('Commission')),
                 const SizedBox(width: 30),
               ],

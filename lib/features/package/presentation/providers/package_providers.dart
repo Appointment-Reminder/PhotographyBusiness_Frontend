@@ -16,7 +16,9 @@ import 'package:photography_business_frontend/features/package/domain/usecases/g
 import 'package:photography_business_frontend/features/package/domain/usecases/get_packages_for_business.dart';
 import 'package:photography_business_frontend/features/package/domain/usecases/update_package.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/notifiers/package_notifier.dart';
+import 'package:photography_business_frontend/features/package/presentation/providers/notifiers/package_pricing_notifier.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/notifiers/packages_pricing_map_notifier.dart';
+import 'package:photography_business_frontend/features/package/presentation/providers/state/package_pricing_state.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/state/package_state.dart';
 
 final packageRemoteDataSourceProvider = Provider<PackageRemoteDatasource>((ref) {
@@ -96,5 +98,15 @@ StateNotifierProvider<PackagesPricingMapNotifier, PackagesPricingMapState>((ref)
     getCategories: ref.read(getPackageCategoriesForBusinessProvider),
     getPackages: ref.read(getPackagesForBusinessProvider),
     getPriceHistory: ref.read(getPackagePriceHistoryProvider),
+  );
+});
+
+final packagePricingNotifierProvider =
+StateNotifierProvider<PackagePricingNotifier, PackagePricingState>((ref) {
+  return PackagePricingNotifier(
+    getCategories: ref.read(getPackageCategoriesForBusinessProvider),
+    getPackages: ref.read(getPackagesForBusinessProvider),
+    getPriceHistory: ref.read(getPackagePriceHistoryProvider),
+    createPrice: ref.read(createPackagePriceProvider),
   );
 });
