@@ -9,6 +9,7 @@ import 'package:photography_business_frontend/features/business/presentation/pro
 import 'package:photography_business_frontend/features/business/presentation/providers/state/business_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/business_selector.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/jotform_matrix_view.dart';
+import 'package:photography_business_frontend/features/package/presentation/pages/package_pricing_view.dart';
 import 'package:photography_business_frontend/features/package/presentation/widgets/team_commission_view.dart';
 import 'package:photography_business_frontend/features/package/presentation/widgets/three_column_card.dart';
 
@@ -83,15 +84,14 @@ class _BusinessPageState extends ConsumerState<BusinessPage>{
       case 'Overview':
         return Center(child: Text('Overview of Business: ${selectedBusiness?.name} in progress'));
       case 'Teams & Commission':
-        return TeamCommissionsView();
+        if (selectedBusiness == null) return const Center(child: Text('Select a business'));
+        return TeamCommissionsView(businessId: selectedBusiness.id);
       case 'Packages & Pricing':
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Center(child: ThreeColumnCard(categories: Fixtures.packageCategories)),
-        );
+        if (selectedBusiness == null) return const Center(child: Text('Select a business'));
+        return PackagesPricingView(businessId: selectedBusiness.id);
       case 'Jotform':
-        if(selectedBusiness != null) return JotformMatrixView(businessId: selectedBusiness.id);
-        return Center(child: Text('Select a business'),);
+        if(selectedBusiness == null)  return Center(child: Text('Select a business'),);
+        return JotformMatrixView(businessId: selectedBusiness.id);
       case 'Settings':
         return Center(child: Text('Settings of : ${selectedBusiness?.name} Page in progress'));
     }

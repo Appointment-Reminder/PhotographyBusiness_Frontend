@@ -6,13 +6,10 @@ import 'package:photography_business_frontend/core/presentation/theme/app_text_s
 import 'package:photography_business_frontend/core/presentation/widgets/atoms/progress_bar.dart';
 import 'package:photography_business_frontend/core/utils/field_map_serializer.dart';
 import 'package:photography_business_frontend/dev/fixtures.dart';
-import 'package:photography_business_frontend/features/business/domain/entities/business_member_form.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_state.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/jotform_matrix_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/webhook_config_panel.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/webhook_matrix_card..dart';
-import 'package:photography_business_frontend/features/package/presentation/providers/package_providers.dart';
-import 'package:photography_business_frontend/features/package/presentation/providers/state/package_state.dart';
 
 import '../../../../../dev/main_dev.dart';
 import 'matrix_member_row..dart';
@@ -61,33 +58,15 @@ class _JotformMatrixViewState extends ConsumerState<JotformMatrixView> {
   @override
   void initState() {
     super.initState();
-    if (!kDevMode) {
-      Future.microtask(_loadRealData);
-    }
-  }
 
-  Future<void> _loadRealData() async {
-    // 1. members
-    await ref.read(businessMemberNotifierProvider.notifier)
-        .loadMembers(widget.businessId);
+    Future.microtask(() =>
+        ref.read(jotformMatrixNotifierProvider.notifier).loadForBusiness(widget.businessId));
 
-    // 2. categories
-    await ref.read(packageNotifierProvider.notifier)
-        .loadCategoriesForBusiness(widget.businessId);
-
-    // 3. forms for every member (parallel)
-    final memberState = ref.read(businessMemberNotifierProvider);
-    if (memberState is MembersLoaded) {
-      await ref.read(memberFormsMapProvider.notifier).loadFormsForAllMembers(
-        businessId: widget.businessId,
-        memberIds:  memberState.members.map((m) => m.id).toList(),
-      );
-    }
   }
 
   // ── Converters: domain → display ──────────────────────────────
-  List<MatrixMemberData> _toMatrixMembers(MembersLoaded state) {
-    return state.members.map((m) => MatrixMemberData(
+  List<MatrixMemberData> _toMatrixMembers(JotformMatrixState s) {
+    return s.members.map((m) => MatrixMemberData(
       id:       m.id.toString(),
       name:     m.userName  ?? 'Unknown',
       email:    m.userEmail ?? '',
@@ -95,8 +74,8 @@ class _JotformMatrixViewState extends ConsumerState<JotformMatrixView> {
     )).toList();
   }
 
-  List<MatrixCategoryData> _toMatrixCategories(PackageCategoryListLoaded state) {
-    return state.categories.map((c) => MatrixCategoryData(
+  List<MatrixCategoryData> _toMatrixCategories(JotformMatrixState s) {
+    return s.categories.map((c) => MatrixCategoryData(
       id:    c.id.toString(),
       name:  c.name,
       color: _paletteColor(c.id),
@@ -123,8 +102,7 @@ class _JotformMatrixViewState extends ConsumerState<JotformMatrixView> {
 
   /// Real webhook URL from form entity
   String _realWebhookUrl(int memberId, int categoryId) {
-    final form = ref.read(memberFormsMapProvider.notifier)
-        .findForm(memberId, categoryId);
+    final form = ref.read(jotformMatrixNotifierProvider).findForm(memberId, categoryId);
     if (form != null) {
       return 'https://hooks.jotform.com/webhook/${form.webhookToken}';
     }
@@ -138,10 +116,7 @@ class _JotformMatrixViewState extends ConsumerState<JotformMatrixView> {
 
   /// Get existing WebhookConfig from a form entity for pre-filling the panel
   WebhookConfig? _existingConfig(String memberId, String categoryId) {
-    if (kDevMode) {
-      return _devConfigs[memberId]?[categoryId];
-    }
-    final form = ref.read(memberFormsMapProvider.notifier)
+    final form = ref.read(jotformMatrixNotifierProvider)
         .findForm(int.parse(memberId), int.parse(categoryId));
     if (form == null) return null;
     return WebhookConfig(
@@ -174,100 +149,43 @@ class _JotformMatrixViewState extends ConsumerState<JotformMatrixView> {
       String categoryId,
       WebhookConfig config,
       ) async {
-    if (kDevMode) {
-      // Dev: update local map only
-      setState(() {
-        _devConfiguredMap
-            .putIfAbsent(memberId, () => <String>{})
-            .add(categoryId);
-        final m = _devConfigs[memberId] ?? <String, WebhookConfig>{};
-        m[categoryId] = config;
-        _devConfigs[memberId] = m;
-      });
-      return;
-    }
 
-    // Real: call API
-    final intMemberId   = int.parse(memberId);
-    final intCategoryId = int.parse(categoryId);
-    final fieldMapStr   = FieldMapSerializer.serialize(config.fieldMappings);
-
-    final existing = ref.read(memberFormsMapProvider.notifier)
-        .findForm(intMemberId, intCategoryId);
-
-    if (existing != null) {
-      await ref.read(memberFormNotifierProvider.notifier).updateExistingForm(
-        businessId:       widget.businessId,
-        formId:           existing.id,
-        businessMemberId: intMemberId,
-        categoryId:       intCategoryId,
-        jotformFieldMap:  fieldMapStr,
-      );
-    } else {
-      await ref.read(memberFormNotifierProvider.notifier).createNewForm(
-        businessId:       widget.businessId,
-        businessMemberId: intMemberId,
-        categoryId:       intCategoryId,
-        jotformFieldMap:  fieldMapStr,
-      );
-    }
-
-    // Reload forms for this member so the map + configured state refresh
-    await ref.read(memberFormsMapProvider.notifier).loadFormsForMember(
-      businessId: widget.businessId,
-      memberId:   intMemberId,
+    // Real: call API via consolidated notifier
+    await ref.read(jotformMatrixNotifierProvider.notifier).saveForm(
+      businessId:      widget.businessId,
+      memberId:        int.parse(memberId),
+      categoryId:      int.parse(categoryId),
+      jotformFieldMap: FieldMapSerializer.serialize(config.fieldMappings),
     );
   }
 
   // ── Build ─────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    if (kDevMode) {
-      return _buildContent(
-        members:       _fakeMembers,
-        categories:    _fakeCategories,
-        configuredMap: _devConfiguredMap,
-      );
-    }
 
-    // Watch both providers
-    final memberState  = ref.watch(businessMemberNotifierProvider);
-    final packageState = ref.watch(packageNotifierProvider);
-    final formsMap     = ref.watch(memberFormsMapProvider);
 
-    // Loading — either provider still loading
-    if (memberState is MemberLoading || packageState is PackageLoading) {
+    final state = ref.watch(jotformMatrixNotifierProvider);
+
+    if (state.isLoading && state.members.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Errors
-    if (memberState is MemberError) {
-      return _buildError(memberState.message, _loadRealData);
-    }
-    if (packageState is PackageError) {
-      return _buildError(packageState.message, _loadRealData);
-    }
-
-    // Loaded
-    if (memberState is MembersLoaded && packageState is PackageCategoryListLoaded) {
-      final members      = _toMatrixMembers(memberState);
-      final categories   = _toMatrixCategories(packageState);
-
-      // Build configuredMap from forms map
-      final configuredMap = <String, Set<String>>{};
-      for (final entry in formsMap.entries) {
-        configuredMap[entry.key.toString()] =
-            entry.value.map((f) => f.categoryId.toString()).toSet();
-      }
-
-      return _buildContent(
-        members:       members,
-        categories:    categories,
-        configuredMap: configuredMap,
+    if (state.error != null) {
+      return _buildError(
+        state.error!,
+            () => ref.read(jotformMatrixNotifierProvider.notifier).loadForBusiness(widget.businessId),
       );
     }
 
-    return const SizedBox.shrink();
+    if (state.members.isEmpty || state.categories.isEmpty) {
+      return const Center(child: Text('No team members or categories yet'));
+    }
+
+    return _buildContent(
+      members:       _toMatrixMembers(state),
+      categories:    _toMatrixCategories(state),
+      configuredMap: state.configuredMap,
+    );
   }
 
   Widget _buildContent({
@@ -319,9 +237,7 @@ class _JotformMatrixViewState extends ConsumerState<JotformMatrixView> {
               memberEmail:   members.firstWhere((m) => m.id == _activeMemberId).email,
               categoryName:  categories.firstWhere((c) => c.id == _activeCategoryId).name,
               categoryColor: categories.firstWhere((c) => c.id == _activeCategoryId).color,
-              webhookUrl: kDevMode
-                  ? _fakeWebhookUrl(_activeMemberId!, _activeCategoryId!)
-                  : _realWebhookUrl(
+              webhookUrl: _realWebhookUrl(
                 int.parse(_activeMemberId!),
                 int.parse(_activeCategoryId!),
               ),
