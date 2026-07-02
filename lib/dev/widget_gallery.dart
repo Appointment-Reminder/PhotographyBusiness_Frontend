@@ -600,7 +600,7 @@ final sections = <GallerySection>[
     [GalleryEntry(
       'TeamCommissionsView',
           (_) => const SingleChildScrollView(
-        child: TeamCommissionsView(),
+        child: TeamCommissionsView(businessId: 0,),
       ),
     ),
       GalleryEntry(

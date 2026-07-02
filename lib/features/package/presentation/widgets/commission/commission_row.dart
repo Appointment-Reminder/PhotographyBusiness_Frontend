@@ -85,10 +85,10 @@ class _CommissionRowState extends State<CommissionRow> {
 
             // Category badge
             SizedBox(
-              width: 70,
+              width: 100,
               child: CategoryBadge(categoryName: widget.categoryName, categoryId: widget.categoryId,),
             ),
-            SizedBox(width: 50,),
+            SizedBox(width: 70,),
 
             // Value input + toggle
             SizedBox(
