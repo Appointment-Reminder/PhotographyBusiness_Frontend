@@ -26,20 +26,26 @@ import 'package:photography_business_frontend/features/business/domain/usecases/
 import 'package:photography_business_frontend/features/business/domain/usecases/remove_member.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/update_business.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/update_member_role.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business_memeber_notifier.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business_notifier.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business_detail_notifier.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business_form_notifier.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business_list_notifier.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/jotform_matrix_notifier.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/member_commission_map_notifier.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/member_forms_map_notifier.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/BusinessListState.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/Business_form_state.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/business_detail_state.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/business_member_form_state.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/business_member_list_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_commission_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_form_state.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_state.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/business_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/jotform_matrix_state.dart';
 
 import '../../../package/presentation/providers/package_providers.dart';
 import '../../domain/usecases/create_business.dart';
 import 'notifiers/MemberCommissionNotifier.dart' show MemberCommissionNotifier;
+import 'notifiers/business_member_form_notifier.dart';
+import 'notifiers/business_member_list_notifier.dart';
 import 'notifiers/member_form_notifier.dart' show MemberFormNotifier;
 
 final businessRemoteDataSourceProvider = Provider<BusinessRemoteDatasource>((ref) {
@@ -107,25 +113,6 @@ final updateMemberRoleUserProvider = Provider<UpdateMemberRoleUser>((ref){
   return UpdateMemberRoleUser(repository: ref.read(businessMemberRepositoryProvider));
 });
 
-final businessNotifierProvider = StateNotifierProvider<BusinessNotifier, BusinessState>((ref){
-  return BusinessNotifier(
-      getMyBusinessesUser: ref.read(getMyBusinessUserProvider),
-      getBusinessByIdUser: ref.read(getBusinessByIdUserProvider),
-      createBusinessUser: ref.read(createBusinessUserProvider),
-      updateBusinessUser: ref.read(updateBusinessProvider),
-      deleteBusinessUser: ref.read(deleteBusinessUserProvider),
-  );
-});
-
-final businessMemberNotifierProvider = StateNotifierProvider<BusinessMemberNotifier, BusinessMemberState>((ref){
-  return BusinessMemberNotifier(
-      getBusinessMembers: ref.read(getBusinessMembersUserProvider),
-      inviteMember: ref.read(inviteBusinessMemberUserProvider),
-      updateMemberRole: ref.read(updateMemberRoleUserProvider),
-      removeMember: ref.read(removeMemberUserProvider),
-  );
-});
-
 final createMemberCommissionUserProvider = Provider<CreateMemberCommissionUser>((ref){
   return CreateMemberCommissionUser(repository: ref.read(memberAdminRepositoryProvider));
 });
@@ -188,5 +175,40 @@ StateNotifierProvider<JotformMatrixNotifier, JotformMatrixState>((ref) {
     createMemberForm: ref.read(createMemberFormUserProvider),
     updateMemberForm: ref.read(updateMemberFormUserProvider),
     deleteMemberForm: ref.read(deleteMemberFormUserProvider),
+  );
+});
+
+
+final businessListNotifierProvider =
+StateNotifierProvider<BusinessListNotifier, BusinessListState>((ref) {
+  return BusinessListNotifier(getMyBusinesses: ref.read(getMyBusinessUserProvider));
+});
+
+final businessDetailNotifierProvider =
+StateNotifierProvider<BusinessDetailNotifier, BusinessDetailState>((ref) {
+  return BusinessDetailNotifier(getBusinessById: ref.read(getBusinessByIdUserProvider));
+});
+
+final businessFormNotifierProvider =
+StateNotifierProvider<BusinessFormNotifier, BusinessFormState>((ref) {
+  return BusinessFormNotifier(
+    createBusiness: ref.read(createBusinessUserProvider),
+    updateBusiness: ref.read(updateBusinessProvider),
+    deleteBusiness: ref.read(deleteBusinessUserProvider),
+  );
+});
+
+final businessMemberListNotifierProvider =
+StateNotifierProvider<BusinessMemberListNotifier, BusinessMemberListState>((ref) {
+  return BusinessMemberListNotifier(getBusinessMembers: ref.read(getBusinessMembersUserProvider));
+});
+
+final businessMemberFormNotifierProvider =
+StateNotifierProvider<BusinessMemberFormNotifier, BusinessMemberFormState>((ref) {
+  return BusinessMemberFormNotifier(
+    inviteMember: ref.read(inviteBusinessMemberUserProvider),
+    updateMemberRole: ref.read(updateMemberRoleUserProvider),
+    removeMember: ref.read(removeMemberUserProvider),
+    listNotifier: ref.read(businessMemberListNotifierProvider.notifier),
   );
 });

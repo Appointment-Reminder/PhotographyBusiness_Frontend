@@ -15,11 +15,9 @@ import 'package:photography_business_frontend/features/package/domain/usecases/g
 import 'package:photography_business_frontend/features/package/domain/usecases/get_package_price_history.dart';
 import 'package:photography_business_frontend/features/package/domain/usecases/get_packages_for_business.dart';
 import 'package:photography_business_frontend/features/package/domain/usecases/update_package.dart';
-import 'package:photography_business_frontend/features/package/presentation/providers/notifiers/package_notifier.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/notifiers/package_pricing_notifier.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/notifiers/packages_pricing_map_notifier.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/state/package_pricing_state.dart';
-import 'package:photography_business_frontend/features/package/presentation/providers/state/package_state.dart';
 
 final packageRemoteDataSourceProvider = Provider<PackageRemoteDatasource>((ref) {
   return PackageRemoteDatasourceImpl(client: ref.read(dioProvider));
@@ -74,22 +72,6 @@ final getPackagePriceHistoryProvider = Provider<GetPackagePriceHistory>((ref) {
 
 final getCurrentPackagePriceProvider = Provider<GetCurrentPackagePrice>((ref) {
   return GetCurrentPackagePrice(repository: ref.read(packageRepositoryProvider));
-});
-
-final packageNotifierProvider = StateNotifierProvider<PackageNotifier, PackageState>((ref) {
-  return PackageNotifier(
-    getPackagesForBusiness: ref.read(getPackagesForBusinessProvider),
-    getPackageById: ref.read(getPackageByIdProvider),
-    createPackage: ref.read(createPackageProvider),
-    updatePackage: ref.read(updatePackageProvider),
-    deletePackage: ref.read(deletePackageProvider),
-    getPackageCategoriesForBusiness: ref.read(getPackageCategoriesForBusinessProvider),
-    createPackageCategory: ref.read(createPackageCategoryProvider),
-    deletePackageCategory: ref.read(deletePackageCategoryProvider),
-    createPackagePrice: ref.read(createPackagePriceProvider),
-    getPackagePriceHistory: ref.read(getPackagePriceHistoryProvider),
-    getCurrentPackagePrice: ref.read(getCurrentPackagePriceProvider),
-  );
 });
 
 final packagesPricingMapProvider =

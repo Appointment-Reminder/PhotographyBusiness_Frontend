@@ -5,8 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photography_business_frontend/core/Presentation/layouts/main_layout.dart';
 import 'package:photography_business_frontend/core/Presentation/widgets/NavBar/TopNavBar/top_nav_bar.dart';
 import 'package:photography_business_frontend/features/business/domain/entities/business.dart';
+import 'package:photography_business_frontend/features/business/domain/usecases/business_params.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/business_state.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/BusinessListState.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/business_selector.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/jotform_matrix_view.dart';
 import 'package:photography_business_frontend/features/package/presentation/pages/package_pricing_view.dart';
@@ -32,14 +33,14 @@ class _BusinessPageState extends ConsumerState<BusinessPage>{
     super.initState();
 
     Future.microtask((){
-      ref.read(businessNotifierProvider.notifier).loadMyBusinesses();
+      ref.read(businessListNotifierProvider.notifier).getMyBusinesses(GetMyBusinessesParams(isActive: true));
     });
 
   }
 
   @override
   Widget build(BuildContext context) {
-    final businessState = ref.watch(businessNotifierProvider);
+    final businessState = ref.watch(businessListNotifierProvider);
     final selectedBusiness = ref.watch(selectedBusinessProvider);
     final activeId = ref.watch(businessTabProvider);
 
@@ -67,16 +68,16 @@ class _BusinessPageState extends ConsumerState<BusinessPage>{
   }
 
   Widget _buildBody(
-      BusinessState state,
+      BusinessListState state,
       Business? selectedBusiness,
       String? activeId,
       ){
 
-    if(state is BusinessLoading){
+    if(state.isLoading){
       return const Center(child: CircularProgressIndicator());
     }
 
-    if(state is BusinessError){
+    if(state.error == null){
       return const Center(child: Icon(Icons.error_outline, color: Colors.red,));
     }
 

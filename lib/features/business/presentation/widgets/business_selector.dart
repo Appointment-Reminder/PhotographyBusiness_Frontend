@@ -4,7 +4,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photography_business_frontend/features/business/domain/entities/business.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/business_state.dart';
+
 
 class BusinessSelector extends ConsumerWidget {
 
@@ -14,9 +14,9 @@ class BusinessSelector extends ConsumerWidget {
   
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(businessNotifierProvider);
+    final state = ref.watch(businessListNotifierProvider);
     
-    if(state is! BusinessListLoaded){
+    if(state.isLoading){
       return const SizedBox.shrink();
     }
     
