@@ -6,7 +6,6 @@ import 'package:photography_business_frontend/features/appointment/presentation/
 import 'package:photography_business_frontend/features/appointment/presentation/providers/appointment_providers.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/providers/state/appointment_state.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/widgets/appointment_card.dart';
-import 'package:photography_business_frontend/features/appointment/presentation/widgets/business_selector.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/business_state.dart';
 
@@ -62,18 +61,7 @@ class _AppointmentsPageState extends ConsumerState<AppointmentsPage> {
         ),
         body: Column(
           children: [
-            // Business selector at the top
-            if (businessState is BusinessListLoaded)
-              BusinessSelector(
-                selectedBusinessId: _selectedBusinessId,
-                businesses: businessState.businesses,
-                onBusinessSelected: (businessId) {
-                  setState(() {
-                    _selectedBusinessId = businessId;
-                  });
-                  _loadAppointments();
-                },
-              ),
+
             // Appointments list
             Expanded(
               child: _buildBody(appointmentState),
