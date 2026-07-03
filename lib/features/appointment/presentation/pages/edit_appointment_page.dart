@@ -6,7 +6,6 @@ import 'package:photography_business_frontend/features/appointment/presentation/
 import 'package:photography_business_frontend/features/appointment/presentation/providers/state/appointment_state.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/widgets/user_selector.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_state.dart';
 
 
 class EditAppointmentPage extends ConsumerStatefulWidget {
