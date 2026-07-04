@@ -64,7 +64,8 @@ class AuthNotifier extends StateNotifier<AuthState>{
     );
   }
 
-  void logout(){
+  void logout() async {
     state = const AuthUnauthenticated();
+    final result =  await logoutUser(NoParams());
   }
 }
