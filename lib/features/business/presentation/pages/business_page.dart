@@ -73,11 +73,11 @@ class _BusinessPageState extends ConsumerState<BusinessPage>{
       String? activeId,
       ){
 
-    if(state.isLoading){
+    if(state.isLoading &&  state.businesses.isEmpty){
       return const Center(child: CircularProgressIndicator());
     }
 
-    if(state.error == null){
+    if(state.error != null){
       return const Center(child: Icon(Icons.error_outline, color: Colors.red,));
     }
 
