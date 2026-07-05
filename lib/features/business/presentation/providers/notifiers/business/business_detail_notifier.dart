@@ -1,8 +1,8 @@
 // business_detail_notifier.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/business_detail_state.dart';
-import '../../../domain/usecases/get_business_by_id.dart';
-import '../../../domain/usecases/business_params.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/business/business_detail_state.dart';
+import '../../../../domain/usecases/get_business_by_id.dart';
+import '../../../../domain/usecases/business_params.dart';
 
 
 class BusinessDetailNotifier extends StateNotifier<BusinessDetailState> {

@@ -7,7 +7,7 @@ import 'package:photography_business_frontend/core/Presentation/widgets/NavBar/T
 import 'package:photography_business_frontend/features/business/domain/entities/business.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/business_params.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/BusinessListState.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/business/business_list_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/business_selector.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/jotform_matrix_view.dart';
 import 'package:photography_business_frontend/features/package/presentation/pages/package_pricing_view.dart';

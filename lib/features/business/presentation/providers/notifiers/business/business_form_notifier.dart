@@ -2,11 +2,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/business_params.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/create_business.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/Business_form_state.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/business/business_form_state.dart';
 
 class BusinessFormNotifier extends StateNotifier<BusinessFormState> {
   final CreateBusinessUser createBusiness;
-  BusinessFormNotifier(this.createBusiness) : super(const BusinessFormState());
+  BusinessFormNotifier({required this.createBusiness}) : super(const BusinessFormState());
 
   Future<void> create(String name, String? description) async {
     state = state.copyWith(isSubmitting: true, error: null);

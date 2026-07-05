@@ -1,8 +1,8 @@
 // business_member_list_notifier.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/business_member_list_state.dart';
-import '../../../domain/usecases/get_business_members.dart';
-import '../../../domain/usecases/business_params.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/member/business_member_list_state.dart';
+import '../../../../domain/usecases/get_business_members.dart';
+import '../../../../domain/usecases/business_params.dart';
 
 class BusinessMemberListNotifier extends StateNotifier<BusinessMemberListState> {
   final GetBusinessMembersUser getBusinessMembers;

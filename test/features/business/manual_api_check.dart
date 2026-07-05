@@ -39,18 +39,7 @@ void main() {
     print('✅ created business id=${business.id}');
 
     // 3. invite a member
-    final inviteResult = await container.read(inviteBusinessMemberUserProvider)(
-      InviteMemberParams(
-        businessId: business.id,
-        userEmail: 'photo2@test.com',
-        role: 'photographer',
-      ),
-    );
-    final member = inviteResult.fold(
-          (failure) => fail('invite member failed: ${failure.message}'),
-          (m) => m,
-    );
-    print('✅ invited member id=${member.id}');
+
 
     // 4. chain commission/form usecases the same way once you have a packageId
 

@@ -6,12 +6,10 @@ import 'package:photography_business_frontend/core/presentation/theme/app_text_s
 import 'package:photography_business_frontend/core/presentation/widgets/atoms/progress_bar.dart';
 import 'package:photography_business_frontend/core/utils/field_map_serializer.dart';
 import 'package:photography_business_frontend/dev/fixtures.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/jotform_matrix_state.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/jotform_providers.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/Jotform/jotform_matrix_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/webhook_config_panel.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/webhook_matrix_card..dart';
-
-import '../../../../../dev/main_dev.dart';
 import 'matrix_member_row..dart';
 
 class JotformMatrixView extends ConsumerStatefulWidget {
