@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:photography_business_frontend/core/presentation/theme/app_colors.dart';
 import 'package:photography_business_frontend/core/presentation/theme/app_text_styles.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/member_commission_map_notifier.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/commission_providers.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/member/commission/member_commission_map_notifier.dart';
 import 'package:photography_business_frontend/features/package/presentation/widgets/commission/member_commission_card.dart';
 import 'package:photography_business_frontend/features/package/presentation/widgets/member/member_list_card.dart';
 

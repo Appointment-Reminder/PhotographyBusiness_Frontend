@@ -4,49 +4,23 @@ import 'package:photography_business_frontend/features/business/data/datasource/
 import 'package:photography_business_frontend/features/business/data/datasource/business_remote_datasource_impl.dart';
 import 'package:photography_business_frontend/features/business/data/datasource/member_admin_remote_datasource.dart';
 import 'package:photography_business_frontend/features/business/data/datasource/member_admin_remote_datasource_impl.dart';
-import 'package:photography_business_frontend/features/business/data/repositories/business_member_repository_impl.dart';
 import 'package:photography_business_frontend/features/business/data/repositories/business_repository_impl.dart';
 import 'package:photography_business_frontend/features/business/data/repositories/member_admin_repository_impl.dart';
 import 'package:photography_business_frontend/features/business/domain/entities/business.dart';
-import 'package:photography_business_frontend/features/business/domain/entities/business_member_form.dart';
-import 'package:photography_business_frontend/features/business/domain/repositories/business_member_repository.dart';
 import 'package:photography_business_frontend/features/business/domain/repositories/business_repository.dart';
 import 'package:photography_business_frontend/features/business/domain/repositories/member_admin_repository.dart';
-import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/CreateMemberCommissionUser.dart';
-import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/CreateMemberFormUser.dart';
-import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/DeleteMemberFormUser.dart';
-import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/GetMemberCommissionUser.dart';
-import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/GetMemberFormsUser.dart';
-import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/UpdateMemberFormUser.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/delete_business.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/get_business_by_id.dart';
-import 'package:photography_business_frontend/features/business/domain/usecases/get_business_members.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/get_my_businesses.dart';
-import 'package:photography_business_frontend/features/business/domain/usecases/invite_member.dart';
-import 'package:photography_business_frontend/features/business/domain/usecases/remove_member.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/update_business.dart';
-import 'package:photography_business_frontend/features/business/domain/usecases/update_member_role.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business_detail_notifier.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business_form_notifier.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business_list_notifier.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/jotform_matrix_notifier.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/member_commission_map_notifier.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/member_forms_map_notifier.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/BusinessListState.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/Business_form_state.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/business_detail_state.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/business_member_form_state.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/business_member_list_state.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_commission_state.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/business_member_form_state.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/jotform_matrix_state.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business/business_detail_notifier.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business/business_form_notifier.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/notifiers/business/business_list_notifier.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/business/business_list_state.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/business/business_form_state.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/business/business_detail_state.dart';
 
-import '../../../package/presentation/providers/package_providers.dart';
 import '../../domain/usecases/create_business.dart';
-import 'notifiers/MemberCommissionNotifier.dart' show MemberCommissionNotifier;
-import 'notifiers/business_member_form_notifier.dart';
-import 'notifiers/business_member_list_notifier.dart';
-import 'notifiers/member_form_notifier.dart' show MemberFormNotifier;
 
 final businessRemoteDataSourceProvider = Provider<BusinessRemoteDatasource>((ref) {
   return BusinessRemoteDatasourceImpl(client: ref.read(dioProvider));
@@ -63,12 +37,7 @@ final businessRepositoryProvider = Provider<BusinessRepository>((ref) {
   );
 });
 
-final businessMemberRepositoryProvider = Provider<BusinessMemberRepository>((ref){
-  return BusinessMemberRepositoryImpl(
-      remoteDatasource: ref.read(businessRemoteDataSourceProvider),
-      networkInfo: ref.read(networkInfoProvider)
-  );
-});
+
 
 final memberAdminRepositoryProvider = Provider<MemberAdminRepository>((ref){
   return MemberAdminRepositoryImpl(
@@ -89,94 +58,22 @@ final getBusinessByIdUserProvider = Provider<GetBusinessByIdUser>((ref){
   return GetBusinessByIdUser(repository: ref.read(businessRepositoryProvider));
 });
 
-final getBusinessMembersUserProvider = Provider<GetBusinessMembersUser>((ref){
-  return GetBusinessMembersUser(repository: ref.read(businessMemberRepositoryProvider));
-});
+
 
 final getMyBusinessUserProvider = Provider<GetMyBusinessesUser>((ref){
   return GetMyBusinessesUser(repository: ref.read(businessRepositoryProvider));
 });
 
-final inviteBusinessMemberUserProvider = Provider<InviteMemberUser>((ref){
-  return InviteMemberUser(repository:  ref.read(businessMemberRepositoryProvider));
-});
 
-final removeMemberUserProvider = Provider<RemoveMemberUser>((ref){
-  return RemoveMemberUser(repository: ref.read(businessMemberRepositoryProvider));
-});
 
 final updateBusinessProvider = Provider<UpdateBusinessUser>((ref){
   return UpdateBusinessUser(repository: ref.read(businessRepositoryProvider));
 });
 
-final updateMemberRoleUserProvider = Provider<UpdateMemberRoleUser>((ref){
-  return UpdateMemberRoleUser(repository: ref.read(businessMemberRepositoryProvider));
-});
-
-final createMemberCommissionUserProvider = Provider<CreateMemberCommissionUser>((ref){
-  return CreateMemberCommissionUser(repository: ref.read(memberAdminRepositoryProvider));
-});
-final getMemberCommissionUserProvider = Provider<GetMemberCommissionUser>((ref){
-  return GetMemberCommissionUser(repository: ref.read(memberAdminRepositoryProvider));
-});
-final createMemberFormUserProvider = Provider<CreateMemberFormUser>((ref){
-  return CreateMemberFormUser(repository: ref.read(memberAdminRepositoryProvider));
-});
-final updateMemberFormUserProvider = Provider<UpdateMemberFormUser>((ref){
-  return UpdateMemberFormUser(repository: ref.read(memberAdminRepositoryProvider));
-});
-final getMemberFormsUserProvider = Provider<GetMemberFormsUser>((ref){
-  return GetMemberFormsUser(repository: ref.read(memberAdminRepositoryProvider));
-});
-final deleteMemberFormUserProvider = Provider<DeleteMemberFormUser>((ref){
-  return DeleteMemberFormUser(repository: ref.read(memberAdminRepositoryProvider));
-});
-
-final memberCommissionNotifierProvider = StateNotifierProvider<MemberCommissionNotifier, MemberCommissionState>((ref){
-  return MemberCommissionNotifier(
-    createMemberCommission: ref.read(createMemberCommissionUserProvider),
-    getMemberCommission: ref.read(getMemberCommissionUserProvider),
-  );
-});
-final memberFormNotifierProvider = StateNotifierProvider<MemberFormNotifier, MemberFormState>((ref){
-  return MemberFormNotifier(
-    createMemberForm: ref.read(createMemberFormUserProvider),
-    updateMemberForm: ref.read(updateMemberFormUserProvider),
-    getMemberForms: ref.read(getMemberFormsUserProvider),
-    deleteMemberForm: ref.read(deleteMemberFormUserProvider),
-  );
-});
-
-final memberFormsMapProvider = StateNotifierProvider<MemberFormsMapNotifier, Map<int, List<BusinessMemberForm>>>((ref) {
-  return MemberFormsMapNotifier(ref.read(memberAdminRepositoryProvider));
-});
 
 final selectedBusinessProvider = StateProvider<Business?>((ref) => null);
 
 final businessTabProvider = StateProvider<String>((ref) => 'overview');
-
-final memberCommissionMapProvider =
-StateNotifierProvider<MemberCommissionMapNotifier, MemberCommissionMapState>((ref) {
-  return MemberCommissionMapNotifier(
-    getBusinessMembers: ref.read(getBusinessMembersUserProvider),
-    getMemberCommission: ref.read(getMemberCommissionUserProvider),
-    getCategories: ref.read(getPackageCategoriesForBusinessProvider),
-    createCommission: ref.read(createMemberCommissionUserProvider),
-    getPackages: ref.read(getPackagesForBusinessProvider),
-  );
-});
-
-final jotformMatrixNotifierProvider =
-StateNotifierProvider<JotformMatrixNotifier, JotformMatrixState>((ref) {
-  return JotformMatrixNotifier(
-    getBusinessMembers: ref.read(getBusinessMembersUserProvider),
-    getCategories: ref.read(getPackageCategoriesForBusinessProvider), // from package_providers.dart
-    getMemberForms: ref.read(getMemberFormsUserProvider),
-    createMemberForm: ref.read(createMemberFormUserProvider),
-    updateMemberForm: ref.read(updateMemberFormUserProvider),
-    deleteMemberForm: ref.read(deleteMemberFormUserProvider),
-  );
-});
 
 
 final businessListNotifierProvider =
@@ -193,22 +90,8 @@ final businessFormNotifierProvider =
 StateNotifierProvider<BusinessFormNotifier, BusinessFormState>((ref) {
   return BusinessFormNotifier(
     createBusiness: ref.read(createBusinessUserProvider),
-    updateBusiness: ref.read(updateBusinessProvider),
-    deleteBusiness: ref.read(deleteBusinessUserProvider),
   );
 });
 
-final businessMemberListNotifierProvider =
-StateNotifierProvider<BusinessMemberListNotifier, BusinessMemberListState>((ref) {
-  return BusinessMemberListNotifier(getBusinessMembers: ref.read(getBusinessMembersUserProvider));
-});
 
-final businessMemberFormNotifierProvider =
-StateNotifierProvider<BusinessMemberFormNotifier, BusinessMemberFormState>((ref) {
-  return BusinessMemberFormNotifier(
-    inviteMember: ref.read(inviteBusinessMemberUserProvider),
-    updateMemberRole: ref.read(updateMemberRoleUserProvider),
-    removeMember: ref.read(removeMemberUserProvider),
-    listNotifier: ref.read(businessMemberListNotifierProvider.notifier),
-  );
-});
+

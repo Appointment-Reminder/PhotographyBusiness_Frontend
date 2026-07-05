@@ -15,114 +15,56 @@ class BusinessRepositoryImpl implements BusinessRepository {
 
   BusinessRepositoryImpl({required this.remoteDatasource, required this.networkInfo});
 
-  @override
-  Future<Either<Failure, Business>> createBusiness({required String name, String? description}) async {
+  Future<Either<Failure, T>> _execute<T>(Future<T> Function() action) async {
     try{
-      final isOnline = await networkInfo.isConnected;
-      if(!isOnline){
-        return Left(ServerFailure('No internet connection'));
+      if(!await networkInfo.isConnected){
+        return const Left(ServerFailure('No internet connection'));
       }
-
-      final business = await remoteDatasource.createBusiness(
-          name: name,
-          description: description,
-      );
-
-      return Right(business);
+      final result = await action();
+      return Right(result);
     } on DioException catch (e) {
       return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return Left(ServerFailure('Unexpected error'));
     }
+    catch (_) {
+      return const Left(ServerFailure('Unexpected error'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Business>> createBusiness({required String name, String? description}) async {
+    return _execute(() => remoteDatasource.createBusiness(
+      name: name,
+      description: description,
+    ));
   }
 
   @override
   Future<Either<Failure, void>> deleteBusiness(int businessId) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      await remoteDatasource.deleteBusiness(businessId);
-      return const Right(null);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.deleteBusiness(businessId));
   }
 
   @override
   Future<Either<Failure, Business>> getBusinessById(int businessId) async {
-    try{
-      final isOnline = await networkInfo.isConnected;
-      if(!isOnline){
-        return Future.value(Left(ServerFailure('No internet connection')));
-      }
-
-      final business = await remoteDatasource.getBusinessById(businessId);
-      return Right(business);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.getBusinessById(businessId));
   }
 
   @override
   Future<Either<Failure, List<BusinessMember>>> getBusinessMembers(int businessId) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      final members = await remoteDatasource.getBusinessMembers(businessId);
-      return Right(members);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.getBusinessMembers(businessId));
   }
 
   @override
   Future<Either<Failure, List<Business>>> getMyBusinesses({bool? isActive}) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if(!isOnline){
-        return Left(ServerFailure('No internet connection'));
-      }
-
-      final businesses = await remoteDatasource.getMyBusinesses(isActive: isActive);
-      return Right(businesses);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.getMyBusinesses(isActive: isActive));
   }
 
   @override
   Future<Either<Failure, Business>> updateBusiness({required int businessId, String? name, String? description}) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      final business = await remoteDatasource.updateBusiness(
-        businessId: businessId,
-        name: name,
-        description: description,
-      );
-      return Right(business);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.updateBusiness(
+      businessId: businessId,
+      name: name,
+      description: description,
+    ));
   }
 
 }

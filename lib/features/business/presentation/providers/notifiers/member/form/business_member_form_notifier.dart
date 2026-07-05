@@ -1,12 +1,11 @@
 // business_member_form_notifier.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/business_member_form_state.dart';
-import '../../../domain/usecases/invite_member.dart';
-import '../../../domain/usecases/update_member_role.dart';
-import '../../../domain/usecases/remove_member.dart';
-import '../../../domain/usecases/business_params.dart';
-import '../state/business_member_form_state.dart';
-import 'business_member_list_notifier.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/member/form/business_member_form_state.dart';
+import '../../../../../domain/usecases/invite_member.dart';
+import '../../../../../domain/usecases/update_member_role.dart';
+import '../../../../../domain/usecases/remove_member.dart';
+import '../../../../../domain/usecases/business_params.dart';
+import '../business_member_list_notifier.dart';
 
 class BusinessMemberFormNotifier extends StateNotifier<BusinessMemberFormState> {
   final InviteMemberUser inviteMember;

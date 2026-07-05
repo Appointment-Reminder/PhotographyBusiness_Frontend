@@ -1,12 +1,13 @@
-// business_list_notifier.dart — READ ONLY
+// business_list_notifier.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:photography_business_frontend/features/business/domain/usecases/business_params.dart';
-import 'package:photography_business_frontend/features/business/domain/usecases/get_my_businesses.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/BusinessListState.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/business/business_list_state.dart';
+import '../../../../domain/usecases/get_my_businesses.dart';
+import '../../../../domain/usecases/business_params.dart';
 
 class BusinessListNotifier extends StateNotifier<BusinessListState> {
   final GetMyBusinessesUser getMyBusinesses;
-  BusinessListNotifier(this.getMyBusinesses) : super(const BusinessListState());
+
+  BusinessListNotifier({required this.getMyBusinesses}) : super(const BusinessListState());
 
   Future<void> load({bool? isActive}) async {
     state = state.copyWith(isLoading: true, error: null);

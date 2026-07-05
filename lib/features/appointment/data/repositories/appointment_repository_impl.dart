@@ -16,6 +16,20 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required this.networkInfo,
   });
 
+  Future<Either<Failure, T>> _execute<T>(Future<T> Function() action) async {
+    try {
+      if (!await networkInfo.isConnected) {
+        return const Left(ServerFailure('No internet connection'));
+      }
+      final result = await action();
+      return Right(result);
+    } on DioException catch (e) {
+      return Left(DioErrorHandler.handleError(e));
+    } catch (_) {
+      return const Left(ServerFailure('Unexpected error'));
+    }
+  }
+
   @override
   Future<Either<Failure, Appointment>> createAppointment({
     required String clientName,
@@ -25,49 +39,24 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     int? userId,
     int? businessId,
   }) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      // userId and businessId are now required
-      if (userId == null || businessId == null) {
-        return const Left(ServerFailure('User ID and Business ID are required'));
-      }
-
-      final appointment = await remoteDatasource.createAppointment(
-        clientName: clientName,
-        clientEmail: clientEmail,
-        clientPhone: clientPhone,
-        appointmentDate: appointmentDate,
-        userId: userId,
-        businessId: businessId,
-      );
-
-      return Right(appointment);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
+    // userId and businessId are now required
+    if (userId == null || businessId == null) {
+      return const Left(ServerFailure('User ID and Business ID are required'));
     }
+
+    return _execute(() => remoteDatasource.createAppointment(
+      clientName: clientName,
+      clientEmail: clientEmail,
+      clientPhone: clientPhone,
+      appointmentDate: appointmentDate,
+      userId: userId,
+      businessId: businessId,
+    ));
   }
 
   @override
   Future<Either<Failure, List<Appointment>>> getMyAppointments({String? status}) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      final appointments = await remoteDatasource.getMyAppointments(status: status);
-      return Right(appointments);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error '));
-    }
+    return _execute(() => remoteDatasource.getMyAppointments(status: status));
   }
 
   @override
@@ -75,24 +64,10 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required int businessId,
     String? status,
   }) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      print('get appointments for business ');
-      final appointments = await remoteDatasource.getAppointmentsForBusiness(
-        businessId: businessId,
-        status: status,
-      );
-      return Right(appointments);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      print('error in getting appointment ${e}');
-      return const Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.getAppointmentsForBusiness(
+      businessId: businessId,
+      status: status,
+    ));
   }
 
   @override
@@ -100,22 +75,11 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     required int businessId,
     required int appointmentId,
   }) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
 
-      final appointment = await remoteDatasource.getAppointmentById(
-        businessId: businessId,
-        appointmentId: appointmentId,
-      );
-      return Right(appointment);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.getAppointmentById(
+      businessId: businessId,
+      appointmentId: appointmentId,
+    ));
   }
 
   @override
@@ -128,43 +92,20 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     DateTime? appointmentDate,
     int? userId,
   }) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
 
-      final appointment = await remoteDatasource.updateAppointment(
-        businessId: businessId,
-        appointmentId: appointmentId,
-        clientName: clientName,
-        clientEmail: clientEmail,
-        clientPhone: clientPhone,
-        appointmentDate: appointmentDate,
-        userId: userId,
-      );
-      return Right(appointment);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.updateAppointment(
+      businessId: businessId,
+      appointmentId: appointmentId,
+      clientName: clientName,
+      clientEmail: clientEmail,
+      clientPhone: clientPhone,
+      appointmentDate: appointmentDate,
+      userId: userId,
+    ));
   }
 
   @override
   Future<Either<Failure, void>> deleteAppointment(int appointmentId) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      await remoteDatasource.deleteAppointment(appointmentId);
-      return const Right(null);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.deleteAppointment(appointmentId));
   }
 }
