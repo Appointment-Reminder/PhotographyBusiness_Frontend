@@ -9,7 +9,7 @@ import 'package:photography_business_frontend/features/business/domain/usecases/
 import 'package:photography_business_frontend/features/package/domain/usecases/get_package_categories_for_business.dart';
 import 'package:photography_business_frontend/features/package/domain/usecases/package_params.dart';
 
-import '../state/jotform_matrix_state.dart';
+import '../../state/Jotform/jotform_matrix_state.dart';
 
 class JotformMatrixNotifier extends StateNotifier<JotformMatrixState> {
   final GetBusinessMembersUser getBusinessMembers;

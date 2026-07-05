@@ -14,6 +14,21 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
 
   MemberAdminRepositoryImpl({required this.remoteDatasource, required this.networkInfo});
 
+  Future<Either<Failure, T>> _execute<T>(Future<T> Function() action) async {
+    try{
+      if(!await networkInfo.isConnected){
+        return const Left(ServerFailure('No internet connection'));
+      }
+      final result = await action();
+      return Right(result);
+    } on DioException catch (e) {
+      return Left(DioErrorHandler.handleError(e));
+    }
+    catch (_) {
+      return const Left(ServerFailure('Unexpected error'));
+    }
+  }
+
   @override
   Future<Either<Failure, MemberCommission>> createMemberCommission({
     required int businessMemberId,
@@ -21,25 +36,12 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
     required int commissionPercent,
     required DateTime effectiveFrom,
   }) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      final commission = await remoteDatasource.createMemberCommission(
-        businessMemberId: businessMemberId,
-        packageId: packageId,
-        commissionPercent: commissionPercent,
-        effectiveFrom: effectiveFrom,
-      );
-
-      return Right(commission);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.createMemberCommission(
+      businessMemberId: businessMemberId,
+      packageId: packageId,
+      commissionPercent: commissionPercent,
+      effectiveFrom: effectiveFrom,
+    ));
   }
 
   @override
@@ -47,23 +49,10 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
     required int memberId,
     required int packageId,
   }) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      final commission = await remoteDatasource.getMemberCommission(
-        memberId: memberId,
-        packageId: packageId,
-      );
-
-      return Right(commission);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.getMemberCommission(
+      memberId: memberId,
+      packageId: packageId,
+    ));
   }
 
   @override
@@ -72,24 +61,11 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
     required int categoryId,
     required String jotformFieldMap,
   }) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      final form = await remoteDatasource.createMemberForm(
-        businessMemberId: businessMemberId,
-        categoryId: categoryId,
-        jotformFieldMap: jotformFieldMap,
-      );
-
-      return Right(form);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.createMemberForm(
+      businessMemberId: businessMemberId,
+      categoryId: categoryId,
+      jotformFieldMap: jotformFieldMap,
+    ));
   }
 
   @override
@@ -99,25 +75,12 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
     required int categoryId,
     required String jotformFieldMap,
   }) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      final form = await remoteDatasource.updateMemberForm(
-        id: id,
-        businessMemberId: businessMemberId,
-        categoryId: categoryId,
-        jotformFieldMap: jotformFieldMap,
-      );
-
-      return Right(form);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.updateMemberForm(
+      id: id,
+      businessMemberId: businessMemberId,
+      categoryId: categoryId,
+      jotformFieldMap: jotformFieldMap,
+    ));
   }
 
   @override
@@ -125,39 +88,14 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
     required int businessId,
     required int memberId,
   }) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      final forms = await remoteDatasource.getMemberForms(
-        businessId: businessId,
-        memberId: memberId,
-      );
-
-      return Right(forms);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.getMemberForms(
+      businessId: businessId,
+      memberId: memberId,
+    ));
   }
 
   @override
   Future<Either<Failure, void>> deleteMemberForm(int formId) async {
-    try {
-      final isOnline = await networkInfo.isConnected;
-      if (!isOnline) {
-        return const Left(ServerFailure('No internet connection'));
-      }
-
-      await remoteDatasource.deleteMemberForm(formId);
-      return const Right(null);
-    } on DioException catch (e) {
-      return Left(DioErrorHandler.handleError(e));
-    } catch (e) {
-      return const Left(ServerFailure('Unexpected error'));
-    }
+    return _execute(() => remoteDatasource.deleteMemberForm(formId));
   }
 }

@@ -1,9 +1,9 @@
-// member_commission_notifier.dart — replaces MemberCommissionNotifier.dart
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/state/Refacto/member_commission_state.dart';
-import '../../../domain/usecases/AdminUseCases/CreateMemberCommissionUser.dart';
-import '../../../domain/usecases/AdminUseCases/GetMemberCommissionUser.dart';
-import '../../../domain/usecases/member_params.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/state/member/commission/member_commission_state.dart';
+import '../../../../../domain/usecases/AdminUseCases/CreateMemberCommissionUser.dart';
+import '../../../../../domain/usecases/AdminUseCases/GetMemberCommissionUser.dart';
+import '../../../../../domain/usecases/member_params.dart';
 
 class MemberCommissionNotifier extends StateNotifier<MemberCommissionState> {
   final CreateMemberCommissionUser createMemberCommission;
