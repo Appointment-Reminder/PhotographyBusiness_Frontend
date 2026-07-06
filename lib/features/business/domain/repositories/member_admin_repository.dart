@@ -16,6 +16,16 @@ abstract class MemberAdminRepository {
     required int packageId,
   });
 
+  Future<Either<Failure, MemberCommission>> updateMemberCommission({
+    required int id,
+    required int commissionPercent,
+    required int commissionFlat,
+  });
+
+  Future<Either<Failure, List<MemberCommission>>> getBusinessCommissions({
+    required int businessId,
+  });
+
   Future<Either<Failure, BusinessMemberForm>> createMemberForm({
     required int businessMemberId,
     required int categoryId,
@@ -33,6 +43,10 @@ abstract class MemberAdminRepository {
     required int businessId,
     required int memberId,
   });
+
+  Future<Either<Failure, List<BusinessMemberForm>>> getAllMemberForms({
+    required int businessId,
+});
 
   Future<Either<Failure, void>> deleteMemberForm(int formId);
 }

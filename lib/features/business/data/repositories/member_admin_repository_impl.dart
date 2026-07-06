@@ -56,6 +56,16 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
   }
 
   @override
+  Future<Either<Failure, List<MemberCommission>>> getBusinessCommissions({required int businessId}) async {
+    return _execute(() => remoteDatasource.getBusinessCommissions(businessId: businessId));
+  }
+
+  @override
+  Future<Either<Failure, MemberCommission>> updateMemberCommission({required int id, required int commissionPercent, required int commissionFlat}) {
+    return _execute(() => remoteDatasource.updateMemberCommission(id: id, commissionPercent: commissionPercent, commissionFlat: commissionFlat));
+  }
+
+  @override
   Future<Either<Failure, BusinessMemberForm>> createMemberForm({
     required int businessMemberId,
     required int categoryId,
@@ -95,7 +105,18 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
   }
 
   @override
+  Future<Either<Failure, List<BusinessMemberForm>>> getAllMemberForms({required int businessId}) {
+    return _execute(() => remoteDatasource.getAllMemberForms(businessId: businessId));
+  }
+
+  @override
   Future<Either<Failure, void>> deleteMemberForm(int formId) async {
     return _execute(() => remoteDatasource.deleteMemberForm(formId));
   }
+
+
+
+
+
+
 }

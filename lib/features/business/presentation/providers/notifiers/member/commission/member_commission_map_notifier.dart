@@ -3,6 +3,8 @@ import 'package:photography_business_frontend/features/business/domain/entities/
 import 'package:photography_business_frontend/features/business/domain/entities/member_commission.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/CreateMemberCommissionUser.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/GetMemberCommissionUser.dart';
+import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/get_business_commissions_user.dart';
+import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/update_member_commission_user.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/business_params.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/get_business_members.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/member_params.dart';
@@ -54,7 +56,9 @@ class MemberCommissionMapNotifier extends StateNotifier<MemberCommissionMapState
   final GetMemberCommissionUser getMemberCommission;
   final GetPackagesForBusiness getPackages;
   final GetPackageCategoriesForBusiness getCategories;
+  final GetBusinessCommissionsUser getBusinessCommissions;
   final CreateMemberCommissionUser createCommission; // add this usecase provider too
+  final UpdateMemberCommissionUser updateCommission;
 
   MemberCommissionMapNotifier({
     required this.getBusinessMembers,
@@ -62,6 +66,8 @@ class MemberCommissionMapNotifier extends StateNotifier<MemberCommissionMapState
     required this.getPackages,
     required this.getCategories,
     required this.createCommission,
+    required this.getBusinessCommissions,
+    required this.updateCommission,
   }) : super(const MemberCommissionMapState());
 
   Future<void> loadForBusiness(int businessId) async {
@@ -70,6 +76,14 @@ class MemberCommissionMapNotifier extends StateNotifier<MemberCommissionMapState
     final memberResult = await getBusinessMembers(GetBusinessMembersParams(businessId));
     final pkgsResult = await getPackages(GetPackagesForBusinessParams(businessId: businessId));
     final catsResult = await getCategories(GetPackageCategoriesForBusinessParams(businessId: businessId));
+    final commissionResult = await getBusinessCommissions(GetBusinessByIdParams(businessId= businessId));
+    
+    final flat = commissionResult.getOrElse(() => []);
+    final grouped = <int, Map<int, MemberCommission>>{};
+
+    for (final c in flat) {
+      grouped.putIfAbsent(c.businessMemberId, () => {})[c.packageId] = c;
+    }
 
     if (memberResult.isLeft() || pkgsResult.isLeft() || catsResult.isLeft()) {
       state = state.copyWith(isLoading: false, error: 'Failed to load team data');
@@ -80,18 +94,8 @@ class MemberCommissionMapNotifier extends StateNotifier<MemberCommissionMapState
     final packages = pkgsResult.getOrElse(() => []);
     final categories = catsResult.getOrElse(() => []);
 
-    state = state.copyWith(
-      members: members,
-      packages: packages,
-      categories: categories,
-      isLoading: false,
-    );
-
-    await Future.wait([
-      for (final m in members)
-        for (final p in packages)
-          loadCommission(memberId: m.id, packageId: p.id),
-    ]);
+    state = state.copyWith(members: members, packages: packages, categories: categories,
+        commissions: grouped, isLoading: false);
   }
 
   Future<void> loadCommission({required int memberId, required int packageId}) async {
@@ -109,6 +113,32 @@ class MemberCommissionMapNotifier extends StateNotifier<MemberCommissionMapState
         state = state.copyWith(commissions: updated);
       },
     );
+  }
+
+  Future<void> upsertCommission({
+    required int memberId,
+    required int packageId,
+    required int commissionPercent,
+  }) async {
+    final existing = state.commissions[memberId]?[packageId];
+
+    final result = existing != null
+        ? await updateCommission(UpdateMemberCommissionParams(
+        id: existing.id, commissionPercent: commissionPercent, commissionFlat: 0))
+        : await createCommission(CreateMemberCommissionParams(
+      businessMemberId: memberId,
+      packageId: packageId,
+      commissionPercent: commissionPercent,
+      effectiveFrom: DateTime.now(),
+    ));
+
+    result.fold((_) {}, (c) => _setCommission(memberId, packageId, c));
+  }
+
+  void _setCommission(int memberId, int packageId, MemberCommission c) {
+    final updated = {...state.commissions};
+    updated[memberId] = {...(updated[memberId] ?? {}), packageId: c};
+    state = state.copyWith(commissions: updated);
   }
 
   void clear() => state = const MemberCommissionMapState();

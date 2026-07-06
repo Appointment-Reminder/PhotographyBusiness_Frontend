@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photography_business_frontend/features/business/domain/entities/business_member_form.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/CreateMemberFormUser.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/DeleteMemberFormUser.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/GetMemberFormsUser.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/UpdateMemberFormUser.dart';
+import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/get_all_member_forms_user.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/business_params.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/get_business_members.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/member_params.dart';
@@ -18,6 +20,7 @@ class JotformMatrixNotifier extends StateNotifier<JotformMatrixState> {
   final CreateMemberFormUser createMemberForm;
   final UpdateMemberFormUser updateMemberForm;
   final DeleteMemberFormUser deleteMemberForm;
+  final GetAllMemberFormsUser getAllMemberForm;
 
   JotformMatrixNotifier({
     required this.getBusinessMembers,
@@ -26,13 +29,18 @@ class JotformMatrixNotifier extends StateNotifier<JotformMatrixState> {
     required this.createMemberForm,
     required this.updateMemberForm,
     required this.deleteMemberForm,
+    required this.getAllMemberForm,
   }) : super(const JotformMatrixState());
 
   Future<void> loadForBusiness(int businessId) async {
+
+
+
     state = state.copyWith(isLoading: true, error: null);
 
     final memberResult = await getBusinessMembers(GetBusinessMembersParams(businessId));
     final catResult = await getCategories(GetPackageCategoriesForBusinessParams(businessId: businessId));
+    final formsResult = await getAllMemberForm(GetBusinessByIdParams(businessId));
 
     if (memberResult.isLeft() || catResult.isLeft()) {
       state = state.copyWith(isLoading: false, error: 'Failed to load team / categories');
@@ -41,10 +49,14 @@ class JotformMatrixNotifier extends StateNotifier<JotformMatrixState> {
 
     final members = memberResult.getOrElse(() => []);
     final categories = catResult.getOrElse(() => []);
+    final flat = formsResult.getOrElse(() => []);
 
-    state = state.copyWith(members: members, categories: categories, isLoading: false);
+    final grouped = <int, List<BusinessMemberForm>>{};
+    for (final f in flat) {
+      grouped.putIfAbsent(f.businessMemberId, () => []).add(f);
+    }
 
-    await Future.wait(members.map((m) => _loadFormsForMember(businessId, m.id)));
+    state = state.copyWith(members: members, categories: categories, forms: grouped, isLoading: false);
   }
 
   Future<void> _loadFormsForMember(int businessId, int memberId) async {

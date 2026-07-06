@@ -14,5 +14,6 @@ StateNotifierProvider<JotformMatrixNotifier, JotformMatrixState>((ref) {
     createMemberForm: ref.read(createMemberFormUserProvider),
     updateMemberForm: ref.read(updateMemberFormUserProvider),
     deleteMemberForm: ref.read(deleteMemberFormUserProvider),
+    getAllMemberForm: ref.read(getAllMemberFormsUserProvider),
   );
 });

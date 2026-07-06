@@ -39,6 +39,20 @@ class MemberAdminRemoteDatasourceImpl implements MemberAdminRemoteDatasource {
   }
 
   @override
+  Future<List<MemberCommission>> getBusinessCommissions({required int businessId}) async {
+    final response = await client.get('/business/$businessId/commissions');
+    final List<dynamic> list = response.data;
+    return list.map((json) => MemberCommissionModel.fromJson(json)).toList();
+  }
+
+  @override
+  Future<MemberCommission> updateMemberCommission({required int id, required int commissionPercent, required int commissionFlat}) async {
+    final response = await client.patch('/business/members/commissions',
+        data: {'id': id, 'commission_percent': commissionPercent});
+    return MemberCommissionModel.fromJson(response.data);
+  }
+
+  @override
   Future<BusinessMemberForm> createMemberForm({
     required int businessMemberId,
     required int categoryId,
@@ -85,7 +99,15 @@ class MemberAdminRemoteDatasourceImpl implements MemberAdminRemoteDatasource {
   }
 
   @override
+  Future<List<BusinessMemberForm>> getAllMemberForms({required int businessId}) async {
+    final response = await client.get('/business/$businessId/members/forms');
+    final List<dynamic> list = response.data;
+    return list.map((json) => BusinessMemberFormModel.fromJson(json)).toList();
+  }
+
+  @override
   Future<void> deleteMemberForm(int formId) async {
     await client.delete('/business/members/forms/$formId');
   }
+
 }

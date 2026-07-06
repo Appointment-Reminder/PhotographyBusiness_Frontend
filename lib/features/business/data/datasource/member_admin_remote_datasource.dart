@@ -14,6 +14,16 @@ abstract class MemberAdminRemoteDatasource {
     required int packageId,
   });
 
+  Future<MemberCommission> updateMemberCommission({
+    required int id,
+    required int commissionPercent,
+    required int commissionFlat,
+  });
+
+  Future<List<MemberCommission>> getBusinessCommissions({
+    required int businessId
+  });
+
   Future<BusinessMemberForm> createMemberForm({
     required int businessMemberId,
     required int categoryId,
@@ -30,6 +40,10 @@ abstract class MemberAdminRemoteDatasource {
   Future<List<BusinessMemberForm>> getMemberForms({
     required int businessId,
     required int memberId,
+  });
+
+  Future<List<BusinessMemberForm>> getAllMemberForms({
+    required int businessId,
   });
 
   Future<void> deleteMemberForm(int formId);
