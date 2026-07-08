@@ -14,8 +14,8 @@ class UpdateMemberCommissionUser extends Usecase<MemberCommission, UpdateMemberC
   Future<Either<Failure, MemberCommission>> call(UpdateMemberCommissionParams params) {
     return repository.updateMemberCommission(
         id: params.id,
-        commissionPercent: params.commissionPercent,
-        commissionFlat: params.commissionFlat);
+        commissionAmount: params.commissionAmount,
+        commissionIsPercent: params.commissionIsPercentage);
   }
 
 }

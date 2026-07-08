@@ -118,17 +118,19 @@ class MemberCommissionMapNotifier extends StateNotifier<MemberCommissionMapState
   Future<void> upsertCommission({
     required int memberId,
     required int packageId,
-    required int commissionPercent,
+    required int commissionAmount,
+    required bool commissionIsPercentage,
   }) async {
     final existing = state.commissions[memberId]?[packageId];
 
     final result = existing != null
         ? await updateCommission(UpdateMemberCommissionParams(
-        id: existing.id, commissionPercent: commissionPercent, commissionFlat: 0))
+        id: existing.id, commissionAmount: commissionAmount, commissionIsPercentage: commissionIsPercentage))
         : await createCommission(CreateMemberCommissionParams(
       businessMemberId: memberId,
       packageId: packageId,
-      commissionPercent: commissionPercent,
+      commissionAmount: commissionAmount,
+      commissionIsPercentage: commissionIsPercentage,
       effectiveFrom: DateTime.now(),
     ));
 

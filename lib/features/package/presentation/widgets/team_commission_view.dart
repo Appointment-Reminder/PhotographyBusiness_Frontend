@@ -43,8 +43,8 @@ class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
         packageName: pkg.name,
         categoryName: '', // you don't have category name here unless you also load categories
         categoryId: pkg.categoryId,
-        value: c?.commissionPercent.toString() ?? '0',
-        isPercent: true, // API only stores commission_percent, no EUR mode — see below
+        value: c?.commissionAmount.toString() ?? '0',
+        isPercent: c?.commissionIsPercentage ?? false, // API only stores commission_percent, no EUR mode — see below
       );
     }).toList();
   }
