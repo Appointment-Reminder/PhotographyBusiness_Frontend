@@ -24,14 +24,16 @@ class MemberCommissionNotifier extends StateNotifier<MemberCommissionState> {
   Future<void> create({
     required int businessMemberId,
     required int packageId,
-    required int commissionPercent,
+    required int commissionAmount,
+    required bool commissionIsPercentage,
     required DateTime effectiveFrom,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     final result = await createMemberCommission(CreateMemberCommissionParams(
       businessMemberId: businessMemberId,
       packageId: packageId,
-      commissionPercent: commissionPercent,
+      commissionAmount: commissionAmount,
+      commissionIsPercentage: commissionIsPercentage,
       effectiveFrom: effectiveFrom,
     ));
     result.fold(

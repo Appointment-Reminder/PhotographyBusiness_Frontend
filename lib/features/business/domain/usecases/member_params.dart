@@ -4,18 +4,20 @@ import 'package:equatable/equatable.dart';
 class CreateMemberCommissionParams extends Equatable {
   final int businessMemberId;
   final int packageId;
-  final int commissionPercent;
+  final int commissionAmount;
+  final bool commissionIsPercentage;
   final DateTime effectiveFrom;
 
   const CreateMemberCommissionParams({
     required this.businessMemberId,
     required this.packageId,
-    required this.commissionPercent,
+    required this.commissionAmount,
+    required this.commissionIsPercentage,
     required this.effectiveFrom,
   });
 
   @override
-  List<Object?> get props => [businessMemberId, packageId, commissionPercent, effectiveFrom];
+  List<Object?> get props => [businessMemberId, packageId, commissionAmount, commissionIsPercentage, effectiveFrom];
 }
 
 // Get Member Commission — note: API has NO business_id in this path
@@ -82,4 +84,17 @@ class DeleteMemberFormParams extends Equatable {
 
   @override
   List<Object?> get props => [formId];
+}
+
+class UpdateMemberCommissionParams extends Equatable {
+  final int id;
+  final int commissionAmount;
+  final bool commissionIsPercentage;
+
+  const UpdateMemberCommissionParams({required this.id, required this.commissionAmount, required this.commissionIsPercentage});
+
+  @override
+  List<Object?> get props => [id, commissionAmount, commissionIsPercentage];
+
+
 }

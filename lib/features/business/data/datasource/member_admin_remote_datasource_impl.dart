@@ -14,7 +14,8 @@ class MemberAdminRemoteDatasourceImpl implements MemberAdminRemoteDatasource {
   Future<MemberCommission> createMemberCommission({
     required int businessMemberId,
     required int packageId,
-    required int commissionPercent,
+    required int commissionAmount,
+    required bool commissionIsPercent,
     required DateTime effectiveFrom,
   }) async {
     final response = await client.post(
@@ -22,7 +23,8 @@ class MemberAdminRemoteDatasourceImpl implements MemberAdminRemoteDatasource {
       data: {
         'business_member_id': businessMemberId,
         'package_id': packageId,
-        'commission_percent': commissionPercent,
+        'commission_amount': commissionAmount,
+        'commission_isPercent': commissionIsPercent,
         'effective_from': effectiveFrom.toIso8601String(),
       },
     );
@@ -35,6 +37,23 @@ class MemberAdminRemoteDatasourceImpl implements MemberAdminRemoteDatasource {
     required int packageId,
   }) async {
     final response = await client.get('/business/members/$memberId/$packageId/commissions');
+    return MemberCommissionModel.fromJson(response.data);
+  }
+
+  @override
+  Future<List<MemberCommission>> getBusinessCommissions({required int businessId}) async {
+    final response = await client.get('/business/$businessId/commissions');
+    final List<dynamic> list = response.data;
+    return list.map((json) => MemberCommissionModel.fromJson(json)).toList();
+  }
+
+  @override
+  Future<MemberCommission> updateMemberCommission({
+    required int id,
+    required int commissionAmount,
+    required bool commissionIsPercent}) async {
+    final response = await client.patch('/business/members/commissions',
+        data: {'id': id, 'commission_amount': commissionAmount ,'commission_IsPercent': commissionIsPercent});
     return MemberCommissionModel.fromJson(response.data);
   }
 
@@ -85,7 +104,15 @@ class MemberAdminRemoteDatasourceImpl implements MemberAdminRemoteDatasource {
   }
 
   @override
+  Future<List<BusinessMemberForm>> getAllMemberForms({required int businessId}) async {
+    final response = await client.get('/business/$businessId/members/forms');
+    final List<dynamic> list = response.data;
+    return list.map((json) => BusinessMemberFormModel.fromJson(json)).toList();
+  }
+
+  @override
   Future<void> deleteMemberForm(int formId) async {
     await client.delete('/business/members/forms/$formId');
   }
+
 }

@@ -33,13 +33,15 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
   Future<Either<Failure, MemberCommission>> createMemberCommission({
     required int businessMemberId,
     required int packageId,
-    required int commissionPercent,
+    required int commissionAmount,
+    required bool commissionIsPercent,
     required DateTime effectiveFrom,
   }) async {
     return _execute(() => remoteDatasource.createMemberCommission(
       businessMemberId: businessMemberId,
       packageId: packageId,
-      commissionPercent: commissionPercent,
+      commissionAmount: commissionAmount,
+      commissionIsPercent: commissionIsPercent,
       effectiveFrom: effectiveFrom,
     ));
   }
@@ -53,6 +55,23 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
       memberId: memberId,
       packageId: packageId,
     ));
+  }
+
+  @override
+  Future<Either<Failure, List<MemberCommission>>> getBusinessCommissions({required int businessId}) async {
+    return _execute(() => remoteDatasource.getBusinessCommissions(businessId: businessId));
+  }
+
+  @override
+  Future<Either<Failure, MemberCommission>> updateMemberCommission({
+    required int id,
+    required int commissionAmount,
+    required bool commissionIsPercent
+  }) {
+    return _execute(() => remoteDatasource.updateMemberCommission(
+        id: id,
+        commissionAmount: commissionAmount,
+        commissionIsPercent: commissionIsPercent));
   }
 
   @override
@@ -95,7 +114,18 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
   }
 
   @override
+  Future<Either<Failure, List<BusinessMemberForm>>> getAllMemberForms({required int businessId}) {
+    return _execute(() => remoteDatasource.getAllMemberForms(businessId: businessId));
+  }
+
+  @override
   Future<Either<Failure, void>> deleteMemberForm(int formId) async {
     return _execute(() => remoteDatasource.deleteMemberForm(formId));
   }
+
+
+
+
+
+
 }
