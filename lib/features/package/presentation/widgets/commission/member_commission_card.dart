@@ -38,6 +38,7 @@ class MemberCommissionsCard extends StatelessWidget {
   final ValueChanged<String> onValueChanged; // packageId
   final void Function(String packageId, bool isPercent) onTypeChanged;
   final ValueChanged<String> onRemove;       // packageId
+  final double maxHeight;
 
   const MemberCommissionsCard({
     super.key,
@@ -48,11 +49,13 @@ class MemberCommissionsCard extends StatelessWidget {
     required this.onValueChanged,
     required this.onTypeChanged,
     required this.onRemove,
+    this.maxHeight = 480,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: BoxConstraints(maxHeight: maxHeight),
       decoration: BoxDecoration(
         color: AppColors.active,
         borderRadius: BorderRadius.circular(12),
@@ -60,6 +63,7 @@ class MemberCommissionsCard extends StatelessWidget {
       ),
       clipBehavior: Clip.hardEdge,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Member header
@@ -112,16 +116,25 @@ class MemberCommissionsCard extends StatelessWidget {
           ),
 
           // Rows
-          ...commissions.map((c) => CommissionRow(
-            packageName:   c.packageName,
-            categoryName:  c.categoryName,
-            categoryId:    c.categoryId,
-            value:         c.value,
-            isPercent:     c.isPercent,
-            onValueChanged: (v) => onValueChanged(c.packageId),
-            onTypeChanged:  (p) => onTypeChanged(c.packageId, p),
-            onRemove:       ()  => onRemove(c.packageId),
-          )),
+          Flexible(
+              child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: commissions.length,
+                  itemBuilder: (context, i){
+                    final c = commissions[i];
+                    return CommissionRow(
+                      packageName:   c.packageName,
+                      categoryName:  c.categoryName,
+                      categoryId:    c.categoryId,
+                      value:         c.value,
+                      isPercent:     c.isPercent,
+                      onValueChanged: (v) => onValueChanged(c.packageId),
+                      onTypeChanged:  (p) => onTypeChanged(c.packageId, p),
+                      onRemove:       ()  => onRemove(c.packageId),
+                      );
+                    }
+                    )
+          ),
         ],
       ),
     );

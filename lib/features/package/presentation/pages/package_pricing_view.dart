@@ -41,7 +41,7 @@ class _PackagesPricingViewState extends ConsumerState<PackagesPricingView> {
           const SizedBox(height: 8),
           Text('Packages & Pricing', style: AppTextStyles.heading24),
           const SizedBox(height: 32),
-          ThreeColumnCard(categories: _toCategoryEntries(s)),
+          Expanded(child: ThreeColumnCard(categories: _toCategoryEntries(s))),
         ],
       ),
     );
