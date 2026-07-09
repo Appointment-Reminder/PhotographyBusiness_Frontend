@@ -61,10 +61,12 @@ class CategoryEntry {
 
 class ThreeColumnCard extends StatefulWidget {
   final List<CategoryEntry> categories;
+  final double height;
 
   const ThreeColumnCard({
     super.key,
     required this.categories,
+    this.height = 420,
   });
 
   @override
@@ -99,6 +101,7 @@ class _ThreeColumnCardState extends State<ThreeColumnCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: widget.height,
       decoration: BoxDecoration(
         color: AppColors.active,
         borderRadius: BorderRadius.circular(12),
@@ -114,11 +117,15 @@ class _ThreeColumnCardState extends State<ThreeColumnCard> {
               width: 200,
               child: _Column(
                 header: 'Category',
-                children: widget.categories.map((cat) => CategoryRow(
-                  name: cat.name,
-                  isSelected: cat.id == _selectedCategoryId,
-                  onTap: () => _selectCategory(cat.id),
-                )).toList(),
+                itemCount: widget.categories.length,
+                itemBuilder: (context, i) {
+                  final cat = widget.categories[i];
+                  return CategoryRow(
+                    name: cat.name,
+                    isSelected: cat.id == _selectedCategoryId,
+                    onTap: () => _selectCategory(cat.id),
+                  );
+                },
               ),
             ),
 
@@ -128,13 +135,17 @@ class _ThreeColumnCardState extends State<ThreeColumnCard> {
             Expanded(
               child: _Column(
                 header: 'Package',
-                children: _selectedCategory.packages.map((pkg) => PackageRow(
-                  name: pkg.name,
-                  description: pkg.description,
-                  currentPrice: pkg.currentPrice,
-                  isSelected: pkg.id == _selectedPackageId,
-                  onTap: () => setState(() => _selectedPackageId = pkg.id),
-                )).toList(),
+                itemCount: _selectedCategory.packages.length,
+                itemBuilder: (context, i) {
+                  final pkg = _selectedCategory.packages[i];
+                  return PackageRow(
+                    name: pkg.name,
+                    description: pkg.description,
+                    currentPrice: pkg.currentPrice,
+                    isSelected: pkg.id == _selectedPackageId,
+                    onTap: () => setState(() => _selectedPackageId = pkg.id),
+                  );
+                },
               ),
             ),
 
@@ -144,13 +155,17 @@ class _ThreeColumnCardState extends State<ThreeColumnCard> {
             Expanded(
               child: _Column(
                 header: 'Pricing',
-                children: _selectedPackage.prices.map((price) => PriceHistoryRow(
-                  from: price.from,
-                  to: price.to,
-                  amount: price.amount,
-                  currency: price.currency,
-                  isCurrent: price.isCurrent,
-                )).toList(),
+                itemCount: _selectedPackage.prices.length,
+                itemBuilder: (context, i) {
+                  final price = _selectedPackage.prices[i];
+                  return PriceHistoryRow(
+                    from: price.from,
+                    to: price.to,
+                    amount: price.amount,
+                    currency: price.currency,
+                    isCurrent: price.isCurrent,
+                  );
+                },
               ),
             ),
           ],
@@ -164,17 +179,27 @@ class _ThreeColumnCardState extends State<ThreeColumnCard> {
 
 class _Column extends StatelessWidget {
   final String header;
-  final List<Widget> children;
+  final int itemCount;
+  final IndexedWidgetBuilder itemBuilder;
 
-  const _Column({required this.header, required this.children});
+  const _Column({
+    required this.header,
+    required this.itemCount,
+    required this.itemBuilder,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ColumnHeader(header),
-        ...children,
+        ColumnHeader(header), // pinned — outside the scroll
+        Expanded(
+          child: ListView.builder(
+            itemCount: itemCount,
+            itemBuilder: itemBuilder,
+          ),
+        ),
       ],
     );
   }

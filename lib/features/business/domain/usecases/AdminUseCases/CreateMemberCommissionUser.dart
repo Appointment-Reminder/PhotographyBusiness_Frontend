@@ -15,13 +15,12 @@ class CreateMemberCommissionUser extends Usecase<MemberCommission, CreateMemberC
 
   @override
   Future<Either<Failure, MemberCommission>> call(CreateMemberCommissionParams params) {
-    if (params.commissionPercent < 0 || params.commissionPercent > 100) {
-      return Future.value(const Left(ServerFailure('Commission percent must be between 0 and 100')));
-    }
+
     return repository.createMemberCommission(
       businessMemberId: params.businessMemberId,
       packageId: params.packageId,
-      commissionPercent: params.commissionPercent,
+      commissionAmount: params.commissionAmount,
+      commissionIsPercent: params.commissionIsPercentage,
       effectiveFrom: params.effectiveFrom,
     );
   }

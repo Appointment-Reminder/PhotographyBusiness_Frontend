@@ -5,6 +5,7 @@ import 'package:photography_business_frontend/features/business/domain/usecases/
 import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/DeleteMemberFormUser.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/GetMemberFormsUser.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/UpdateMemberFormUser.dart';
+import 'package:photography_business_frontend/features/business/domain/usecases/AdminUseCases/get_all_member_forms_user.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/get_business_members.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/invite_member.dart';
 import 'package:photography_business_frontend/features/business/domain/usecases/remove_member.dart';
@@ -52,6 +53,11 @@ final updateMemberFormUserProvider = Provider<UpdateMemberFormUser>((ref){
 final getMemberFormsUserProvider = Provider<GetMemberFormsUser>((ref){
   return GetMemberFormsUser(repository: ref.read(memberAdminRepositoryProvider));
 });
+
+final getAllMemberFormsUserProvider = Provider<GetAllMemberFormsUser>((ref){
+  return GetAllMemberFormsUser(repository: ref.read(memberAdminRepositoryProvider));
+});
+
 final deleteMemberFormUserProvider = Provider<DeleteMemberFormUser>((ref){
   return DeleteMemberFormUser(repository: ref.read(memberAdminRepositoryProvider));
 });

@@ -43,8 +43,8 @@ class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
         packageName: pkg.name,
         categoryName: '', // you don't have category name here unless you also load categories
         categoryId: pkg.categoryId,
-        value: c?.commissionPercent.toString() ?? '0',
-        isPercent: true, // API only stores commission_percent, no EUR mode — see below
+        value: c?.commissionAmount.toString() ?? '0',
+        isPercent: c?.commissionIsPercentage ?? false, // API only stores commission_percent, no EUR mode — see below
       );
     }).toList();
   }
@@ -77,31 +77,33 @@ class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
           const SizedBox(height: 8),
           Text('Team & Commissions', style: AppTextStyles.heading24),
           const SizedBox(height: 32),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              MemberListCard(
-                members: members,
-                selectedId: _selectedId!,
-                editingId: null, // edit disabled until name/email endpoint exists — see comment above
-                onSelect: (id) => setState(() => _selectedId = id),
-                onEditTap: (id) {}, // TODO wire role-only edit via updateMemberRole
-                onCancelEdit: () {},
-                onSave: (id, name, role, email) {},
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: MemberCommissionsCard(
-                  memberName: selected.name,
-                  memberRole: selected.role,
-                  memberEmail: selected.email,
-                  commissions: commissions,
-                  onValueChanged: (packageId) {}, // committed on blur/save below, not per-keystroke
-                  onTypeChanged: (packageId, isPercent) {}, // no-op: only % supported by API
-                  onRemove: (packageId) {}, // no-op: no delete endpoint, see comment above
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                MemberListCard(
+                  members: members,
+                  selectedId: _selectedId!,
+                  editingId: null, // edit disabled until name/email endpoint exists — see comment above
+                  onSelect: (id) => setState(() => _selectedId = id),
+                  onEditTap: (id) {}, // TODO wire role-only edit via updateMemberRole
+                  onCancelEdit: () {},
+                  onSave: (id, name, role, email) {},
                 ),
-              ),
-            ],
+                const SizedBox(width: 20),
+                Expanded(
+                  child: MemberCommissionsCard(
+                    memberName: selected.name,
+                    memberRole: selected.role,
+                    memberEmail: selected.email,
+                    commissions: commissions,
+                    onValueChanged: (packageId) {}, // committed on blur/save below, not per-keystroke
+                    onTypeChanged: (packageId, isPercent) {}, // no-op: only % supported by API
+                    onRemove: (packageId) {}, // no-op: no delete endpoint, see comment above
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
