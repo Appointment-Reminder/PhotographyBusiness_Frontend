@@ -6,6 +6,8 @@ import 'package:photography_business_frontend/features/business/presentation/pro
 import 'package:photography_business_frontend/features/package/presentation/widgets/commission/member_commission_card.dart';
 import 'package:photography_business_frontend/features/package/presentation/widgets/member/member_list_card.dart';
 
+import '../../../business/presentation/providers/member_providers.dart';
+
 
 class TeamCommissionsView extends ConsumerStatefulWidget {
   final int businessId;
@@ -17,6 +19,8 @@ class TeamCommissionsView extends ConsumerStatefulWidget {
 
 class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
   String? _selectedId;
+
+  static const _inviteRoles = ['photographer', 'assistant', 'admin'];
 
   @override
   void initState() {
@@ -54,14 +58,50 @@ class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
     return match?.name ?? 'Unknown';
   }
 
+  /// Invite through the existing form notifier (so it stays the single place
+  /// that calls InviteMemberUser), then refresh the commission map's own
+  /// member list since it doesn't share state with businessMemberListNotifierProvider.
+  Future<void> _handleInvite(String email, String role) async {
+    await ref.read(businessMemberFormNotifierProvider.notifier)
+        .invite(widget.businessId, email, role);
+    await ref.read(memberCommissionMapProvider.notifier).loadForBusiness(widget.businessId);
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = ref.watch(memberCommissionMapProvider);
     if (s.isLoading && s.members.isEmpty) return const Center(child: CircularProgressIndicator());
     if (s.error != null) return Center(child: Text(s.error!));
-    if (s.members.isEmpty) return const Center(child: Text('No team members yet'));
 
     final members = _toMemberData(s);
+
+    if (members.isEmpty) {
+      // Still render the card so "+ Invite" works to bootstrap an empty team.
+      return Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('PHOTOGRAPHY STUDIO', style: AppTextStyles.monoMuted10.copyWith(letterSpacing: 2.8)),
+            const SizedBox(height: 8),
+            Text('Team & Commissions', style: AppTextStyles.heading24),
+            const SizedBox(height: 32),
+            MemberListCard(
+              members: const [],
+              selectedId: '',
+              editingId: null,
+              onSelect: (_) {},
+              onEditTap: (_) {},
+              onCancelEdit: () {},
+              onSave: (_, __, ___, ____) {},
+              onInvite: _handleInvite,
+              inviteRoles: _inviteRoles,
+            ),
+          ],
+        ),
+      );
+    }
+
     _selectedId ??= members.first.id;
     final selected = members.firstWhere((m) => m.id == _selectedId);
     final commissions = _commissionsFor(s, int.parse(_selectedId!))
@@ -84,11 +124,13 @@ class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
                 MemberListCard(
                   members: members,
                   selectedId: _selectedId!,
-                  editingId: null, // edit disabled until name/email endpoint exists — see comment above
+                  editingId: null,
                   onSelect: (id) => setState(() => _selectedId = id),
-                  onEditTap: (id) {}, // TODO wire role-only edit via updateMemberRole
+                  onEditTap: (id) {},
                   onCancelEdit: () {},
                   onSave: (id, name, role, email) {},
+                  onInvite: _handleInvite,
+                  inviteRoles: _inviteRoles,
                 ),
                 const SizedBox(width: 20),
                 Expanded(
@@ -97,9 +139,9 @@ class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
                     memberRole: selected.role,
                     memberEmail: selected.email,
                     commissions: commissions,
-                    onValueChanged: (packageId) {}, // committed on blur/save below, not per-keystroke
-                    onTypeChanged: (packageId, isPercent) {}, // no-op: only % supported by API
-                    onRemove: (packageId) {}, // no-op: no delete endpoint, see comment above
+                    onValueChanged: (packageId) {},
+                    onTypeChanged: (packageId, isPercent) {},
+                    onRemove: (packageId) {},
                   ),
                 ),
               ],

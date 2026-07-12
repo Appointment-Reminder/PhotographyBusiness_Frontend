@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photography_business_frontend/features/package/domain/usecases/create_package.dart';
+import 'package:photography_business_frontend/features/package/domain/usecases/create_package_category.dart';
 import 'package:photography_business_frontend/features/package/domain/usecases/get_package_categories_for_business.dart';
 import 'package:photography_business_frontend/features/package/domain/usecases/get_packages_for_business.dart';
 import 'package:photography_business_frontend/features/package/domain/usecases/get_package_price_history.dart';
@@ -12,12 +14,16 @@ class PackagePricingNotifier extends StateNotifier<PackagePricingState> {
   final GetPackagesForBusiness getPackages;
   final GetPackagePriceHistory getPriceHistory;
   final CreatePackagePrice createPrice;
+  final CreatePackageCategory createCategory;
+  final CreatePackage createPackage;
 
   PackagePricingNotifier({
     required this.getCategories,
     required this.getPackages,
     required this.getPriceHistory,
     required this.createPrice,
+    required this.createCategory,
+    required this.createPackage,
   }) : super(const PackagePricingState());
 
   Future<void> loadForBusiness(int businessId) async {
@@ -47,6 +53,40 @@ class PackagePricingNotifier extends StateNotifier<PackagePricingState> {
     );
   }
 
+  Future<void> addCategory(int businessId, String name) async {
+    state = state.copyWith(isSubmitting: true, error: null);
+    final result = await createCategory(
+      CreatePackageCategoryParams(businessId: businessId, name: name),
+    );
+    if (result.isLeft()) {
+      state = state.copyWith(isSubmitting: false, error: result.fold((f) => f.message, (_) => null));
+      return;
+    }
+    state = state.copyWith(isSubmitting: false);
+    await loadForBusiness(businessId);
+  }
+
+  Future<void> addPackage({
+    required int businessId,
+    required int categoryId,
+    required String name,
+    required String description,
+  }) async {
+    state = state.copyWith(isSubmitting: true, error: null);
+    final result = await createPackage(CreatePackageParams(
+      name: name,
+      description: description,
+      businessId: businessId,
+      categoryId: categoryId,
+    ));
+    if (result.isLeft()) {
+      state = state.copyWith(isSubmitting: false, error: result.fold((f) => f.message, (_) => null));
+      return;
+    }
+    state = state.copyWith(isSubmitting: false);
+    await loadForBusiness(businessId);
+  }
+
   Future<void> addPrice({
     required int packageId,
     required int totalPrice,
@@ -55,6 +95,7 @@ class PackagePricingNotifier extends StateNotifier<PackagePricingState> {
     required bool isPersonal,
     required DateTime effectiveFrom,
   }) async {
+    state = state.copyWith(isSubmitting: true, error: null);
     final result = await createPrice(CreatePackagePriceParams(
       packageId: packageId,
       totalPrice: totalPrice,
@@ -63,8 +104,12 @@ class PackagePricingNotifier extends StateNotifier<PackagePricingState> {
       isPersonal: isPersonal,
       effectiveFrom: effectiveFrom,
     ));
-
-    result.fold((_) {}, (_) async => await _loadPricesFor(packageId));
+    result.fold(
+          (f) => state = state.copyWith(isSubmitting: false, error: f.message),
+          (_) {},
+    );
+    await _loadPricesFor(packageId);
+    state = state.copyWith(isSubmitting: false);
   }
 
   void clear() => state = const PackagePricingState();

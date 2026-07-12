@@ -5,9 +5,9 @@ import 'package:photography_business_frontend/features/package/domain/entities/p
 class PackagePricingState {
   final List<PackageCategory> categories;
   final List<Package> packages;
-  // packageId -> price history, sorted by effectiveFrom
   final Map<int, List<PackagePrice>> priceHistory;
   final bool isLoading;
+  final bool isSubmitting;
   final String? error;
 
   const PackagePricingState({
@@ -15,6 +15,7 @@ class PackagePricingState {
     this.packages = const [],
     this.priceHistory = const {},
     this.isLoading = false,
+    this.isSubmitting = false,
     this.error,
   });
 
@@ -34,6 +35,7 @@ class PackagePricingState {
     List<Package>? packages,
     Map<int, List<PackagePrice>>? priceHistory,
     bool? isLoading,
+    bool? isSubmitting,
     String? error,
   }) {
     return PackagePricingState(
@@ -41,6 +43,7 @@ class PackagePricingState {
       packages: packages ?? this.packages,
       priceHistory: priceHistory ?? this.priceHistory,
       isLoading: isLoading ?? this.isLoading,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
       error: error,
     );
   }

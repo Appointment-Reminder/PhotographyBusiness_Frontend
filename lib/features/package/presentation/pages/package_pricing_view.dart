@@ -22,6 +22,29 @@ class _PackagesPricingViewState extends ConsumerState<PackagesPricingView> {
         ref.read(packagePricingNotifierProvider.notifier).loadForBusiness(widget.businessId));
   }
 
+  Future<void> _handleAddCategory(String name) =>
+      ref.read(packagePricingNotifierProvider.notifier).addCategory(widget.businessId, name);
+
+  Future<void> _handleAddPackage(String categoryId, String name, String description) =>
+      ref.read(packagePricingNotifierProvider.notifier).addPackage(
+        businessId: widget.businessId,
+        categoryId: int.parse(categoryId),
+        name: name,
+        description: description,
+      );
+
+  Future<void> _handleAddPrice(String packageId, DateTime effectiveFrom, String amount) {
+    final total = int.tryParse(amount) ?? 0;
+    return ref.read(packagePricingNotifierProvider.notifier).addPrice(
+      packageId: int.parse(packageId),
+      totalPrice: total,
+      depositAmount: 0,
+      remainingAmount: total,
+      isPersonal: false,
+      effectiveFrom: effectiveFrom,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = ref.watch(packagePricingNotifierProvider);
@@ -30,7 +53,6 @@ class _PackagesPricingViewState extends ConsumerState<PackagesPricingView> {
       return const Center(child: CircularProgressIndicator());
     }
     if (s.error != null) return Center(child: Text(s.error!));
-    if (s.categories.isEmpty) return const Center(child: Text('No packages yet'));
 
     return Padding(
       padding: const EdgeInsets.all(50),
@@ -41,11 +63,20 @@ class _PackagesPricingViewState extends ConsumerState<PackagesPricingView> {
           const SizedBox(height: 8),
           Text('Packages & Pricing', style: AppTextStyles.heading24),
           const SizedBox(height: 32),
-          Expanded(child: ThreeColumnCard(categories: _toCategoryEntries(s))),
+          Expanded(
+            child: ThreeColumnCard(
+              categories: _toCategoryEntries(s),
+              isSubmitting: s.isSubmitting,
+              onAddCategory: _handleAddCategory,
+              onAddPackage: _handleAddPackage,
+              onAddPrice: _handleAddPrice,
+            ),
+          ),
         ],
       ),
     );
   }
+
 
   List<CategoryEntry> _toCategoryEntries(PackagePricingState s) {
     return s.categories.map((cat) {
@@ -76,5 +107,6 @@ class _PackagesPricingViewState extends ConsumerState<PackagesPricingView> {
     }).toList();
   }
 
-  String _fmt(DateTime d) => '${d.month.toString().padLeft(2, '0')}/${d.year}';
+  String _fmt(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 }
