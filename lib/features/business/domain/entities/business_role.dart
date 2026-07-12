@@ -1,7 +1,8 @@
 enum BusinessRole{
   owner,
   admin,
-  photographer;
+  photographer,
+  assistant;
 
   String get value {
     switch (this) {
@@ -11,6 +12,8 @@ enum BusinessRole{
         return 'admin';
       case BusinessRole.photographer:
         return 'photographer';
+      case BusinessRole.assistant:
+        return 'assistant';
     }
   }
 
@@ -22,6 +25,8 @@ enum BusinessRole{
         return BusinessRole.admin;
       case 'photographer':
         return BusinessRole.photographer;
+      case 'assistant':
+        return BusinessRole.assistant;
       default:
         throw ArgumentError('Invalid role: $role');
     }

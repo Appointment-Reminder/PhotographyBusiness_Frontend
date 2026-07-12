@@ -96,6 +96,8 @@ StateNotifierProvider<PackagePricingNotifier, PackagePricingState>((ref) {
     getPackages: ref.read(getPackagesForBusinessProvider),
     getPriceHistory: ref.read(getPackagePriceHistoryProvider),
     createPrice: ref.read(createPackagePriceProvider),
+    createCategory: ref.read(createPackageCategoryProvider),
+    createPackage: ref.read(createPackageProvider),
   );
 });
 

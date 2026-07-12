@@ -5,8 +5,9 @@ import 'package:photography_business_frontend/core/Presentation/widgets/section_
 
 class ColumnHeader extends StatelessWidget {
   final String label;
+  final VoidCallback? onAdd;
 
-  const ColumnHeader(this.label, {super.key});
+  const ColumnHeader(this.label, {super.key, this.onAdd});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +17,16 @@ class ColumnHeader extends StatelessWidget {
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       width: double.infinity,
-      child: SectionLabel(label),
+      child: Row(
+        children: [
+          Expanded(child: SectionLabel(label)),
+          if (onAdd != null)
+            GestureDetector(
+              onTap: onAdd,
+              child: const Icon(Icons.add, size: 14, color: AppColors.mutedText),
+            ),
+        ],
+      ),
     );
   }
 }
