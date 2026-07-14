@@ -66,9 +66,15 @@ final memberFormsMapProvider = StateNotifierProvider<MemberFormsMapNotifier, Map
   return MemberFormsMapNotifier(ref.read(memberAdminRepositoryProvider));
 });
 
-final businessMemberListNotifierProvider =
-StateNotifierProvider<BusinessMemberListNotifier, BusinessMemberListState>((ref) {
-  return BusinessMemberListNotifier(getBusinessMembers: ref.read(getBusinessMembersUserProvider));
+/// SINGLE SOURCE OF TRUTH for a business's member list, keyed by businessId.
+/// Any feature that needs members (commissions, jotform, appointment
+/// photographer picker, etc.) watches this instead of fetching/caching its
+/// own copy. Auto-loads on first watch/read.
+final businessMembersProvider =
+StateNotifierProvider.family<BusinessMemberListNotifier, BusinessMemberListState, int>((ref, businessId) {
+  final notifier = BusinessMemberListNotifier(getBusinessMembers: ref.read(getBusinessMembersUserProvider));
+  notifier.load(businessId);
+  return notifier;
 });
 
 final businessMemberFormNotifierProvider =
@@ -77,6 +83,6 @@ StateNotifierProvider<BusinessMemberFormNotifier, BusinessMemberFormState>((ref)
     inviteMember: ref.read(inviteBusinessMemberUserProvider),
     updateMemberRole: ref.read(updateMemberRoleUserProvider),
     removeMember: ref.read(removeMemberUserProvider),
-    listNotifier: ref.read(businessMemberListNotifierProvider.notifier),
+    ref: ref,
   );
 });
