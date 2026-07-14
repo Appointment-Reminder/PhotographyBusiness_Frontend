@@ -8,8 +8,7 @@ import '../../../package/presentation/providers/package_providers.dart';
 final jotformMatrixNotifierProvider =
 StateNotifierProvider<JotformMatrixNotifier, JotformMatrixState>((ref) {
   return JotformMatrixNotifier(
-    getBusinessMembers: ref.read(getBusinessMembersUserProvider),
-    getCategories: ref.read(getPackageCategoriesForBusinessProvider), // from package_providers.dart
+    getCategories: ref.read(getPackageCategoriesForBusinessProvider),
     getMemberForms: ref.read(getMemberFormsUserProvider),
     createMemberForm: ref.read(createMemberFormUserProvider),
     updateMemberForm: ref.read(updateMemberFormUserProvider),

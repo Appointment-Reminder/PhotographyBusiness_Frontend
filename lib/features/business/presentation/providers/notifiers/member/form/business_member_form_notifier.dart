@@ -1,23 +1,22 @@
-// business_member_form_notifier.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/member_providers.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/member/form/business_member_form_state.dart';
 import '../../../../../domain/usecases/invite_member.dart';
 import '../../../../../domain/usecases/update_member_role.dart';
 import '../../../../../domain/usecases/remove_member.dart';
 import '../../../../../domain/usecases/business_params.dart';
-import '../business_member_list_notifier.dart';
 
 class BusinessMemberFormNotifier extends StateNotifier<BusinessMemberFormState> {
   final InviteMemberUser inviteMember;
   final UpdateMemberRoleUser updateMemberRole;
   final RemoveMemberUser removeMember;
-  final BusinessMemberListNotifier listNotifier; // refresh after mutation
+  final Ref ref;
 
   BusinessMemberFormNotifier({
     required this.inviteMember,
     required this.updateMemberRole,
     required this.removeMember,
-    required this.listNotifier,
+    required this.ref,
   }) : super(const BusinessMemberFormState());
 
   Future<void> invite(int businessId, String email, String role) async {
@@ -29,7 +28,7 @@ class BusinessMemberFormNotifier extends StateNotifier<BusinessMemberFormState> 
           (f) => state = state.copyWith(isSubmitting: false, error: f.message),
           (m) => state = state.copyWith(isSubmitting: false, saved: m),
     );
-    await listNotifier.load(businessId);
+    await ref.read(businessMembersProvider(businessId).notifier).load(businessId);
   }
 
   Future<void> updateRole(int businessId, int memberId, String role, bool isActive) async {
@@ -41,7 +40,7 @@ class BusinessMemberFormNotifier extends StateNotifier<BusinessMemberFormState> 
           (f) => state = state.copyWith(isSubmitting: false, error: f.message),
           (m) => state = state.copyWith(isSubmitting: false, saved: m),
     );
-    await listNotifier.load(businessId);
+    await ref.read(businessMembersProvider(businessId).notifier).load(businessId);
   }
 
   Future<void> remove(int businessId, int memberId) async {
@@ -51,6 +50,6 @@ class BusinessMemberFormNotifier extends StateNotifier<BusinessMemberFormState> 
           (f) => state = state.copyWith(isSubmitting: false, error: f.message),
           (_) => state = state.copyWith(isSubmitting: false),
     );
-    await listNotifier.load(businessId);
+    await ref.read(businessMembersProvider(businessId).notifier).load(businessId);
   }
 }

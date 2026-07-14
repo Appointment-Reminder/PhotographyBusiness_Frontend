@@ -6,10 +6,11 @@ import 'package:photography_business_frontend/core/presentation/theme/app_text_s
 import 'package:photography_business_frontend/core/presentation/widgets/atoms/progress_bar.dart';
 import 'package:photography_business_frontend/core/utils/field_map_serializer.dart';
 import 'package:photography_business_frontend/dev/fixtures.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/jotform_providers.dart';
+import 'package:photography_business_frontend/features/business/presentation/providers/jotform_providers.dart';import 'package:photography_business_frontend/features/business/presentation/providers/member_providers.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/Jotform/jotform_matrix_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/webhook_config_panel.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/webhook_matrix_card..dart';
+import '../../../domain/entities/business_member.dart';
 import 'matrix_member_row..dart';
 
 class JotformMatrixView extends ConsumerStatefulWidget {
@@ -63,8 +64,8 @@ class _JotformMatrixViewState extends ConsumerState<JotformMatrixView> {
   }
 
   // ── Converters: domain → display ──────────────────────────────
-  List<MatrixMemberData> _toMatrixMembers(JotformMatrixState s) {
-    return s.members.map((m) => MatrixMemberData(
+  List<MatrixMemberData> _toMatrixMembers(List<BusinessMember> members) {
+    return members.map((m) => MatrixMemberData(
       id:       m.id.toString(),
       name:     m.userName  ?? 'Unknown',
       email:    m.userEmail ?? '',
@@ -160,27 +161,29 @@ class _JotformMatrixViewState extends ConsumerState<JotformMatrixView> {
   // ── Build ─────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-
-
+    final memberState = ref.watch(businessMembersProvider(widget.businessId));
     final state = ref.watch(jotformMatrixNotifierProvider);
 
-    if (state.isLoading && state.members.isEmpty) {
+    final isLoading = (memberState.isLoading && memberState.members.isEmpty) ||
+        (state.isLoading && state.categories.isEmpty);
+    if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (state.error != null) {
-      return _buildError(
-        state.error!,
-            () => ref.read(jotformMatrixNotifierProvider.notifier).loadForBusiness(widget.businessId),
-      );
+    final error = memberState.error ?? state.error;
+    if (error != null) {
+      return _buildError(error, () {
+        ref.read(businessMembersProvider(widget.businessId).notifier).load(widget.businessId);
+        ref.read(jotformMatrixNotifierProvider.notifier).loadForBusiness(widget.businessId);
+      });
     }
 
-    if (state.members.isEmpty || state.categories.isEmpty) {
+    if (memberState.members.isEmpty || state.categories.isEmpty) {
       return const Center(child: Text('No team members or categories yet'));
     }
 
     return _buildContent(
-      members:       _toMatrixMembers(state),
+      members:       _toMatrixMembers(memberState.members),
       categories:    _toMatrixCategories(state),
       configuredMap: state.configuredMap,
     );

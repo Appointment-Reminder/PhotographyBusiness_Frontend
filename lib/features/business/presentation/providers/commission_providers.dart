@@ -28,13 +28,11 @@ final updateMemberCommissionUserProvider = Provider<UpdateMemberCommissionUser>(
 final memberCommissionMapProvider =
 StateNotifierProvider<MemberCommissionMapNotifier, MemberCommissionMapState>((ref) {
   return MemberCommissionMapNotifier(
-    getBusinessMembers: ref.read(getBusinessMembersUserProvider),
     getMemberCommission: ref.read(getMemberCommissionUserProvider),
     getCategories: ref.read(getPackageCategoriesForBusinessProvider),
     createCommission: ref.read(createMemberCommissionUserProvider),
     getPackages: ref.read(getPackagesForBusinessProvider),
     getBusinessCommissions: ref.read(getBusinessCommissionUserProvider),
     updateCommission: ref.read(updateMemberCommissionUserProvider),
-
   );
 });
