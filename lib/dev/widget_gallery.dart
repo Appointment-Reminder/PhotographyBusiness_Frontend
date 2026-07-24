@@ -339,10 +339,11 @@ final sections = <GallerySection>[
           (_) => SizedBox(
         width: 280,
         child: MemberEditForm(
-          initialName: 'Sophie Martin',
+          memberName: 'Sophie Martin',
           initialRole: 'Senior Photographer',
-          initialEmail: 'sophie@studio.com',
-          onSave: (name, role, email) {},
+          memberEmail: 'sophie@studio.com',
+          roleOptions: ['photographer', 'admin', 'owner', 'assistant'],
+          onSave: ( role) {},
           onCancel: () {},
         ),
       ),

@@ -18,8 +18,17 @@ class TeamCommissionsView extends ConsumerStatefulWidget {
 
 class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
   String? _selectedId;
+  String? _editingId;
 
   static const _inviteRoles = ['photographer', 'assistant', 'admin'];
+
+  Future<void> _handleSaveRole(String memberId, String role) async {
+    final member = ref.read(businessMembersProvider(widget.businessId)).members
+        .firstWhere((m) => m.id.toString() == memberId);
+    await ref.read(businessMemberFormNotifierProvider.notifier)
+        .updateRole(widget.businessId, member.id, role, member.isActive);
+    setState(() => _editingId = null);
+  }
 
   @override
   void initState() {
@@ -98,10 +107,13 @@ class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
       members: const [],
       selectedId: '',
       editingId: null,
-      onSelect: (_) {},
-      onEditTap: (_) {},
-      onCancelEdit: () {},
-      onSave: (_, __, ___, ____) {},
+      onSelect: (id) => setState(() => _selectedId = id),
+      onEditTap: (id) => setState(() {
+        print('Editing id tiped in team commission view');
+        _editingId = id;
+      }),
+      onCancelEdit: () => setState(() => _editingId = null),
+      onSave: _handleSaveRole,
       onInvite: _handleInvite,
       inviteRoles: _inviteRoles,
     );
@@ -122,11 +134,15 @@ class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
         MemberListCard(
           members: members,
           selectedId: _selectedId!,
-          editingId: null,
-          onSelect: (id) => setState(() => _selectedId = id),
-          onEditTap: (id) {},
-          onCancelEdit: () {},
-          onSave: (id, name, role, email) {},
+          editingId: _editingId,
+          onSelect: (id) => setState(() {
+            _selectedId = id;
+          }),
+          onEditTap: (id) => setState(() {
+            _editingId = id;
+          }),
+          onCancelEdit: () => setState(() => _editingId = null),
+          onSave: _handleSaveRole,
           onInvite: _handleInvite,
           inviteRoles: _inviteRoles,
         ),
