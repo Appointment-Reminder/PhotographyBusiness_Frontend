@@ -27,7 +27,7 @@ class MemberListCard extends StatefulWidget {
   final String? editingId;
   final ValueChanged<String> onSelect;
   final ValueChanged<String> onEditTap;
-  final void Function(String id, String name, String role, String email) onSave;
+  final void Function(String id, String role) onSave;
   final VoidCallback onCancelEdit;
   final double maxHeight;
 
@@ -141,12 +141,14 @@ class _MemberListCardState extends State<MemberListCard> {
               itemCount: widget.members.length,
               itemBuilder: (context, i) {
                 final m = widget.members[i];
+                print('editing id : ${widget.editingId}');
                 if (widget.editingId == m.id) {
                   return MemberEditForm(
-                    initialName: m.name,
+                    memberName: m.name,
+                    memberEmail: m.email,
                     initialRole: m.role,
-                    initialEmail: m.email,
-                    onSave: (name, role, email) => widget.onSave(m.id, name, role, email),
+                    roleOptions: widget.inviteRoles,
+                    onSave: (role) => widget.onSave(m.id, role),
                     onCancel: widget.onCancelEdit,
                   );
                 }
@@ -156,7 +158,10 @@ class _MemberListCardState extends State<MemberListCard> {
                   email: m.email,
                   isSelected: m.id == widget.selectedId,
                   onTap: () => widget.onSelect(m.id),
-                  onEditTap: () => widget.onEditTap(m.id),
+                  onEditTap: ()  {
+                    print('On Tap Edit button on member row');
+                    widget.onEditTap(m.id);
+                    },
                 );
               },
             ),
