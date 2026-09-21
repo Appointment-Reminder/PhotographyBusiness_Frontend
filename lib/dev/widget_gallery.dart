@@ -16,7 +16,6 @@ import 'package:photography_business_frontend/core/Presentation/widgets/empty_ci
 import 'package:photography_business_frontend/core/Presentation/widgets/section_label.dart';
 import 'package:photography_business_frontend/dev/Fixtures.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/field_mapping_row.dart';
-import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/jotform_matrix_view.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/matrix_cell.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/matrix_column_header.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/matrix_member_row..dart';
@@ -36,6 +35,7 @@ import 'package:photography_business_frontend/features/package/presentation/widg
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photography_business_frontend/core/Presentation/widgets/app_nav_bar.dart';
 import 'package:photography_business_frontend/features/user_create/presentation/providers/auth_provders.dart';
+import '../features/jotform/presentation/pages/jotform_matrix_view.dart';
 import 'fake_auth.dart';
 // ...keep existing imports
 

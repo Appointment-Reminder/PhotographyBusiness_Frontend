@@ -9,12 +9,13 @@ import 'package:photography_business_frontend/features/business/domain/usecases/
 import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/state/business/business_list_state.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/business_selector.dart';
-import 'package:photography_business_frontend/features/business/presentation/widgets/jotform/jotform_matrix_view.dart';
 import 'package:photography_business_frontend/features/package/presentation/pages/package_pricing_view.dart';
 import 'package:photography_business_frontend/features/package/presentation/widgets/team_commission_view.dart';
-import 'package:photography_business_frontend/features/package/presentation/widgets/three_column_card.dart';
 
-import '../../../../dev/Fixtures.dart';
+
+
+import '../../../jotform/presentation/pages/jotform_integration_view.dart';
+import '../../../jotform/presentation/pages/jotform_matrix_view.dart';
 
 class BusinessPage extends ConsumerStatefulWidget {
   const BusinessPage({super.key});
@@ -54,6 +55,7 @@ class _BusinessPageState extends ConsumerState<BusinessPage>{
               TopNavBarItem(id: 'Teams & Commission', label: 'Teams & Commission'),
               TopNavBarItem(id: 'Packages & Pricing', label: 'Packages & Pricing'),
               TopNavBarItem(id: 'Jotform', label: 'Jotform'),
+              TopNavBarItem(id: 'Jotform Integration', label: 'Jotform Integration'),
               TopNavBarItem(id: 'Settings', label: 'Settings'),
             ],
             activeId: activeId,
@@ -90,6 +92,9 @@ class _BusinessPageState extends ConsumerState<BusinessPage>{
       case 'Packages & Pricing':
         if (selectedBusiness == null) return const Center(child: Text('Select a business'));
         return PackagesPricingView(businessId: selectedBusiness.id);
+      case 'Jotform Integration':
+        if (selectedBusiness == null) return const Center(child: Text('Select a business'));
+          return JotformIntegrationView(businessId: selectedBusiness.id);
       case 'Jotform':
         if(selectedBusiness == null)  return Center(child: Text('Select a business'),);
         return JotformMatrixView(businessId: selectedBusiness.id);
