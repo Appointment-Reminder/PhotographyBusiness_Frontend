@@ -5,7 +5,6 @@ class BusinessMember extends Equatable {
   final int businessId;
   final int userId;
   final String role;
-  final String webhookToken;
   final int? invitedBy;
   final DateTime invitedAt;
   final DateTime? joinedAt;
@@ -21,7 +20,6 @@ class BusinessMember extends Equatable {
     required this.businessId,
     required this.userId,
     required this.role,
-    required this.webhookToken,
     this.invitedBy,
     required this.invitedAt,
     this.joinedAt,
@@ -37,7 +35,6 @@ class BusinessMember extends Equatable {
     businessId,
     userId,
     role,
-    webhookToken,
     invitedBy,
     invitedAt,
     joinedAt,

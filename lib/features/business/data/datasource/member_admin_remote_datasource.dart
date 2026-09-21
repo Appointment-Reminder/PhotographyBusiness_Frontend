@@ -6,7 +6,7 @@ abstract class MemberAdminRemoteDatasource {
     required int businessMemberId,
     required int packageId,
     required int commissionAmount,
-    required bool commissionIsPercent,
+    required bool commissionIsPercentage,
     required DateTime effectiveFrom,
   });
 
@@ -18,7 +18,7 @@ abstract class MemberAdminRemoteDatasource {
   Future<MemberCommission> updateMemberCommission({
     required int id,
     required int commissionAmount,
-    required bool commissionIsPercent,
+    required bool commissionIsPercentage,
   });
 
   Future<List<MemberCommission>> getBusinessCommissions({

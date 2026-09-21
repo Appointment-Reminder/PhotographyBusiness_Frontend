@@ -15,7 +15,7 @@ class UpdateMemberCommissionUser extends Usecase<MemberCommission, UpdateMemberC
     return repository.updateMemberCommission(
         id: params.id,
         commissionAmount: params.commissionAmount,
-        commissionIsPercent: params.commissionIsPercentage);
+        commissionIsPercentage: params.commissionIsPercentage);
   }
 
 }

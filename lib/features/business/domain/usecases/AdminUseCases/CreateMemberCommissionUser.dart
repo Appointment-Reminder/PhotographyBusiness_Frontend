@@ -20,7 +20,7 @@ class CreateMemberCommissionUser extends Usecase<MemberCommission, CreateMemberC
       businessMemberId: params.businessMemberId,
       packageId: params.packageId,
       commissionAmount: params.commissionAmount,
-      commissionIsPercent: params.commissionIsPercentage,
+      commissionIsPercentage: params.commissionIsPercentage,
       effectiveFrom: params.effectiveFrom,
     );
   }

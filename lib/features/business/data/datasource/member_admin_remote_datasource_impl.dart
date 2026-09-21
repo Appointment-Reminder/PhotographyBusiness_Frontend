@@ -15,7 +15,7 @@ class MemberAdminRemoteDatasourceImpl implements MemberAdminRemoteDatasource {
     required int businessMemberId,
     required int packageId,
     required int commissionAmount,
-    required bool commissionIsPercent,
+    required bool commissionIsPercentage,
     required DateTime effectiveFrom,
   }) async {
     final response = await client.post(
@@ -24,7 +24,7 @@ class MemberAdminRemoteDatasourceImpl implements MemberAdminRemoteDatasource {
         'business_member_id': businessMemberId,
         'package_id': packageId,
         'commission_amount': commissionAmount,
-        'commission_isPercent': commissionIsPercent,
+        'commission_isPercentage': commissionIsPercentage,
         'effective_from': effectiveFrom.toIso8601String(),
       },
     );
@@ -51,9 +51,9 @@ class MemberAdminRemoteDatasourceImpl implements MemberAdminRemoteDatasource {
   Future<MemberCommission> updateMemberCommission({
     required int id,
     required int commissionAmount,
-    required bool commissionIsPercent}) async {
+    required bool commissionIsPercentage}) async {
     final response = await client.patch('/business/members/commissions',
-        data: {'id': id, 'commission_amount': commissionAmount ,'commission_IsPercent': commissionIsPercent});
+        data: {'id': id, 'commission_amount': commissionAmount ,'commission_IsPercentage': commissionIsPercentage});
     return MemberCommissionModel.fromJson(response.data);
   }
 

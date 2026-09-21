@@ -8,7 +8,7 @@ abstract class MemberAdminRepository {
     required int businessMemberId,
     required int packageId,
     required int commissionAmount,
-    required bool commissionIsPercent,
+    required bool commissionIsPercentage,
     required DateTime effectiveFrom,
   });
 
@@ -20,7 +20,7 @@ abstract class MemberAdminRepository {
   Future<Either<Failure, MemberCommission>> updateMemberCommission({
     required int id,
     required int commissionAmount,
-    required bool commissionIsPercent,
+    required bool commissionIsPercentage,
   });
 
   Future<Either<Failure, List<MemberCommission>>> getBusinessCommissions({

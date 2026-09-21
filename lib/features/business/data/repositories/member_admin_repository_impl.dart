@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:photography_business_frontend/core/error/dio_error_handler.dart';
 import 'package:photography_business_frontend/core/error/failure.dart';
 import 'package:photography_business_frontend/core/network/network_info.dart';
@@ -24,7 +25,8 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
     } on DioException catch (e) {
       return Left(DioErrorHandler.handleError(e));
     }
-    catch (_) {
+    catch (e, st) {
+      debugPrint('Repo error: $e\n$st');
       return const Left(ServerFailure('Unexpected error'));
     }
   }
@@ -34,14 +36,14 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
     required int businessMemberId,
     required int packageId,
     required int commissionAmount,
-    required bool commissionIsPercent,
+    required bool commissionIsPercentage,
     required DateTime effectiveFrom,
   }) async {
     return _execute(() => remoteDatasource.createMemberCommission(
       businessMemberId: businessMemberId,
       packageId: packageId,
       commissionAmount: commissionAmount,
-      commissionIsPercent: commissionIsPercent,
+      commissionIsPercentage: commissionIsPercentage,
       effectiveFrom: effectiveFrom,
     ));
   }
@@ -66,12 +68,12 @@ class MemberAdminRepositoryImpl implements MemberAdminRepository {
   Future<Either<Failure, MemberCommission>> updateMemberCommission({
     required int id,
     required int commissionAmount,
-    required bool commissionIsPercent
+    required bool commissionIsPercentage
   }) {
     return _execute(() => remoteDatasource.updateMemberCommission(
         id: id,
         commissionAmount: commissionAmount,
-        commissionIsPercent: commissionIsPercent));
+        commissionIsPercentage: commissionIsPercentage));
   }
 
   @override
