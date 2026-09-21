@@ -117,7 +117,6 @@ class Fixtures {
     businessId: 1,
     userId: 2,
     role: 'photographer',
-    webhookToken: 'tok_123',
     invitedAt: DateTime(2024, 2, 1),
     joinedAt: DateTime(2024, 2, 2),
     isActive: true,
