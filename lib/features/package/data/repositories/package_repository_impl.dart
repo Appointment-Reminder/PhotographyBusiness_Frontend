@@ -54,6 +54,7 @@ class PackageRepositoryImpl implements PackageRepository {
     required int categoryId,
     required String name,
     required String description,
+    String? jotformAlias,
   }) {
     return _execute(() => remoteDatasource.updatePackage(
           id: id,
@@ -61,6 +62,7 @@ class PackageRepositoryImpl implements PackageRepository {
           categoryId: categoryId,
           name: name,
           description: description,
+          jotformAlias: jotformAlias,
         ));
   }
 

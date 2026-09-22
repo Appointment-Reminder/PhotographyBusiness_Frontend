@@ -22,6 +22,7 @@ class UpdatePackage extends Usecase<Package, UpdatePackageParams> {
       categoryId: params.categoryId,
       name: params.name,
       description: params.description,
+      jotformAlias: params.jotformAlias
     );
   }
 }

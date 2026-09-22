@@ -23,6 +23,7 @@ class UpdatePackageParams extends Equatable {
   final int categoryId;
   final String name;
   final String description;
+  final String? jotformAlias;
 
   const UpdatePackageParams({
     required this.id,
@@ -30,10 +31,11 @@ class UpdatePackageParams extends Equatable {
     required this.categoryId,
     required this.name,
     required this.description,
+    this.jotformAlias,
   });
 
   @override
-  List<Object?> get props => [id, businessId, categoryId, name, description];
+  List<Object?> get props => [id, businessId, categoryId, name, description, jotformAlias];
 }
 
 class GetPackagesForBusinessParams extends Equatable {

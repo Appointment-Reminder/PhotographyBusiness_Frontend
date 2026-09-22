@@ -18,6 +18,7 @@ abstract class PackageRepository {
     required int categoryId,
     required String name,
     required String description,
+    String? jotformAlias,
   });
 
   Future<Either<Failure, List<Package>>> getPackagesForBusiness(int businessId);

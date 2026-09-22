@@ -8,6 +8,7 @@ class PackageModel extends Package {
     required super.name,
     required super.description,
     required super.isActive,
+    super.jotformAlias,
   });
 
   factory PackageModel.fromJson(Map<String, dynamic> json) {
@@ -18,6 +19,7 @@ class PackageModel extends Package {
       name: json['name'],
       description: json['description'],
       isActive: json['is_active'],
+      jotformAlias: json['jotform_alias']
     );
   }
 
@@ -29,6 +31,7 @@ class PackageModel extends Package {
       'name': name,
       'description': description,
       'is_active': isActive,
+      'jotform_alias': jotformAlias,
     };
   }
 }

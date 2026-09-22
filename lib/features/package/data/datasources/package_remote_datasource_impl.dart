@@ -39,6 +39,7 @@ class PackageRemoteDatasourceImpl implements PackageRemoteDatasource {
     required int categoryId,
     required String name,
     required String description,
+    String? jotformAlias,
   }) async {
     final response = await client.put(
       '/business/packages',
@@ -48,6 +49,7 @@ class PackageRemoteDatasourceImpl implements PackageRemoteDatasource {
         'category_id': categoryId,
         'name': name,
         'description': description,
+        if (jotformAlias != null) 'jotform_alias': jotformAlias,
       },
     );
 
