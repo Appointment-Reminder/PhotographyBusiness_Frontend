@@ -18,9 +18,7 @@ import 'package:photography_business_frontend/features/package/domain/usecases/u
 import 'package:photography_business_frontend/features/package/presentation/providers/notifiers/package_detail_notifier.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/notifiers/package_form_notifier.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/notifiers/package_list_notifier.dart';
-import 'package:photography_business_frontend/features/package/presentation/providers/notifiers/package_pricing_notifier.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/notifiers/packages_pricing_map_notifier.dart';
-import 'package:photography_business_frontend/features/package/presentation/providers/state/package_pricing_state.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/state/refacto/package_detail_state.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/state/refacto/package_form_state.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/state/refacto/package_list_state.dart';
@@ -86,18 +84,11 @@ StateNotifierProvider<PackagesPricingMapNotifier, PackagesPricingMapState>((ref)
     getCategories: ref.read(getPackageCategoriesForBusinessProvider),
     getPackages: ref.read(getPackagesForBusinessProvider),
     getPriceHistory: ref.read(getPackagePriceHistoryProvider),
-  );
-});
-
-final packagePricingNotifierProvider =
-StateNotifierProvider<PackagePricingNotifier, PackagePricingState>((ref) {
-  return PackagePricingNotifier(
-    getCategories: ref.read(getPackageCategoriesForBusinessProvider),
-    getPackages: ref.read(getPackagesForBusinessProvider),
-    getPriceHistory: ref.read(getPackagePriceHistoryProvider),
-    createPrice: ref.read(createPackagePriceProvider),
     createCategory: ref.read(createPackageCategoryProvider),
     createPackage: ref.read(createPackageProvider),
+    updatePackage: ref.read(updatePackageProvider),
+    deletePackage: ref.read(deletePackageProvider),
+    createPrice: ref.read(createPackagePriceProvider),
   );
 });
 

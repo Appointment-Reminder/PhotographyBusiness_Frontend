@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/Presentation/theme/app_text_styles.dart';
 import '../providers/package_providers.dart';
-import '../providers/state/package_pricing_state.dart';
+import '../providers/notifiers/packages_pricing_map_notifier.dart';
 import '../widgets/three_column_card.dart';
 
 class PackagesPricingView extends ConsumerStatefulWidget {
@@ -19,15 +19,14 @@ class _PackagesPricingViewState extends ConsumerState<PackagesPricingView> {
   void initState() {
     super.initState();
     Future.microtask(() =>
-        ref.read(packagePricingNotifierProvider.notifier).loadForBusiness(widget.businessId));
+        ref.read(packagesPricingMapProvider.notifier).loadForBusiness(widget.businessId));
   }
 
   Future<void> _handleAddCategory(String name) =>
-      ref.read(packagePricingNotifierProvider.notifier).addCategory(widget.businessId, name);
+      ref.read(packagesPricingMapProvider.notifier).addCategory(name);
 
   Future<void> _handleAddPackage(String categoryId, String name, String description) =>
-      ref.read(packagePricingNotifierProvider.notifier).addPackage(
-        businessId: widget.businessId,
+      ref.read(packagesPricingMapProvider.notifier).addPackage(
         categoryId: int.parse(categoryId),
         name: name,
         description: description,
@@ -35,7 +34,7 @@ class _PackagesPricingViewState extends ConsumerState<PackagesPricingView> {
 
   Future<void> _handleAddPrice(String packageId, DateTime effectiveFrom, String amount) {
     final total = int.tryParse(amount) ?? 0;
-    return ref.read(packagePricingNotifierProvider.notifier).addPrice(
+    return ref.read(packagesPricingMapProvider.notifier).addPrice(
       packageId: int.parse(packageId),
       totalPrice: total,
       depositAmount: 0,
@@ -45,9 +44,26 @@ class _PackagesPricingViewState extends ConsumerState<PackagesPricingView> {
     );
   }
 
+  Future<void> _handleEditPackage(
+      PackagesPricingMapState s, String packageId, String name, String description, String? jotformAlias) {
+    final pkg = s.packagesByCategory.values
+        .expand((l) => l)
+        .firstWhere((p) => p.id.toString() == packageId);
+    return ref.read(packagesPricingMapProvider.notifier).editPackage(
+      id: pkg.id,
+      categoryId: pkg.categoryId,
+      name: name,
+      description: description,
+      jotformAlias: jotformAlias,
+    );
+  }
+
+  Future<void> _handleDeletePackage(String packageId) =>
+      ref.read(packagesPricingMapProvider.notifier).removePackage(int.parse(packageId));
+
   @override
   Widget build(BuildContext context) {
-    final s = ref.watch(packagePricingNotifierProvider);
+    final s = ref.watch(packagesPricingMapProvider);
 
     if (s.isLoading && s.categories.isEmpty) {
       return const Center(child: CircularProgressIndicator());
@@ -70,6 +86,9 @@ class _PackagesPricingViewState extends ConsumerState<PackagesPricingView> {
               onAddCategory: _handleAddCategory,
               onAddPackage: _handleAddPackage,
               onAddPrice: _handleAddPrice,
+              onEditPackage: (packageId, name, description, jotformAlias) =>
+                  _handleEditPackage(s, packageId, name, description, jotformAlias),
+              onDeletePackage: _handleDeletePackage,
             ),
           ),
         ],
@@ -77,20 +96,20 @@ class _PackagesPricingViewState extends ConsumerState<PackagesPricingView> {
     );
   }
 
-
-  List<CategoryEntry> _toCategoryEntries(PackagePricingState s) {
+  List<CategoryEntry> _toCategoryEntries(PackagesPricingMapState s) {
     return s.categories.map((cat) {
-      final pkgs = s.packagesFor(cat.id);
+      final pkgs = s.packagesByCategory[cat.id] ?? [];
       return CategoryEntry(
         id: cat.id.toString(),
         name: cat.name,
         packages: pkgs.map((pkg) {
-          final prices = [...s.pricesFor(pkg.id)]
+          final prices = [...(s.pricesByPackage[pkg.id] ?? [])]
             ..sort((a, b) => a.effectiveFrom.compareTo(b.effectiveFrom));
           return PackageEntry(
             id: pkg.id.toString(),
             name: pkg.name,
             description: pkg.description,
+            jotformAlias: pkg.jotformAlias,
             prices: [
               for (var i = 0; i < prices.length; i++)
                 PriceEntry(

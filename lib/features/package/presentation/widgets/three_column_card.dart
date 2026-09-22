@@ -30,6 +30,7 @@ class PackageEntry {
   final String id;
   final String name;
   final String description;
+  final String? jotformAlias;
   final List<PriceEntry> prices;
 
   const PackageEntry({
@@ -37,6 +38,7 @@ class PackageEntry {
     required this.name,
     required this.description,
     required this.prices,
+    this.jotformAlias,
   });
 
   String? get currentPrice {
@@ -65,12 +67,16 @@ class ThreeColumnCard extends StatefulWidget {
   final double height;
   final bool isSubmitting;
 
+
   /// name
   final Future<void> Function(String name)? onAddCategory;
   /// categoryId, name, description
   final Future<void> Function(String categoryId, String name, String description)? onAddPackage;
   /// packageId, effectiveFrom (MM/YYYY), amount
   final Future<void> Function(String packageId, DateTime effectiveFrom, String amount)? onAddPrice;
+
+  final Future<void> Function(String packageId, String name, String description, String? jotformAlias)? onEditPackage;
+  final Future<void> Function(String packageId)? onDeletePackage;
 
   const ThreeColumnCard({
     super.key,
@@ -80,6 +86,8 @@ class ThreeColumnCard extends StatefulWidget {
     this.onAddCategory,
     this.onAddPackage,
     this.onAddPrice,
+    this.onEditPackage,
+    this.onDeletePackage,
   });
 
   @override
@@ -100,6 +108,11 @@ class _ThreeColumnCardState extends State<ThreeColumnCard> {
   bool _addingPrice = false;
   DateTime? _newPriceDate;
   final _newPriceAmountCtrl = TextEditingController();
+
+  String? _editingPackageId;
+  late final _editNameCtrl = TextEditingController();
+  late final _editDescCtrl = TextEditingController();
+  late final _editJotformCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -179,6 +192,43 @@ class _ThreeColumnCardState extends State<ThreeColumnCard> {
     setState(() => _addingPrice = false);
   }
 
+  void _startEditPackage(PackageEntry pkg) {
+    setState(() {
+      _editingPackageId = pkg.id;
+      _editNameCtrl.text = pkg.name;
+      _editDescCtrl.text = pkg.description;
+      _editJotformCtrl.text = pkg.jotformAlias ?? '';
+    });
+  }
+
+  Future<void> _submitEditPackage() async {
+    final name = _editNameCtrl.text.trim();
+    final desc = _editDescCtrl.text.trim();
+    if (name.isEmpty || desc.isEmpty || _editingPackageId == null || widget.onEditPackage == null) return;
+    await widget.onEditPackage!(_editingPackageId!, name, desc, _editJotformCtrl.text.trim().isEmpty ? null : _editJotformCtrl.text.trim());
+    setState(() => _editingPackageId = null);
+  }
+
+  Future<void> _confirmDeletePackage(PackageEntry pkg) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('Delete package?'),
+        content: Text('"${pkg.name}" and its price history will be removed. This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true && widget.onDeletePackage != null) {
+      await widget.onDeletePackage!(pkg.id);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedCategory = _selectedCategory;
@@ -240,15 +290,32 @@ class _ThreeColumnCardState extends State<ThreeColumnCard> {
                 itemCount: selectedCategory?.packages.length ?? 0,
                 itemBuilder: (context, i) {
                   final pkg = selectedCategory!.packages[i];
-                  return PackageRow(
-                    name: pkg.name,
-                    description: pkg.description,
-                    currentPrice: pkg.currentPrice,
-                    isSelected: pkg.id == _selectedPackageId,
-                    onTap: () => setState(() {
-                      _selectedPackageId = pkg.id;
-                      _addingPrice = false;
-                    }),
+                  return Column(
+                    children: [
+                      PackageRow(
+                        name: pkg.name,
+                        description: pkg.description,
+                        currentPrice: pkg.currentPrice,
+                        isSelected: pkg.id == _selectedPackageId,
+                        onTap: () => setState(() {
+                          _selectedPackageId = pkg.id;
+                          _addingPrice = false;
+                        }),
+                        onEdit: widget.onEditPackage == null ? null : () => _startEditPackage(pkg),
+                        onDelete: widget.onDeletePackage == null ? null : () => _confirmDeletePackage(pkg),
+                      ),
+                      if (_editingPackageId == pkg.id)
+                        _InlineCreateForm(
+                          fields: [
+                            _InlineField(label: 'Name', controller: _editNameCtrl, autofocus: true),
+                            _InlineField(label: 'Description', controller: _editDescCtrl),
+                            _InlineField(label: 'Jotform alias', controller: _editJotformCtrl),
+                          ],
+                          isSubmitting: widget.isSubmitting,
+                          onSubmit: _submitEditPackage,
+                          onCancel: () => setState(() => _editingPackageId = null),
+                        ),
+                    ],
                   );
                 },
                 emptyLabel: (selectedCategory?.packages.isEmpty ?? true) ? 'No packages yet' : null,

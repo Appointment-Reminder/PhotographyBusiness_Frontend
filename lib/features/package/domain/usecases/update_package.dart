@@ -18,8 +18,6 @@ class UpdatePackage extends Usecase<Package, UpdatePackageParams> {
 
     return repository.updatePackage(
       id: params.id,
-      businessId: params.businessId,
-      categoryId: params.categoryId,
       name: params.name,
       description: params.description,
       jotformAlias: params.jotformAlias

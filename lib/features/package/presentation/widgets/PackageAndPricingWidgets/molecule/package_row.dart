@@ -8,6 +8,8 @@ class PackageRow extends StatefulWidget {
   final String? currentPrice; // e.g. "160 EUR"
   final bool isSelected;
   final VoidCallback onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const PackageRow({
     super.key,
@@ -16,6 +18,8 @@ class PackageRow extends StatefulWidget {
     required this.isSelected,
     required this.onTap,
     this.currentPrice,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -51,6 +55,7 @@ class _PackageRowState extends State<PackageRow> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── Left side: name + description (unchanged) ──
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,15 +80,60 @@ class _PackageRowState extends State<PackageRow> {
                   ],
                 ),
               ),
-              if (widget.currentPrice != null)
-                Text(
-                  widget.currentPrice!,
-                  style: AppTextStyles.mono12.copyWith(
-                    color: widget.isSelected
-                        ? AppColors.primaryText
-                        : AppColors.mutedText,
-                  ),
-                ),
+
+              // ── Right side: price + edit/delete icons, all in one Row ──
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.currentPrice != null)
+                    Text(
+                      widget.currentPrice!,
+                      style: AppTextStyles.mono12.copyWith(
+                        color: widget.isSelected
+                            ? AppColors.primaryText
+                            : AppColors.mutedText,
+                      ),
+                    ),
+
+                  if (widget.onEdit != null) ...[
+                    const SizedBox(width: 8),
+                    AnimatedOpacity(
+                      duration: const Duration(milliseconds: 150),
+                      opacity: _isHovered ? 1.0 : 0.0,
+                      child: GestureDetector(
+                        onTap: widget.onEdit,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          child: const Icon(
+                            Icons.edit_outlined,
+                            size: 14,
+                            color: AppColors.mutedText,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  if (widget.onDelete != null) ...[
+                    const SizedBox(width: 4),
+                    AnimatedOpacity(
+                      duration: const Duration(milliseconds: 150),
+                      opacity: _isHovered ? 1.0 : 0.0,
+                      child: GestureDetector(
+                        onTap: widget.onDelete,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          child: const Icon(
+                            Icons.delete_outline,
+                            size: 14,
+                            color: AppColors.mutedText,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
         ),
