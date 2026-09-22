@@ -55,6 +55,11 @@ class _CommissionRowState extends State<CommissionRow> {
     super.dispose();
   }
 
+  void _commit() {
+    if (_controller.text == widget.value) return;
+    widget.onValueChanged(_controller.text);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
@@ -97,34 +102,39 @@ class _CommissionRowState extends State<CommissionRow> {
                 children: [
                   SizedBox(
                     width: 56,
-                    child: TextField(
-                      controller: _controller,
-                      textAlign: TextAlign.right,
-                      keyboardType: TextInputType.number,
-                      style: AppTextStyles.mono12,
-                      onChanged: widget.onValueChanged,
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 6,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: AppColors.border),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: AppColors.border),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(
-                            color: AppColors.primaryText,
-                            width: 1.5,
+                    child: Focus(
+                      onFocusChange: (hasFocus) {
+                        if (!hasFocus) _commit();
+                      },
+                      child: TextField(
+                        controller: _controller,
+                        textAlign: TextAlign.right,
+                        keyboardType: TextInputType.number,
+                        style: AppTextStyles.mono12,
+                        onSubmitted: (_) => _commit(),
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
                           ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: const BorderSide(color: AppColors.border),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: const BorderSide(color: AppColors.border),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: const BorderSide(
+                              color: AppColors.primaryText,
+                              width: 1.5,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: AppColors.mainBg,
                         ),
-                        filled: true,
-                        fillColor: AppColors.mainBg,
                       ),
                     ),
                   ),

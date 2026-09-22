@@ -153,8 +153,28 @@ class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
             memberRole: selected.role,
             memberEmail: selected.email,
             commissions: commissions,
-            onValueChanged: (packageId) {},
-            onTypeChanged: (packageId, isPercent) {},
+            onValueChanged: (packageId, value) {
+              final pkgId = int.parse(packageId);
+              final memberId = int.parse(_selectedId!);
+              final current = s.commissions[memberId]?[pkgId];
+              ref.read(memberCommissionMapProvider.notifier).upsertCommission(
+                memberId: memberId,
+                packageId: pkgId,
+                commissionAmount: int.tryParse(value) ?? 0,
+                commissionIsPercentage: current?.commissionIsPercentage ?? false,
+              );
+            },
+            onTypeChanged: (packageId, isPercent) {
+              final pkgId = int.parse(packageId);
+              final memberId = int.parse(_selectedId!);
+              final current = s.commissions[memberId]?[pkgId];
+              ref.read(memberCommissionMapProvider.notifier).upsertCommission(
+                memberId: memberId,
+                packageId: pkgId,
+                commissionAmount: current?.commissionAmount ?? 0,
+                commissionIsPercentage: isPercent,
+              );
+            },
             onRemove: (packageId) {},
           ),
         ),

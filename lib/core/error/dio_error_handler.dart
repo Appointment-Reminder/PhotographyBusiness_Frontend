@@ -6,7 +6,7 @@ class DioErrorHandler {
   static Failure handleError(DioException e) {
     switch (e.response?.statusCode) {
       case 400:
-        return ServerFailure(e.response?.data['detail'] ?? 'Bad request');
+        return ServerFailure(_detail(e, 'Bad request'));
       case 401:
         return const ServerFailure('Unauthorized - Please login again');
       case 403:
@@ -14,9 +14,9 @@ class DioErrorHandler {
       case 404:
         return const ServerFailure('Not found');
       case 409:
-        return ServerFailure(e.response?.data['detail'] ?? 'Conflict - Resource already exists');
+        return ServerFailure(_detail(e, 'Conflict - Resource already exists'));
       case 422:
-        return ServerFailure(e.response?.data['detail'] ?? 'Invalid input data');
+        return ServerFailure(_detail(e, 'Invalid input data'));
       case 500:
         return const ServerFailure('Internal server error');
       case 503:
@@ -24,5 +24,21 @@ class DioErrorHandler {
       default:
         return ServerFailure(e.message ?? 'Server error');
     }
+  }
+
+  static String _detail(DioException e, String fallback) {
+    final data = e.response?.data;
+    if (data is Map) {
+      final detail = data['detail'];
+      if (detail is String) return detail;
+      if (detail is List && detail.isNotEmpty) {
+        final first = detail.first;
+        if (first is Map && first['msg'] != null) {
+          final loc = (first['loc'] as List?)?.last;
+          return loc != null ? '$loc: ${first['msg']}' : '${first['msg']}';
+        }
+      }
+    }
+    return fallback;
   }
 }

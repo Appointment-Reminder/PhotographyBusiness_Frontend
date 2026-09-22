@@ -17,6 +17,7 @@ abstract class PackageRemoteDatasource {
     required int categoryId,
     required String name,
     required String description,
+    String? jotformAlias
   });
 
   Future<List<Package>> getPackagesForBusiness(int businessId);

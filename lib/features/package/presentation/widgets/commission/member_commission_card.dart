@@ -35,7 +35,7 @@ class MemberCommissionsCard extends StatelessWidget {
   final String memberRole;
   final String memberEmail;
   final List<CommissionData> commissions;
-  final ValueChanged<String> onValueChanged; // packageId
+  final void Function(String packageId, String value) onValueChanged;
   final void Function(String packageId, bool isPercent) onTypeChanged;
   final ValueChanged<String> onRemove;       // packageId
   final double maxHeight;
@@ -128,7 +128,7 @@ class MemberCommissionsCard extends StatelessWidget {
                       categoryId:    c.categoryId,
                       value:         c.value,
                       isPercent:     c.isPercent,
-                      onValueChanged: (v) => onValueChanged(c.packageId),
+                      onValueChanged: (v) => onValueChanged(c.packageId, v),
                       onTypeChanged:  (p) => onTypeChanged(c.packageId, p),
                       onRemove:       ()  => onRemove(c.packageId),
                       );

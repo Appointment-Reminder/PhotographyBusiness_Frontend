@@ -7,6 +7,7 @@ class Package extends Equatable {
   final String name;
   final String description;
   final bool isActive;
+  final String? jotformAlias;
 
   const Package({
     required this.id,
@@ -15,8 +16,9 @@ class Package extends Equatable {
     required this.name,
     required this.description,
     required this.isActive,
+    this.jotformAlias,
   });
 
   @override
-  List<Object?> get props => [id, businessId, categoryId, name, description, isActive];
+  List<Object?> get props => [id, businessId, categoryId, name, description, isActive, jotformAlias];
 }

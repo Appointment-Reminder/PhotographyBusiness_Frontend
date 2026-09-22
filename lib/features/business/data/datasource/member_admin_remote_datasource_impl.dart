@@ -53,7 +53,7 @@ class MemberAdminRemoteDatasourceImpl implements MemberAdminRemoteDatasource {
     required int commissionAmount,
     required bool commissionIsPercentage}) async {
     final response = await client.patch('/business/members/commissions',
-        data: {'id': id, 'commission_amount': commissionAmount ,'commission_IsPercentage': commissionIsPercentage});
+        data: {'id': id, 'commission_amount': commissionAmount ,'commission_isPercentage': commissionIsPercentage});
     return MemberCommissionModel.fromJson(response.data);
   }
 
