@@ -42,7 +42,7 @@ class PackageFormNotifier extends StateNotifier<PackageFormState> {
   }) async {
     state = state.copyWith(isSubmitting: true, error: null);
     final result = await updatePackage(UpdatePackageParams(
-      id: id, businessId: businessId, categoryId: categoryId, name: name, description: description,
+      id: id, name: name, description: description,
     ));
     result.fold(
           (f) => state = state.copyWith(isSubmitting: false, error: f.message),

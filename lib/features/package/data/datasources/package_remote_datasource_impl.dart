@@ -35,18 +35,14 @@ class PackageRemoteDatasourceImpl implements PackageRemoteDatasource {
   @override
   Future<Package> updatePackage({
     required int id,
-    required int businessId,
-    required int categoryId,
     required String name,
     required String description,
     String? jotformAlias,
   }) async {
     final response = await client.put(
-      '/business/packages',
+      '/business/packages/$id',
       data: {
         'id': id,
-        'business_id': businessId,
-        'category_id': categoryId,
         'name': name,
         'description': description,
         if (jotformAlias != null) 'jotform_alias': jotformAlias,

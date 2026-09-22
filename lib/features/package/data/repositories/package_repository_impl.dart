@@ -50,16 +50,12 @@ class PackageRepositoryImpl implements PackageRepository {
   @override
   Future<Either<Failure, Package>> updatePackage({
     required int id,
-    required int businessId,
-    required int categoryId,
     required String name,
     required String description,
     String? jotformAlias,
   }) {
     return _execute(() => remoteDatasource.updatePackage(
           id: id,
-          businessId: businessId,
-          categoryId: categoryId,
           name: name,
           description: description,
           jotformAlias: jotformAlias,

@@ -14,8 +14,6 @@ abstract class PackageRepository {
 
   Future<Either<Failure, Package>> updatePackage({
     required int id,
-    required int businessId,
-    required int categoryId,
     required String name,
     required String description,
     String? jotformAlias,
