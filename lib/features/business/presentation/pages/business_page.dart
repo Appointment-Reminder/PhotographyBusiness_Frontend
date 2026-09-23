@@ -45,6 +45,145 @@ class _BusinessPageState extends ConsumerState<BusinessPage>{
     final selectedBusiness = ref.watch(selectedBusinessProvider);
     final activeId = ref.watch(businessTabProvider);
 
+    Future<void> _showCreateBusinessDialog() async {
+      final nameController = TextEditingController();
+      final descriptionController = TextEditingController();
+
+      final formKey = GlobalKey<FormState>();
+
+      try {
+        final shouldCreate = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) {
+            bool isSubmitting = false;
+
+            return StatefulBuilder(
+              builder: (context, setState) {
+                return AlertDialog(
+                  title: const Text('Create Business'),
+                  content: Form(
+                    key: formKey,
+                    child: SizedBox(
+                      width: 450,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextFormField(
+                            controller: nameController,
+                            autofocus: true,
+                            decoration: const InputDecoration(
+                              labelText: 'Business name',
+                              hintText: 'Enter business name',
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Business name is required';
+                              }
+
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          TextFormField(
+                            controller: descriptionController,
+                            maxLines: 3,
+                            decoration: const InputDecoration(
+                              labelText: 'Description',
+                              hintText: 'Optional description',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: isSubmitting
+                          ? null
+                          : () {
+                        Navigator.of(dialogContext).pop(false);
+                      },
+                      child: const Text('Cancel'),
+                    ),
+
+                    FilledButton(
+                      onPressed: isSubmitting
+                          ? null
+                          : () async {
+                        if (!formKey.currentState!.validate()) {
+                          return;
+                        }
+
+                        setState(() {
+                          isSubmitting = true;
+                        });
+
+                        try {
+                          await ref
+                              .read(
+                            businessFormNotifierProvider.notifier,
+                          )
+                              .createBusiness(
+                            CreateBusinessParams(
+                              name: nameController.text.trim(),
+                              description:
+                              descriptionController.text.trim().isEmpty
+                                  ? null
+                                  : descriptionController.text.trim(),
+                            ),
+                          );
+
+                          if (dialogContext.mounted) {
+                            Navigator.of(dialogContext).pop(true);
+                          }
+                        } catch (e) {
+                          if (dialogContext.mounted) {
+                            setState(() {
+                              isSubmitting = false;
+                            });
+
+                            ScaffoldMessenger.of(dialogContext).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Failed to create business: $e',
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: isSubmitting
+                          ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      )
+                          : const Text('Create'),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+
+        if (shouldCreate == true && mounted) {
+          await ref
+              .read(businessListNotifierProvider.notifier)
+              .getMyBusinesses(
+            GetMyBusinessesParams(isActive: true),
+          );
+        }
+      } finally {
+        nameController.dispose();
+        descriptionController.dispose();
+      }
+    }
+
     return MainLayout(
         title: 'Businesses',
         child: Scaffold(
@@ -62,7 +201,18 @@ class _BusinessPageState extends ConsumerState<BusinessPage>{
             onItemSelected: (id) {
               ref.read(businessTabProvider.notifier).state = id;
             },
-            trailing: const BusinessSelector(),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const BusinessSelector(),
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: 'Create business',
+                  onPressed: _showCreateBusinessDialog,
+                  icon: const Icon(Icons.add),
+                ),
+              ],
+            ),
           ),
           body: _buildBody(businessState, selectedBusiness, activeId),
         )
