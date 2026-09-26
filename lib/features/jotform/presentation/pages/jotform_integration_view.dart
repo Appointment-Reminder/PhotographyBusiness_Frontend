@@ -52,75 +52,70 @@ class _JotformIntegrationViewState extends ConsumerState<JotformIntegrationView>
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(32),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 900),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Row(children: [
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Jotform Integration', style: AppTextStyles.heading24),
-                  const SizedBox(height: 4),
-                  Text('Connect accounts · fetch forms · map submission fields',
-                      style: AppTextStyles.monoMuted11),
-                ]),
-              ),
-              if (allForms.isNotEmpty) ...[
-                Text('$configured/${allForms.length} forms configured',
-                    style: AppTextStyles.monoMuted11),
-                const SizedBox(width: 16),
-              ],
-              if (!_adding)
-                ElevatedButton.icon(
-                  onPressed: () => setState(() => _adding = true),
-                  icon: const Icon(Icons.add, size: 14),
-                  label: const Text('Add Account'),
-                ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Jotform Integration', style: AppTextStyles.heading24),
+              const SizedBox(height: 4),
+              Text('Connect accounts · fetch forms · map submission fields',
+                  style: AppTextStyles.monoMuted11),
             ]),
-            const SizedBox(height: 24),
+          ),
+          if (allForms.isNotEmpty) ...[
+            Text('$configured/${allForms.length} forms configured',
+                style: AppTextStyles.monoMuted11),
+            const SizedBox(width: 16),
+          ],
+          if (!_adding)
+            ElevatedButton.icon(
+              onPressed: () => setState(() => _adding = true),
+              icon: const Icon(Icons.add, size: 14),
+              label: const Text('Add Account'),
+            ),
+        ]),
+        const SizedBox(height: 24),
 
-            if (s.error != null)
-              Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF2F2),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFFECACA)),
-                ),
-                child: Text(s.error!, style: AppTextStyles.mono11.copyWith(color: Colors.red)),
-              ),
+        if (s.error != null)
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF2F2),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFFECACA)),
+            ),
+            child: Text(s.error!, style: AppTextStyles.mono11.copyWith(color: Colors.red)),
+          ),
 
-            for (final c in s.credentials) ...[
-              AccountCard(businessId: widget.businessId, credential: c, fields: fields),
-              const SizedBox(height: 16),
-            ],
+        for (final c in s.credentials) ...[
+          AccountCard(businessId: widget.businessId, credential: c, fields: fields),
+          const SizedBox(height: 16),
+        ],
 
-            if (_adding)
-              AddAccountForm(
-                onCancel: () => setState(() => _adding = false),
-                onSubmit: (label, key) async {
-                  final ok = await notifier.addCredential(label, key);
-                  if (ok && mounted) setState(() => _adding = false);
-                  return ok;
-                },
-              ),
+        if (_adding)
+          AddAccountForm(
+            onCancel: () => setState(() => _adding = false),
+            onSubmit: (label, key) async {
+              final ok = await notifier.addCredential(label, key);
+              if (ok && mounted) setState(() => _adding = false);
+              return ok;
+            },
+          ),
 
-            if (s.credentials.isEmpty && !_adding)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 80),
-                child: Column(children: [
-                  const Icon(Icons.key, size: 28, color: AppColors.mutedText),
-                  const SizedBox(height: 12),
-                  Text('No accounts connected',
-                      style: AppTextStyles.body14.copyWith(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 4),
-                  Text('Add a Jotform API key to get started.', style: AppTextStyles.monoMuted11),
-                ]),
-              ),
-          ]),
-        ),
-      ),
+        if (s.credentials.isEmpty && !_adding)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 80),
+            child: Column(children: [
+              const Icon(Icons.key, size: 28, color: AppColors.mutedText),
+              const SizedBox(height: 12),
+              Text('No accounts connected',
+                  style: AppTextStyles.body14.copyWith(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
+              Text('Add a Jotform API key to get started.', style: AppTextStyles.monoMuted11),
+            ]),
+          ),
+      ]),
     );
   }
 }
