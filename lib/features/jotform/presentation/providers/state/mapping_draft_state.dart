@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:photography_business_frontend/features/jotform/domain/entities/field_mapping_item.dart';
+import 'package:photography_business_frontend/features/jotform/domain/entities/question_selection.dart';
 
 class MappingKey extends Equatable {
   final int businessId;
@@ -10,7 +11,7 @@ class MappingKey extends Equatable {
 }
 
 class MappingDraftState extends Equatable {
-  final Map<String, List<String>> draft;      // targetKey -> ordered qids
+  final Map<String, List<QuestionSelection>> draft;      // targetKey -> ordered qids
   final List<FieldMappingItem> original;      // kept to preserve subkeys
   final bool isSaving;
   final bool saved;
@@ -25,7 +26,7 @@ class MappingDraftState extends Equatable {
   });
 
   MappingDraftState copyWith({
-    Map<String, List<String>>? draft,
+    Map<String, List<QuestionSelection>>? draft,
     List<FieldMappingItem>? original,
     bool? isSaving,
     bool? saved,

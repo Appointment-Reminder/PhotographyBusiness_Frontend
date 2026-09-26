@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_colors.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_text_styles.dart';
 import 'package:photography_business_frontend/features/jotform/domain/entities/jotform_question.dart';
+import 'package:photography_business_frontend/features/jotform/domain/entities/question_selection.dart';
 import 'package:photography_business_frontend/features/jotform/domain/entities/submission_field.dart';
 import 'question_selector.dart';
 
@@ -22,8 +23,8 @@ const _badges = {
 class MappingFieldRow extends StatelessWidget {
   final SubmissionField field;
   final List<JotformQuestion> questions;
-  final List<String> selected;
-  final ValueChanged<List<String>> onChanged;
+  final List<QuestionSelection> selected;
+  final ValueChanged<List<QuestionSelection>> onChanged;
 
   const MappingFieldRow({
     super.key,
@@ -49,14 +50,14 @@ class MappingFieldRow extends StatelessWidget {
             mapped
                 ? const Icon(Icons.check_circle, size: 14, color: Color(0xFF10B981))
                 : Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: field.required ? const Color(0xFFFBBF24) : AppColors.border),
-                    ),
-                  ),
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                    color: field.required ? const Color(0xFFFBBF24) : AppColors.border),
+              ),
+            ),
             const SizedBox(width: 8),
             Flexible(
               child: Text(field.label,
@@ -84,8 +85,8 @@ class MappingFieldRow extends StatelessWidget {
           child: Center(
             child: field.required
                 ? Text('✱',
-                    style: AppTextStyles.mono10
-                        .copyWith(color: const Color(0xFFF87171), fontWeight: FontWeight.bold))
+                style: AppTextStyles.mono10
+                    .copyWith(color: const Color(0xFFF87171), fontWeight: FontWeight.bold))
                 : null,
           ),
         ),

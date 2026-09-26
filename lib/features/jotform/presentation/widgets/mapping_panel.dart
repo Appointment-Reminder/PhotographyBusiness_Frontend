@@ -133,7 +133,7 @@ class MappingPanel extends ConsumerWidget {
             field: fields[i],
             questions: form.questions,
             selected: s.draft[fields[i].key] ?? const [],
-            onChanged: (ids) => draft.setQuestions(fields[i].key, ids),
+            onChanged: (selections) => draft.setQuestions(fields[i].key, selections),
           ),
           if (i < fields.length - 1) const Divider(height: 1),
         ],
@@ -157,23 +157,23 @@ class _Btn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: Opacity(
-            opacity: onTap == null ? 0.5 : 1,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: primary ? AppColors.primaryText : Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
-                border: primary ? null : Border.all(color: AppColors.border),
-              ),
-              child: Text(label,
-                  style: AppTextStyles.mono11.copyWith(
-                      color: primary ? AppColors.active : AppColors.mutedText)),
-            ),
+    onTap: onTap,
+    child: MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: Opacity(
+        opacity: onTap == null ? 0.5 : 1,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            color: primary ? AppColors.primaryText : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+            border: primary ? null : Border.all(color: AppColors.border),
           ),
+          child: Text(label,
+              style: AppTextStyles.mono11.copyWith(
+                  color: primary ? AppColors.active : AppColors.mutedText)),
         ),
-      );
+      ),
+    ),
+  );
 }
