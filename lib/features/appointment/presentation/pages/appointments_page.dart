@@ -21,6 +21,7 @@ class _AppointmentsPageState extends ConsumerState<AppointmentsPage> {
   int? _photographerFilter; // member_id
   String? _monthFilter; // "yyyy-MM"
   int? _expandedId;
+  String? _statusFilter;
 
   @override
   void initState() {
@@ -48,12 +49,15 @@ class _AppointmentsPageState extends ConsumerState<AppointmentsPage> {
     }.toList()
       ..sort();
 
+    final statuses = {for (final a in state.appointments) a.status}.toList()..sort();
+
     final filtered = state.appointments.where((a) {
       final matchesPhotographer =
           _photographerFilter == null || a.memberId == _photographerFilter;
       final key = '${a.appointmentDate.year}-${a.appointmentDate.month.toString().padLeft(2, '0')}';
       final matchesMonth = _monthFilter == null || key == _monthFilter;
-      return matchesPhotographer && matchesMonth;
+      final matchesStatus = _statusFilter == null || a.status == _statusFilter;
+      return matchesPhotographer && matchesMonth && matchesStatus;
     }).toList()
       ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
 
@@ -138,6 +142,47 @@ class _AppointmentsPageState extends ConsumerState<AppointmentsPage> {
                       _monthFilter = value;
                     });
                   },
+                  inputDecorationTheme: InputDecorationTheme(
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surface,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).dividerColor,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).dividerColor,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 40,),
+              SizedBox(
+                width: 180,
+                child: DropdownMenu<String?>(
+                  initialSelection: _statusFilter,
+                  expandedInsets: EdgeInsets.zero,
+                  hintText: 'All statuses',
+                  dropdownMenuEntries: [
+                    const DropdownMenuEntry<String?>(value: null, label: 'All statuses'),
+                    ...statuses.map((s) => DropdownMenuEntry<String?>(value: s, label: s)),
+                  ],
+                  onSelected: (value) => setState(() => _statusFilter = value),
                   inputDecorationTheme: InputDecorationTheme(
                     filled: true,
                     fillColor: Theme.of(context).colorScheme.surface,
