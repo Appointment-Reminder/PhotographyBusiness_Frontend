@@ -63,12 +63,11 @@ class AuthRepositoryImpl implements AuthRepository {
           final validatedAuth = AuthResult(user: user, token: cachedAuth.token);
           return Right(validatedAuth);
         } on DioException catch (e) {
+          print('❌ Token validation failed');
+          print('Status: ${e.response?.statusCode}');
+          print('Response: ${e.response?.data}');
 
-          if (e.response?.statusCode == 401) {
-            return const Left(CacheFailure('Failed to restore session'));
-          }
-          // If other error, fall back to cached data
-          return Right(cachedAuth);
+          return const Left(CacheFailure('Failed to restore session'));
         }
       }
 

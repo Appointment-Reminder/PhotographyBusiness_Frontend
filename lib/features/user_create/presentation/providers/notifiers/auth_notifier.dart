@@ -20,7 +20,9 @@ class AuthNotifier extends StateNotifier<AuthState>{
     required this.checkAuthStatusUser,
     required this.logoutUser,
 
-  }) : super(const AuthInitial());
+  }) : super(const AuthInitial()) {
+    print('AuthNotifier initialized: $state');
+  }
 
   Future<void> login(String email, String password) async {
     print(' Login Started : $email');
@@ -52,20 +54,26 @@ class AuthNotifier extends StateNotifier<AuthState>{
 
   Future<void> checkAuthStatus() async {
     state = const AuthLoading();
+    print('Auth State: $state');
 
     final result = await checkAuthStatusUser(NoParams());
 
     result.fold(
-          (failure) => state = const AuthUnauthenticated(),
-          (authResult) => state = AuthAuthenticated(
+          (failure) { state = const AuthUnauthenticated(); print('Auth State: $state');},
+          (authResult) {
+            state = AuthAuthenticated(
         user: authResult.user,
         token: authResult.token,
-      ),
+      );
+            print('Auth State: $state');
+          }
     );
   }
 
   void logout() async {
     state = const AuthUnauthenticated();
-    final result =  await logoutUser(NoParams());
+    print('Auth State after logout: $state');
+
+    await logoutUser(NoParams());
   }
 }

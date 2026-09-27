@@ -7,20 +7,24 @@ import 'appointment_params.dart';
 
 class UpdateAppointment extends Usecase<Appointment, UpdateAppointmentParams> {
   final AppointmentRepository repository;
-
   UpdateAppointment({required this.repository});
 
   @override
   Future<Either<Failure, Appointment>> call(UpdateAppointmentParams params) {
-    // At least one field must be provided
-    if (params.clientName == null &&
-        params.clientEmail == null &&
-        params.clientPhone == null &&
-        params.appointmentDate == null &&
-        params.userId == null) {
-      return Future.value(Left(ServerFailure('At least one field must be provided')));
+    final hasAnyField = params.clientName != null ||
+        params.clientEmail != null ||
+        params.clientPhone != null ||
+        params.appointmentDate != null ||
+        params.appointmentLocation != null ||
+        params.appointmentDuration != null ||
+        params.appointmentNote != null ||
+        params.numberOfPersons != null ||
+        params.privacyOptOut != null ||
+        params.addsOns != null ||
+        params.memberId != null;
+    if (!hasAnyField) {
+      return Future.value(const Left(ServerFailure('At least one field must be provided')));
     }
-
     return repository.updateAppointment(
       businessId: params.businessId,
       appointmentId: params.appointmentId,
@@ -28,7 +32,13 @@ class UpdateAppointment extends Usecase<Appointment, UpdateAppointmentParams> {
       clientEmail: params.clientEmail,
       clientPhone: params.clientPhone,
       appointmentDate: params.appointmentDate,
-      userId: params.userId,
+      appointmentLocation: params.appointmentLocation,
+      appointmentDuration: params.appointmentDuration,
+      appointmentNote: params.appointmentNote,
+      numberOfPersons: params.numberOfPersons,
+      privacyOptOut: params.privacyOptOut,
+      addsOns: params.addsOns,
+      memberId: params.memberId,
     );
   }
 }

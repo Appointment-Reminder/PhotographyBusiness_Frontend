@@ -1,31 +1,78 @@
 import 'package:equatable/equatable.dart';
 
 class CreateAppointmentParams extends Equatable {
-  final String clientName;
-  final String clientEmail;
+  final int? memberId;
+  final int? businessId;
+  final int packageId;
+  final int packagePriceId;
+  final String clientFirstName;
+  final String clientLastName;
+  // Not accepted by AppointmentCreate today — carried here so the notifier
+  // can fire a follow-up PATCH right after creation. Drop this once the
+  // backend adds client_email/client_phone to AppointmentCreate.
+  final String? clientEmail;
   final String? clientPhone;
   final DateTime appointmentDate;
-  final int userId;
-  final int businessId;
+  final double priceAtBooking;
+  final double depositAmount;
+  final double remainingAmount;
+  final double commissionPercentAtBooking;
+  final double commissionAmountAtBooking;
+  final String? appointmentLocation;
+  final String? appointmentDuration;
+  final String? appointmentNote;
+  final int? numberOfPersons;
+  final String? addsOns;
 
   const CreateAppointmentParams({
-    required this.clientName,
-    required this.clientEmail,
+    this.memberId,
+    this.businessId,
+    required this.packageId,
+    required this.packagePriceId,
+    required this.clientFirstName,
+    required this.clientLastName,
+    this.clientEmail,
     this.clientPhone,
     required this.appointmentDate,
-    required this.userId,
-    required this.businessId,
+    required this.priceAtBooking,
+    required this.depositAmount,
+    required this.remainingAmount,
+    required this.commissionPercentAtBooking,
+    required this.commissionAmountAtBooking,
+    this.appointmentLocation,
+    this.appointmentDuration,
+    this.appointmentNote,
+    this.numberOfPersons,
+    this.addsOns,
   });
 
   @override
-  List<Object?> get props => [clientName, clientEmail, clientPhone, appointmentDate, userId, businessId];
+  List<Object?> get props => [
+        memberId,
+        businessId,
+        packageId,
+        packagePriceId,
+        clientFirstName,
+        clientLastName,
+        clientEmail,
+        clientPhone,
+        appointmentDate,
+        priceAtBooking,
+        depositAmount,
+        remainingAmount,
+        commissionPercentAtBooking,
+        commissionAmountAtBooking,
+        appointmentLocation,
+        appointmentDuration,
+        appointmentNote,
+        numberOfPersons,
+        addsOns,
+      ];
 }
 
 class GetMyAppointmentsParams extends Equatable {
   final String? status;
-
   const GetMyAppointmentsParams({this.status});
-
   @override
   List<Object?> get props => [status];
 }
@@ -33,12 +80,7 @@ class GetMyAppointmentsParams extends Equatable {
 class GetAppointmentsForBusinessParams extends Equatable {
   final int businessId;
   final String? status;
-
-  const GetAppointmentsForBusinessParams({
-    required this.businessId,
-    this.status,
-  });
-
+  const GetAppointmentsForBusinessParams({required this.businessId, this.status});
   @override
   List<Object?> get props => [businessId, status];
 }
@@ -46,12 +88,7 @@ class GetAppointmentsForBusinessParams extends Equatable {
 class GetAppointmentByIdParams extends Equatable {
   final int businessId;
   final int appointmentId;
-
-  const GetAppointmentByIdParams({
-    required this.businessId,
-    required this.appointmentId,
-  });
-
+  const GetAppointmentByIdParams({required this.businessId, required this.appointmentId});
   @override
   List<Object?> get props => [businessId, appointmentId];
 }
@@ -63,7 +100,13 @@ class UpdateAppointmentParams extends Equatable {
   final String? clientEmail;
   final String? clientPhone;
   final DateTime? appointmentDate;
-  final int? userId;
+  final String? appointmentLocation;
+  final String? appointmentDuration;
+  final String? appointmentNote;
+  final int? numberOfPersons;
+  final String? privacyOptOut;
+  final String? addsOns;
+  final int? memberId;
 
   const UpdateAppointmentParams({
     required this.businessId,
@@ -72,18 +115,36 @@ class UpdateAppointmentParams extends Equatable {
     this.clientEmail,
     this.clientPhone,
     this.appointmentDate,
-    this.userId,
+    this.appointmentLocation,
+    this.appointmentDuration,
+    this.appointmentNote,
+    this.numberOfPersons,
+    this.privacyOptOut,
+    this.addsOns,
+    this.memberId,
   });
 
   @override
-  List<Object?> get props => [businessId, appointmentId, clientName, clientEmail, clientPhone, appointmentDate, userId];
+  List<Object?> get props => [
+        businessId,
+        appointmentId,
+        clientName,
+        clientEmail,
+        clientPhone,
+        appointmentDate,
+        appointmentLocation,
+        appointmentDuration,
+        appointmentNote,
+        numberOfPersons,
+        privacyOptOut,
+        addsOns,
+        memberId,
+      ];
 }
 
 class DeleteAppointmentParams extends Equatable {
   final int appointmentId;
-
   const DeleteAppointmentParams(this.appointmentId);
-
   @override
   List<Object?> get props => [appointmentId];
 }

@@ -4,12 +4,18 @@ import '../entities/appointment.dart';
 
 abstract class AppointmentRepository {
   Future<Either<Failure, Appointment>> createAppointment({
-    required String clientName,
-    required String clientEmail,
-    String? clientPhone,
-    required DateTime appointmentDate,
-    int? userId,
+    int? memberId,
     int? businessId,
+    required int packageId,
+    required int packagePriceId,
+    required String clientFirstName,
+    required String clientLastName,
+    required DateTime appointmentDate,
+    required double priceAtBooking,
+    required double depositAmount,
+    required double remainingAmount,
+    required double commissionPercentAtBooking,
+    required double commissionAmountAtBooking,
   });
 
   Future<Either<Failure, List<Appointment>>> getMyAppointments({String? status});
@@ -24,6 +30,9 @@ abstract class AppointmentRepository {
     required int appointmentId,
   });
 
+  /// NOTE: AppointmentUpdate's schema marks every field required, contradicting
+  /// "partial update" — we send only the non-null args regardless, since that's
+  /// clearly the intent; this is a backend schema bug, not a client bug.
   Future<Either<Failure, Appointment>> updateAppointment({
     required int businessId,
     required int appointmentId,
@@ -31,7 +40,13 @@ abstract class AppointmentRepository {
     String? clientEmail,
     String? clientPhone,
     DateTime? appointmentDate,
-    int? userId,
+    String? appointmentLocation,
+    String? appointmentDuration,
+    String? appointmentNote,
+    int? numberOfPersons,
+    String? privacyOptOut,
+    String? addsOns,
+    int? memberId,
   });
 
   Future<Either<Failure, void>> deleteAppointment(int appointmentId);

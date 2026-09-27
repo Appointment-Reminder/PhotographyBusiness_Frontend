@@ -7,7 +7,6 @@ import 'appointment_params.dart';
 
 class GetMyAppointments extends Usecase<List<Appointment>, GetMyAppointmentsParams> {
   final AppointmentRepository repository;
-
   GetMyAppointments({required this.repository});
 
   @override
