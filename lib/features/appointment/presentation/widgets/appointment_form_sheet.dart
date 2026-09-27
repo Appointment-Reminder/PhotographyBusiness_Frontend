@@ -42,7 +42,7 @@ class _AppointmentFormSheetState extends ConsumerState<AppointmentFormSheet> {
   late final _emailCtrl = TextEditingController(text: widget.existing?.clientEmail ?? '');
   late final _phoneCtrl = TextEditingController(text: widget.existing?.clientPhone ?? '');
   late final _locationCtrl = TextEditingController(text: widget.existing?.appointmentLocation ?? '');
-  late final _durationCtrl = TextEditingController(text: widget.existing?.appointmentDuration ?? '');
+  late final _durationCtrl = TextEditingController(text: widget.existing?.appointmentDuration.toString() ?? '');
   late final _noteCtrl = TextEditingController(text: widget.existing?.appointmentNote ?? '');
   late final _personsCtrl =
       TextEditingController(text: widget.existing?.numberOfPersons?.toString() ?? '');
