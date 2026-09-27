@@ -125,21 +125,6 @@ class Fixtures {
     userEmail: 'marie@example.com',
   );
 
-  static final appointment = Appointment(
-    id: 1,
-    clientName: 'Sophie Martin',
-    clientEmail: 'sophie@example.com',
-    clientPhone: '+33 6 12 34 56 78',
-    appointmentDate: DateTime.now().add(const Duration(days: 3)),
-    userId: 2,
-    businessId: 1,
-    createdAt: DateTime.now(),
-    updatedAt: DateTime.now(),
-    photographerId: 2,
-    photographerName: 'Marie Dubois',
-    photographerEmail: 'marie@example.com',
-  );
-
   static final package = Package(
     id: 1,
     businessId: 1,

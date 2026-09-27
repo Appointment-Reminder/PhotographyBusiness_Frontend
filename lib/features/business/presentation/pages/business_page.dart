@@ -14,6 +14,8 @@ import 'package:photography_business_frontend/features/package/presentation/widg
 
 
 
+import '../../../appointment/presentation/pages/appointment_calendar_page.dart';
+import '../../../appointment/presentation/pages/appointments_page.dart';
 import '../../../jotform/presentation/pages/jotform_integration_view.dart';
 import '../../../jotform/presentation/pages/jotform_matrix_view.dart';
 
@@ -196,6 +198,8 @@ class _BusinessPageState extends ConsumerState<BusinessPage>{
               TopNavBarItem(id: 'Jotform', label: 'Jotform'),
               TopNavBarItem(id: 'Jotform Integration', label: 'Jotform Integration'),
               TopNavBarItem(id: 'Settings', label: 'Settings'),
+              TopNavBarItem(id: 'Appointments', label: 'Appointments'),
+              TopNavBarItem(id: 'Calendar', label: 'Calendar'),
             ],
             activeId: activeId,
             onItemSelected: (id) {
@@ -250,6 +254,13 @@ class _BusinessPageState extends ConsumerState<BusinessPage>{
         return JotformMatrixView(businessId: selectedBusiness.id);
       case 'Settings':
         return Center(child: Text('Settings of : ${selectedBusiness?.name} Page in progress'));
+      case 'Appointments':
+        if (selectedBusiness == null) return const Center(child: Text('Select a business'));
+        return AppointmentsPage(businessId: selectedBusiness.id);
+      case 'Calendar':
+        if (selectedBusiness == null) return const Center(child: Text('Select a business'));
+        return AppointmentCalendarPage(businessId: selectedBusiness.id);
+
     }
 
 

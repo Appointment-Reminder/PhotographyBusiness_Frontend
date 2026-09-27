@@ -7,33 +7,26 @@ import 'appointment_params.dart';
 
 class CreateAppointmentUser extends Usecase<Appointment, CreateAppointmentParams> {
   final AppointmentRepository repository;
-
   CreateAppointmentUser({required this.repository});
 
   @override
   Future<Either<Failure, Appointment>> call(CreateAppointmentParams params) {
-    if (params.clientName.isEmpty) {
-      return Future.value(Left(ServerFailure('Client name is required')));
+    if (params.clientFirstName.trim().isEmpty || params.clientLastName.trim().isEmpty) {
+      return Future.value(const Left(ServerFailure('Client first and last name are required')));
     }
-    if (params.clientEmail.isEmpty) {
-      return Future.value(Left(ServerFailure('Client email is required')));
-    }
-
-    if(params.businessId.isNaN){
-      return Future.value(Left(ServerFailure('Business id is required')));
-    }
-
-    if(params.userId.isNaN){
-      return Future.value(Left(ServerFailure('User id is required')));
-    }
-
     return repository.createAppointment(
-      clientName: params.clientName,
-      clientEmail: params.clientEmail,
-      clientPhone: params.clientPhone,
-      appointmentDate: params.appointmentDate,
-      userId: params.userId,
+      memberId: params.memberId,
       businessId: params.businessId,
+      packageId: params.packageId,
+      packagePriceId: params.packagePriceId,
+      clientFirstName: params.clientFirstName,
+      clientLastName: params.clientLastName,
+      appointmentDate: params.appointmentDate,
+      priceAtBooking: params.priceAtBooking,
+      depositAmount: params.depositAmount,
+      remainingAmount: params.remainingAmount,
+      commissionPercentAtBooking: params.commissionPercentAtBooking,
+      commissionAmountAtBooking: params.commissionAmountAtBooking,
     );
   }
 }

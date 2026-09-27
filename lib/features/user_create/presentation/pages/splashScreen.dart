@@ -26,6 +26,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
 
+    ref.listen<AuthState>(
+      authNotifierProvider,
+          (previous, next) {
+        print('Previous Auth State: $previous');
+        print('Current Auth State: $next');
+      },
+    );
+
+    print('Current Auth State from build: $authState');
+
     // Listen for auth state changes and navigate accordingly
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
       if (next is AuthAuthenticated) {

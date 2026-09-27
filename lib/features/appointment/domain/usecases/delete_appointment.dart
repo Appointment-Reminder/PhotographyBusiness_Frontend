@@ -6,7 +6,6 @@ import 'appointment_params.dart';
 
 class DeleteAppointment extends Usecase<void, DeleteAppointmentParams> {
   final AppointmentRepository repository;
-
   DeleteAppointment({required this.repository});
 
   @override

@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:photography_business_frontend/features/appointment/data/datasources/appointment_remote_datasource.dart';
-import 'package:photography_business_frontend/features/appointment/data/models/appointment_model.dart';
+import '../models/appointment_model.dart';
 import '../../domain/entities/appointment.dart';
+import 'appointment_remote_datasource.dart';
 
 class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
   final Dio client;
@@ -10,44 +10,47 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
 
   @override
   Future<Appointment> createAppointment({
-    required String clientName,
-    required String clientEmail,
-    String? clientPhone,
+    int? memberId,
+    int? businessId,
+    required int packageId,
+    required int packagePriceId,
+    required String clientFirstName,
+    required String clientLastName,
     required DateTime appointmentDate,
-    required int userId,
-    required int businessId,
+    required double priceAtBooking,
+    required double depositAmount,
+    required double remainingAmount,
+    required double commissionPercentAtBooking,
+    required double commissionAmountAtBooking,
   }) async {
     final response = await client.post(
-      '/appointments/appointments',
+      '/appointments/',
       data: {
-        'client_name': clientName,
-        'client_email': clientEmail,
-        if (clientPhone != null) 'client_phone': clientPhone,
+        if (memberId != null) 'member_id': memberId,
+        if (businessId != null) 'business_id': businessId,
+        'package_id': packageId,
+        'package_price_id': packagePriceId,
+        'client_first_name': clientFirstName,
+        'client_last_name': clientLastName,
         'appointment_date': appointmentDate.toIso8601String(),
-        'user_id': userId,
-        'business_id': businessId,
+        'price_at_booking': priceAtBooking,
+        'deposit_amount': depositAmount,
+        'remaining_amount': remainingAmount,
+        'commission_percent_at_booking': commissionPercentAtBooking,
+        'commission_amount_at_booking': commissionAmountAtBooking,
       },
     );
-
     return AppointmentModel.fromJson(response.data);
   }
 
   @override
   Future<List<Appointment>> getMyAppointments({String? status}) async {
-    final queryParams = <String, dynamic>{};
-    if (status != null) {
-      queryParams['status'] = status;
-    }
-
     final response = await client.get(
       '/appointments/me',
-      queryParameters: queryParams,
+      queryParameters: {if (status != null) 'status': status},
     );
-
-    final List<dynamic> appointmentList = response.data;
-    return appointmentList
-        .map((json) => AppointmentModel.fromJson(json))
-        .toList();
+    final List<dynamic> list = response.data;
+    return list.map((json) => AppointmentModel.fromJson(json)).toList();
   }
 
   @override
@@ -55,20 +58,12 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
     required int businessId,
     String? status,
   }) async {
-    final queryParams = <String, dynamic>{};
-    if (status != null) {
-      queryParams['status'] = status;
-    }
-
     final response = await client.get(
       '/appointments/business/$businessId',
-      queryParameters: queryParams,
+      queryParameters: {if (status != null) 'status': status},
     );
-
-    final List<dynamic> appointmentList = response.data;
-    return appointmentList
-        .map((json) => AppointmentModel.fromJson(json))
-        .toList();
+    final List<dynamic> list = response.data;
+    return list.map((json) => AppointmentModel.fromJson(json)).toList();
   }
 
   @override
@@ -79,7 +74,6 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
     final response = await client.get(
       '/appointments/business/$businessId/appointments/$appointmentId',
     );
-
     return AppointmentModel.fromJson(response.data);
   }
 
@@ -91,7 +85,13 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
     String? clientEmail,
     String? clientPhone,
     DateTime? appointmentDate,
-    int? userId,
+    String? appointmentLocation,
+    String? appointmentDuration,
+    String? appointmentNote,
+    int? numberOfPersons,
+    String? privacyOptOut,
+    String? addsOns,
+    int? memberId,
   }) async {
     final response = await client.patch(
       '/appointments/business/$businessId/appointments/$appointmentId',
@@ -99,11 +99,17 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
         if (clientName != null) 'client_name': clientName,
         if (clientEmail != null) 'client_email': clientEmail,
         if (clientPhone != null) 'client_phone': clientPhone,
-        if (appointmentDate != null) 'appointment_date': appointmentDate.toIso8601String(),
-        if (userId != null) 'user_id': userId,
+        if (appointmentDate != null)
+          'appointment_date': appointmentDate.toIso8601String(),
+        if (appointmentLocation != null) 'appointment_location': appointmentLocation,
+        if (appointmentDuration != null) 'appointment_duration': appointmentDuration,
+        if (appointmentNote != null) 'appointment_note': appointmentNote,
+        if (numberOfPersons != null) 'number_of_persons': numberOfPersons,
+        if (privacyOptOut != null) 'privacy_opt_out': privacyOptOut,
+        if (addsOns != null) 'adds_ons': addsOns,
+        if (memberId != null) 'member_id': memberId,
       },
     );
-
     return AppointmentModel.fromJson(response.data);
   }
 

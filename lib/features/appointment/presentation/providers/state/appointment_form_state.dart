@@ -1,6 +1,5 @@
-// appointment_form_state.dart — create/update/delete
 import 'package:equatable/equatable.dart';
-import 'package:photography_business_frontend/features/appointment/domain/entities/appointment.dart';
+import '../../../domain/entities/appointment.dart';
 
 class AppointmentFormState extends Equatable {
   final Appointment? saved;
