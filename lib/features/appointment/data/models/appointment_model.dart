@@ -5,7 +5,7 @@ class AppointmentModel extends Appointment {
     required super.id,
     required super.businessId,
     super.memberId,
-    required super.formId,
+    super.formId,
     super.packageId,
     super.packagePriceId,
     required super.clientFirstName,

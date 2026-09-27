@@ -31,4 +31,9 @@ class AppColors {
 
   // Border
   static const border      = Color(0xFFD4D4D8);
+
+  //APPOINTMENT LIST
+  static const appointmentPageColorBG = Color(0xFFE2E2E5);
+  static const appointmentListHeaderBG = Color(0xFFF2F2F3);
+  static const extentedAppointmentColor = Color(0xFFEDF4FD);
 }
