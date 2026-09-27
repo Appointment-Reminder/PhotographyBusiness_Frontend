@@ -21,7 +21,7 @@ class Appointment extends Equatable {
   final double? commissionAmountAtBooking;
   final DateTime appointmentDate;
   final String? appointmentLocation;
-  final String? appointmentDuration;
+  final int? appointmentDuration;
   final String? appointmentNote;
   final int? numberOfPersons;
   final String? privacyOptOut;

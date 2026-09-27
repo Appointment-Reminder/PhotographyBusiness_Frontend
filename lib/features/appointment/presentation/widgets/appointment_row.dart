@@ -109,7 +109,7 @@ class AppointmentRow extends StatelessWidget {
                     if (appointment.appointmentLocation != null)
                       _InfoItem(icon: Icons.place_outlined, text: appointment.appointmentLocation!),
                     if (appointment.appointmentDuration != null)
-                      _InfoItem(icon: Icons.timer_outlined, text: appointment.appointmentDuration!),
+                      _InfoItem(icon: Icons.timer_outlined, text: appointment.appointmentDuration.toString()!),
                     if (appointment.numberOfPersons != null)
                       _InfoItem(
                           icon: Icons.people_outline, text: '${appointment.numberOfPersons} people'),
