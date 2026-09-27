@@ -7,7 +7,7 @@ class Appointment extends Equatable {
   final int id;
   final int businessId;
   final int? memberId; // assumed = BusinessMember.id, see README
-  final int formId;
+  final int? formId;
   final int? packageId;
   final int? packagePriceId;
   final String clientFirstName;

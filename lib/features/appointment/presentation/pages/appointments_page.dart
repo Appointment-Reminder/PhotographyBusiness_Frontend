@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photography_business_frontend/core/Presentation/theme/app_colors.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/member_providers.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/package_providers.dart';
+import '../../../../core/Presentation/theme/app_text_styles.dart';
 import '../../domain/entities/appointment.dart';
 import '../providers/appointment_providers.dart';
 import '../widgets/appointment_row.dart';
@@ -55,101 +57,295 @@ class _AppointmentsPageState extends ConsumerState<AppointmentsPage> {
     }).toList()
       ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Appointments'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref
-                .read(appointmentListNotifierProvider(widget.businessId).notifier)
-                .loadForBusiness(widget.businessId),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final saved = await showAppointmentFormSheet(context, businessId: widget.businessId);
-          if (saved == true) {
-            ref
-                .read(appointmentListNotifierProvider(widget.businessId).notifier)
-                .loadForBusiness(widget.businessId);
-          }
-        },
-        child: const Icon(Icons.add),
-      ),
-      body: Column(
+    Widget _buildContent(){
+      return Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                DropdownButton<int?>(
-                  value: _photographerFilter,
-                  hint: const Text('All photographers'),
-                  items: [
-                    const DropdownMenuItem(value: null, child: Text('All photographers')),
-                    ...members.map((m) => DropdownMenuItem(
-                          value: m.id,
-                          child: Text(m.userName ?? 'Unknown'),
-                        )),
+          Row(
+            children: [
+              SizedBox(
+                width: 250,
+                child: DropdownMenu<int?>(
+                  expandedInsets: EdgeInsets.zero,
+                  initialSelection: _photographerFilter,
+                  hintText: 'All photographers',
+                  dropdownMenuEntries: [
+                    const DropdownMenuEntry<int?>(
+                      value: null,
+                      label: 'All photographers',
+                    ),
+                    ...members.map(
+                          (m) => DropdownMenuEntry<int?>(
+                        value: m.id,
+                        label: m.userName ?? 'Unknown',
+                      ),
+                    ),
                   ],
-                  onChanged: (v) => setState(() => _photographerFilter = v),
+                  onSelected: (value) {
+                    setState(() {
+                      _photographerFilter = value;
+                    });
+                  },
+                  inputDecorationTheme: InputDecorationTheme(
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surface,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).dividerColor,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).dividerColor,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 16),
-                DropdownButton<String?>(
-                  value: _monthFilter,
-                  hint: const Text('All months'),
-                  items: [
-                    const DropdownMenuItem(value: null, child: Text('All months')),
-                    ...months.map((m) => DropdownMenuItem(value: m, child: Text(m))),
+              ),
+              const SizedBox(width: 40,),
+              SizedBox(
+                width: 180,
+                child: DropdownMenu<String?>(
+                  initialSelection: _monthFilter,
+                  expandedInsets: EdgeInsets.zero,
+                  hintText: 'All months',
+                  dropdownMenuEntries: [
+                    const DropdownMenuEntry<String?>(
+                      value: null,
+                      label: 'All months',
+                    ),
+                    ...months.map(
+                          (m) => DropdownMenuEntry<String?>(
+                        value: m,
+                        label: m,
+                      ),
+                    ),
                   ],
-                  onChanged: (v) => setState(() => _monthFilter = v),
+                  onSelected: (value) {
+                    setState(() {
+                      _monthFilter = value;
+                    });
+                  },
+                  inputDecorationTheme: InputDecorationTheme(
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surface,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).dividerColor,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).dividerColor,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
                 ),
-                const Spacer(),
-                Text('${filtered.length} appointments'),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          if (state.isLoading && state.appointments.isEmpty)
-            const Expanded(child: Center(child: CircularProgressIndicator()))
-          else if (state.error != null)
-            Expanded(child: Center(child: Text(state.error!)))
-          else if (filtered.isEmpty)
-            const Expanded(child: Center(child: Text('No appointments match your filters.')))
-          else
-            Expanded(
-              child: ListView.separated(
-                itemCount: filtered.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (context, i) {
-                  final Appointment a = filtered[i];
-                  return AppointmentRow(
-                    appointment: a,
-                    package: a.packageId == null ? null : packagesById[a.packageId],
-                    photographer: a.memberId == null ? null : membersById[a.memberId],
-                    isExpanded: _expandedId == a.id,
-                    onToggle: () => setState(() => _expandedId = _expandedId == a.id ? null : a.id),
-                    onEdit: () async {
-                      final saved = await showAppointmentFormSheet(
-                        context, businessId: widget.businessId, existing: a,
-                      );
-                      if (saved == true) {
-                        ref
-                            .read(appointmentListNotifierProvider(widget.businessId).notifier)
-                            .loadForBusiness(widget.businessId);
-                      }
-                    },
-                    onDelete: () => ref
-                        .read(appointmentListNotifierProvider(widget.businessId).notifier)
-                        .remove(a.id),
-                  );
-                },
+              ),
+            ],
+          ), //FILTER BUTTON
+          const SizedBox(height: 12,),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.active,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.border,
+                ),
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // TABLE HEADER
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: AppColors.appointmentListHeaderBG,
+                      border: const Border(
+                        bottom: BorderSide(
+                          color: AppColors.border,
+                        ),
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 180,
+                          child: Text(
+                            textAlign: TextAlign.left,
+                            'DATE & TIME',
+                            style: AppTextStyles.monoMuted10.copyWith(
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ),
+
+                        const Expanded(
+                          child: Text(
+                            'CLIENT',
+                            style: TextStyle(
+                              fontSize: 10,
+                              letterSpacing: 1.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(
+                          width: 160,
+                          child: Text(
+                            textAlign: TextAlign.left,
+                            'PACKAGE',
+                            style: TextStyle(
+                              fontSize: 10,
+                              letterSpacing: 1.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+
+
+                        const SizedBox(
+                          width: 160,
+                          child: Text(
+                            'PHOTOGRAPHER',
+                            style: TextStyle(
+                              fontSize: 10,
+                              letterSpacing: 1.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(
+                          width: 90,
+                          child: Text(
+                            'STATUS',
+                            style: TextStyle(
+                              fontSize: 10,
+                              letterSpacing: 1.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // APPOINTMENT ROWS
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, __) => const Divider(
+                        height: 1,
+                      ),
+                      itemBuilder: (context, i) {
+                        final Appointment a = filtered[i];
+
+                        return AppointmentRow(
+                          appointment: a,
+                          package: a.packageId == null
+                              ? null
+                              : packagesById[a.packageId],
+                          photographer: a.memberId == null
+                              ? null
+                              : membersById[a.memberId],
+                          isExpanded: _expandedId == a.id,
+                          onToggle: () {
+                            setState(() {
+                              _expandedId =
+                              _expandedId == a.id ? null : a.id;
+                            });
+                          },
+                          onEdit: () async {
+                            final saved = await showAppointmentFormSheet(
+                              context,
+                              businessId: widget.businessId,
+                              existing: a,
+                            );
+
+                            if (saved == true) {
+                              ref
+                                  .read(
+                                appointmentListNotifierProvider(
+                                  widget.businessId,
+                                ).notifier,
+                              )
+                                  .loadForBusiness(widget.businessId);
+                            }
+                          },
+                          onDelete: () {
+                            ref
+                                .read(
+                              appointmentListNotifierProvider(
+                                widget.businessId,
+                              ).notifier,
+                            )
+                                .remove(a.id);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
+          ),
+        ],
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('PHOTOGRAPHY STUDIO', style: AppTextStyles.monoMuted10.copyWith(letterSpacing: 2.8)),
+          const SizedBox(height: 8),
+          Text('Appointments', style: AppTextStyles.heading24),
+          const SizedBox(height: 32),
+          Expanded(
+            child: _buildContent(),
+          ),
         ],
       ),
     );
+
+
+
   }
 }

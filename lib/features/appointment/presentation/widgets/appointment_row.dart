@@ -27,6 +27,21 @@ class AppointmentRow extends StatelessWidget {
     required this.onDelete,
   });
 
+  String formatDuration(int minutes) {
+    final hours = minutes ~/ 60;
+    final remainingMinutes = minutes % 60;
+
+    if (hours == 0) {
+      return '${remainingMinutes}m';
+    }
+
+    if (remainingMinutes == 0) {
+      return '${hours}h';
+    }
+
+    return '${hours}h${remainingMinutes}m';
+  }
+
   @override
   Widget build(BuildContext context) {
     final color = PhotographerColors.of(appointment.memberId);
@@ -37,36 +52,109 @@ class AppointmentRow extends StatelessWidget {
         InkWell(
           onTap: onToggle,
           child: Container(
-            color: isExpanded ? AppColors.sidebarBg.withOpacity(0.5) : null,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: AppColors.border),
+                bottom: BorderSide(color: AppColors.border),
+              ),
+              color: isExpanded ? AppColors.sidebarBg.withOpacity(0.5) : null,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+
             child: Row(
               children: [
                 SizedBox(
-                  width: 140,
+                  width: 180,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(DateFormat('EEE, d MMM').format(appointment.appointmentDate),
                           style: AppTextStyles.body14.copyWith(fontWeight: FontWeight.w500)),
-                      Text(DateFormat('HH:mm').format(appointment.appointmentDate),
-                          style: AppTextStyles.monoMuted11),
+                      Text(
+                        appointment.appointmentDuration != null
+                            ? '${DateFormat('HH:mm').format(appointment.appointmentDate)} ->'
+                            '${DateFormat('HH:mm').format(appointment.appointmentDate.add(Duration(minutes: appointment.appointmentDuration!.toInt())))}'
+                            : DateFormat('HH:mm').format(appointment.appointmentDate),
+                        style: AppTextStyles.monoMuted11,
+                      )
                     ],
                   ),
                 ),
                 Expanded(
-                  flex: 2,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(appointment.clientName,
-                          style: AppTextStyles.body14.copyWith(fontWeight: FontWeight.w600)),
-                      Text(package?.name ?? 'No package',
-                          style: AppTextStyles.muted12, overflow: TextOverflow.ellipsis),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                                appointment.clientName,
+                                style: AppTextStyles.body14.copyWith(fontWeight: FontWeight.w600),
+                                overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 4,),
+                          const Icon(
+                            Icons.favorite_border,
+                            size: 13,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 2,),
+                          Text(
+                            '${appointment.numberOfPersons!}',
+                            style: AppTextStyles.muted12,
+                          )
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 13,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(width: 2,),
+                          Text(appointment.appointmentLocation ?? 'No Location',
+                              style: AppTextStyles.muted12, overflow: TextOverflow.ellipsis),
+                        ],
+                      ),
                     ],
                   ),
                 ),
                 SizedBox(
-                  width: 140,
+                  width: 160,
+                    child:
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          package?.name ?? "No Package",
+                          style: AppTextStyles.muted12,
+                          overflow: TextOverflow.ellipsis,),
+                        Row(
+                          children: [
+                            Text(
+                                package?.categoryId.toString() ?? "No category",
+                              style: AppTextStyles.muted12,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(width: 2,),
+                            Text(
+                              '·',
+                              style: AppTextStyles.muted12,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              formatDuration(appointment.appointmentDuration ?? 0),
+                              style: AppTextStyles.muted12,
+                            ),
+                          ],
+                        )
+                      ],
+                    )
+                ),
+                SizedBox(
+                  width: 160,
                   child: Row(
                     children: [
                       Container(
@@ -84,48 +172,146 @@ class AppointmentRow extends StatelessWidget {
                   width: 90,
                   child: _StatusChip(status: appointment.status),
                 ),
-                Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                    color: AppColors.mutedText),
+                SizedBox(
+                  width: 40,
+                  child: Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                      color: AppColors.mutedText),
+                ),
               ],
             ),
           ),
         ),
         if (isExpanded)
           Container(
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: AppColors.border),
+                bottom: BorderSide(color: AppColors.border),
+              ),
+              color: AppColors.extentedAppointmentColor,
+            ),
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            color: AppColors.sidebarBg.withOpacity(0.5),
+
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Wrap(
-                  spacing: 24,
-                  runSpacing: 8,
+                const SizedBox(height: 12,),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (appointment.clientEmail != null)
-                      _InfoItem(icon: Icons.email_outlined, text: appointment.clientEmail!),
-                    if (appointment.clientPhone != null)
-                      _InfoItem(icon: Icons.phone, text: appointment.clientPhone!),
-                    if (appointment.appointmentLocation != null)
-                      _InfoItem(icon: Icons.place_outlined, text: appointment.appointmentLocation!),
-                    if (appointment.appointmentDuration != null)
-                      _InfoItem(icon: Icons.timer_outlined, text: appointment.appointmentDuration.toString()!),
-                    if (appointment.numberOfPersons != null)
-                      _InfoItem(
-                          icon: Icons.people_outline, text: '${appointment.numberOfPersons} people'),
-                    if (appointment.priceAtBooking != null)
-                      _InfoItem(
-                        icon: Icons.euro,
-                        text:
-                            '${appointment.priceAtBooking!.toStringAsFixed(0)} '
-                            '(deposit ${appointment.depositAmount?.toStringAsFixed(0) ?? '—'})',
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "CLIENT",
+                          style: AppTextStyles.muted12,
+                        ),
+                        const SizedBox(height: 12,),
+                        Text(
+                          '${appointment.clientFirstName} ${appointment.clientLastName}',
+                          style: AppTextStyles.mono,
+                        ),
+                        const SizedBox(height: 3,),
+                        if (appointment.clientEmail != null)
+                          _InfoItem(icon: Icons.email_outlined, text: appointment.clientEmail!),
+                          const SizedBox(height: 3,),
+                        if (appointment.clientPhone != null)
+                          _InfoItem(icon: Icons.phone, text: appointment.clientPhone!),
+                          const SizedBox(height: 3,),
+                      ],
+                    ), // CLIENT
+                    const SizedBox(width: 80,),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "LOCATION & TIME",
+                          style: AppTextStyles.muted12,
+                        ),
+                        const SizedBox(height: 12,),
+                        Text(
+                          '${appointment.appointmentLocation}',
+                          style: AppTextStyles.mono,
+                        ),
+                        const SizedBox(height: 5,),
+                        Text(
+                          appointment.appointmentDuration != null
+                              ? '${DateFormat('HH:mm').format(appointment.appointmentDate)} -'
+                              '${DateFormat('HH:mm').format(appointment.appointmentDate.add(Duration(minutes: appointment.appointmentDuration!.toInt())))} (${formatDuration(appointment.appointmentDuration ?? 0)})'
+                              : DateFormat('HH:mm').format(appointment.appointmentDate),
+                          style: AppTextStyles.monoMuted11,
+                        )
+                      ],
+                    ), // LOCATION AND TIME
+                    const SizedBox(width: 80,),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "SESSION",
+                          style: AppTextStyles.muted12,
+                        ),
+                        const SizedBox(height: 12,),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.favorite_border,
+                              size: 13,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 5,),
+                            Text(
+                                'CATEGORY',
+                              style: AppTextStyles.mono,
+                            ),
+                            const SizedBox(width: 2,),
+                            Text(
+                              '·',
+                              style: AppTextStyles.mono,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                                '${appointment.numberOfPersons} Persons',
+                              style: AppTextStyles.mono,
+                            )
+                          ],
+                        ), // COUPLE 2 Persons
+                        const SizedBox(height: 5,),
+                        RichText(
+                          text:
+                          TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Found via',
+                                  style: AppTextStyles.monoMuted11,
+                                ),
+                                TextSpan(
+                                  text: ' Instagram',
+                                  style: AppTextStyles.mono,
+                                )
+                              ]
+                          )
+                        ),
+                      ]
+                    ), // SESSION
+                    const SizedBox(width: 80,),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "NOTES",
+                          style: AppTextStyles.muted12,
+                        ),
+                        const SizedBox(height: 12,),
+                        if (appointment.appointmentNote != null) ...[
+                          Text(appointment.appointmentNote!, style: AppTextStyles.mono),
+                        ],
+                      ],
+                    ), //APPOINTMENT NOTES
                   ],
-                ),
-                if (appointment.appointmentNote != null) ...[
-                  const SizedBox(height: 8),
-                  Text(appointment.appointmentNote!, style: AppTextStyles.muted12),
-                ],
+                ), //APPOINTMENT INFO
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -141,7 +327,7 @@ class AppointmentRow extends StatelessWidget {
                       label: const Text('Delete', style: TextStyle(color: Colors.red)),
                     ),
                   ],
-                ),
+                ), //BUTTONS EDIT DELETE
               ],
             ),
           ),
