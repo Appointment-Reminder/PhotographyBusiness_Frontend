@@ -92,7 +92,8 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   Future<Either<Failure, Appointment>> updateAppointment({
     required int businessId,
     required int appointmentId,
-    String? clientName,
+    String? clientFirstName,
+    String? clientLastName,
     String? clientEmail,
     String? clientPhone,
     DateTime? appointmentDate,
@@ -107,7 +108,8 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
     return _execute(() => remoteDatasource.updateAppointment(
           businessId: businessId,
           appointmentId: appointmentId,
-          clientName: clientName,
+          clientFirstName: clientFirstName,
+          clientLastName: clientLastName,
           clientEmail: clientEmail,
           clientPhone: clientPhone,
           appointmentDate: appointmentDate,

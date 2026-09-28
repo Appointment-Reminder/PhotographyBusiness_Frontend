@@ -31,7 +31,8 @@ abstract class AppointmentRemoteDatasource {
   Future<Appointment> updateAppointment({
     required int businessId,
     required int appointmentId,
-    String? clientName,
+    String? clientFirstName,
+    String? clientLastName,
     String? clientEmail,
     String? clientPhone,
     DateTime? appointmentDate,

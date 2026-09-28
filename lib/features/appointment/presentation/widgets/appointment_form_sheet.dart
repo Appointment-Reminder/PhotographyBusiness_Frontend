@@ -162,7 +162,8 @@ class _AppointmentFormSheetState extends ConsumerState<AppointmentFormSheet> {
         ? await notifier.update(
             businessId: widget.businessId,
             appointmentId: widget.existing!.id,
-            clientName: '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}',
+            clientFirstName: _firstNameCtrl.text.trim(),
+            clientLastName: _lastNameCtrl.text.trim(),
             clientEmail: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
             clientPhone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
             appointmentDate: _date,
