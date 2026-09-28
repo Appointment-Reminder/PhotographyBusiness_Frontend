@@ -1,4 +1,3 @@
-import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:photography_business_frontend/core/Presentation/widgets/category/category_badge.dart';
