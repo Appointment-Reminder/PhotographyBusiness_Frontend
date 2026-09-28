@@ -81,7 +81,8 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
   Future<Appointment> updateAppointment({
     required int businessId,
     required int appointmentId,
-    String? clientName,
+    String? clientFirstName,
+    String? clientLastName,
     String? clientEmail,
     String? clientPhone,
     DateTime? appointmentDate,
@@ -96,7 +97,8 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
     final response = await client.patch(
       '/appointments/business/$businessId/appointments/$appointmentId',
       data: {
-        if (clientName != null) 'client_name': clientName,
+        if (clientFirstName != null) 'client_first_name': clientFirstName,
+        if (clientLastName != null) 'client_last_name': clientLastName,
         if (clientEmail != null) 'client_email': clientEmail,
         if (clientPhone != null) 'client_phone': clientPhone,
         if (appointmentDate != null)

@@ -44,7 +44,8 @@ class AppointmentFormNotifier extends StateNotifier<AppointmentFormState> {
     final patchResult = await updateAppointment(UpdateAppointmentParams(
       businessId: businessId,
       appointmentId: created!.id,
-      clientName: created!.clientName,
+      clientFirstName: created!.clientFirstName,
+      clientLastName: created!.clientLastName,
       clientEmail: params.clientEmail,
       clientPhone: params.clientPhone,
     ));
@@ -70,7 +71,8 @@ class AppointmentFormNotifier extends StateNotifier<AppointmentFormState> {
   Future<bool> update({
     required int businessId,
     required int appointmentId,
-    String? clientName,
+    String? clientFirstName,
+    String? clientLastName,
     String? clientEmail,
     String? clientPhone,
     DateTime? appointmentDate,
@@ -86,7 +88,8 @@ class AppointmentFormNotifier extends StateNotifier<AppointmentFormState> {
     final result = await updateAppointment(UpdateAppointmentParams(
       businessId: businessId,
       appointmentId: appointmentId,
-      clientName: clientName,
+      clientFirstName: clientFirstName,
+      clientLastName: clientLastName,
       clientEmail: clientEmail,
       clientPhone: clientPhone,
       appointmentDate: appointmentDate,

@@ -96,7 +96,8 @@ class GetAppointmentByIdParams extends Equatable {
 class UpdateAppointmentParams extends Equatable {
   final int businessId;
   final int appointmentId;
-  final String? clientName;
+  final String? clientFirstName;
+  final String? clientLastName;
   final String? clientEmail;
   final String? clientPhone;
   final DateTime? appointmentDate;
@@ -111,7 +112,8 @@ class UpdateAppointmentParams extends Equatable {
   const UpdateAppointmentParams({
     required this.businessId,
     required this.appointmentId,
-    this.clientName,
+    this.clientFirstName,
+    this.clientLastName,
     this.clientEmail,
     this.clientPhone,
     this.appointmentDate,
@@ -128,7 +130,8 @@ class UpdateAppointmentParams extends Equatable {
   List<Object?> get props => [
         businessId,
         appointmentId,
-        clientName,
+        clientFirstName,
+        clientLastName,
         clientEmail,
         clientPhone,
         appointmentDate,

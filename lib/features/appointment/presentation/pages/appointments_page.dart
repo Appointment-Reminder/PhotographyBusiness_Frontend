@@ -212,6 +212,8 @@ class _AppointmentsPageState extends ConsumerState<AppointmentsPage> {
                   ),
                 ),
               ),
+              const Spacer(),
+              Text('${filtered.length} appointments'),
             ],
           ), //FILTER BUTTON
           const SizedBox(height: 12,),

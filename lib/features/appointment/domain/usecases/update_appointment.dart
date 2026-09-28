@@ -11,7 +11,8 @@ class UpdateAppointment extends Usecase<Appointment, UpdateAppointmentParams> {
 
   @override
   Future<Either<Failure, Appointment>> call(UpdateAppointmentParams params) {
-    final hasAnyField = params.clientName != null ||
+    final hasAnyField = params.clientFirstName != null ||
+        params.clientLastName != null ||
         params.clientEmail != null ||
         params.clientPhone != null ||
         params.appointmentDate != null ||
@@ -28,7 +29,8 @@ class UpdateAppointment extends Usecase<Appointment, UpdateAppointmentParams> {
     return repository.updateAppointment(
       businessId: params.businessId,
       appointmentId: params.appointmentId,
-      clientName: params.clientName,
+      clientFirstName: params.clientFirstName,
+      clientLastName: params.clientLastName,
       clientEmail: params.clientEmail,
       clientPhone: params.clientPhone,
       appointmentDate: params.appointmentDate,
