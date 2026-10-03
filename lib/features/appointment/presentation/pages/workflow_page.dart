@@ -10,6 +10,7 @@ import 'package:photography_business_frontend/features/business/presentation/pro
 import 'package:photography_business_frontend/features/user_create/presentation/providers/auth_provders.dart';
 import 'package:photography_business_frontend/features/user_create/presentation/providers/state/auth_state.dart';
 import '../../domain/workflow/workflow_board.dart';
+import '../../domain/workflow/workflow_column.dart';
 import '../../domain/workflow/workflow_viewer.dart';
 import '../providers/appointment_providers.dart';
 import '../widgets/workflow/workflow_column_view.dart';
@@ -102,7 +103,7 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
           appointmentId: appointmentId,
           memberId: memberId,
         );
-    _showError(error);
+    if (error != null) _showSnack(error);
   }
 
   /// "Assign to…" on an already-assigned card: PATCH `member_id` only.
@@ -116,14 +117,7 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
           appointmentId: appointmentId,
           memberId: memberId,
         );
-    _showError(error);
-  }
-
-  void _showError(String? error) {
-    if (error != null && mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error)));
-    }
+    if (error != null) _showSnack(error);
   }
 
   /// Returns the chosen BusinessMember.id, or null when dismissed.
@@ -167,6 +161,29 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
     }
   }
 
+  /// A card was dropped on [to]. Invalid moves show a snackbar and send no
+  /// request; Needs Assignment -> Scheduled goes to [_onAssignDrop].
+  Future<void> _onDrop(WorkflowDragData data, WorkflowColumn to) async {
+    final event = eventForMove(data.from, to);
+    if (event == null) {
+      _showSnack('Cannot move from ${data.from.label} to ${to.label}');
+      return;
+    }
+    if (event == AppointmentEvent.assign) {
+      _onAssignDrop(data.card);
+      return;
+    }
+    await _advance(data.card, event);
+  }
+
+  /// Needs Assignment -> Scheduled drop: the same flow as "Assign…".
+  void _onAssignDrop(WorkflowCard card) => startAssignFlow(card.appointmentId);
+
+  void _showSnack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   /// The current user's role on this Business. The business owner always
   /// counts as owner; otherwise the user's BusinessMember decides, and an
   /// unresolved member gets the restricted view.
@@ -205,6 +222,7 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
               onReassign: viewer.canAssign
                   ? (card) => _reassign(card.appointmentId)
                   : null,
+              onDrop: _onDrop,
             ),
           ),
         ],

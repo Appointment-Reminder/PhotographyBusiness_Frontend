@@ -39,6 +39,25 @@ AppointmentEvent? advanceEventFor(WorkflowColumn column) {
   }
 }
 
+/// The Appointment Event fired when a card is dropped from [from] onto [to],
+/// or null when the move is invalid (skipping columns, into Needs Assignment,
+/// Pending Review back to Pending Editing, or onto the same column).
+/// Needs Assignment to Scheduled returns [AppointmentEvent.assign]; callers
+/// must route that through the assign flow instead of firing it directly.
+AppointmentEvent? eventForMove(WorkflowColumn from, WorkflowColumn to) {
+  if (from == WorkflowColumn.pendingEditing &&
+      to == WorkflowColumn.pendingSelection) {
+    return AppointmentEvent.removeSelection;
+  }
+  if (from == WorkflowColumn.needsAssignment &&
+      to == WorkflowColumn.scheduled) {
+    return AppointmentEvent.assign;
+  }
+  final order = WorkflowColumn.allColumns;
+  if (order.indexOf(to) != order.indexOf(from) + 1) return null;
+  return advanceEventFor(from);
+}
+
 /// Button label for a card's Advance button in [column].
 String? advanceLabelFor(WorkflowColumn column) {
   switch (column) {

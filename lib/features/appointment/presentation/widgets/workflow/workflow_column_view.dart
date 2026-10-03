@@ -6,6 +6,10 @@ import '../../../domain/workflow/workflow_board.dart';
 import '../../../domain/workflow/workflow_column.dart';
 import 'workflow_card_view.dart';
 
+/// Payload carried while a card is dragged: the card and the column it
+/// started in.
+typedef WorkflowDragData = ({WorkflowCard card, WorkflowColumn from});
+
 class WorkflowColumnView extends StatelessWidget {
   final WorkflowColumn column;
   final List<WorkflowCard> cards;
@@ -20,6 +24,8 @@ class WorkflowColumnView extends StatelessWidget {
   /// Called for "Assign to…" on already-assigned cards. The action is hidden
   /// when null.
   final void Function(WorkflowCard card)? onReassign;
+  /// Called when a card dragged from another column is dropped here.
+  final void Function(WorkflowDragData data, WorkflowColumn to)? onDrop;
 
   const WorkflowColumnView({
     super.key,
@@ -28,15 +34,25 @@ class WorkflowColumnView extends StatelessWidget {
     this.onAdvance,
     this.onAssign,
     this.onReassign,
+    this.onDrop,
   });
 
   @override
   Widget build(BuildContext context) {
+    return DragTarget<WorkflowDragData>(
+      onWillAcceptWithDetails: (d) => d.data.from != column,
+      onAcceptWithDetails: (d) => onDrop?.call(d.data, column),
+      builder: (context, candidates, _) => _buildColumn(candidates.isNotEmpty),
+    );
+  }
+
+  Widget _buildColumn(bool highlighted) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.sidebarBg.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
+        border: highlighted ? Border.all(color: AppColors.border) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -92,7 +108,7 @@ class WorkflowColumnView extends StatelessWidget {
                       final event = advanceEventFor(column);
                       final isAssignColumn =
                           column == WorkflowColumn.needsAssignment;
-                      return WorkflowCardView(
+                      final view = WorkflowCardView(
                         card: card,
                         advanceLabel:
                             isAssignColumn ? 'Assign…' : advanceLabelFor(column),
@@ -106,6 +122,18 @@ class WorkflowColumnView extends StatelessWidget {
                                 onReassign != null
                             ? () => onReassign!(card)
                             : null,
+                      );
+                      return Draggable<WorkflowDragData>(
+                        data: (card: card, from: column),
+                        feedback: SizedBox(
+                          width: 240,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: view,
+                          ),
+                        ),
+                        childWhenDragging: Opacity(opacity: 0.4, child: view),
+                        child: view,
                       );
                     },
                   ),
