@@ -13,6 +13,7 @@ import '../../domain/workflow/workflow_board.dart';
 import '../../domain/workflow/workflow_column.dart';
 import '../../domain/workflow/workflow_viewer.dart';
 import '../providers/appointment_providers.dart';
+import '../widgets/workflow/cancel_refund_drop_zones.dart';
 import '../widgets/workflow/workflow_column_view.dart';
 
 /// Kanban "Workflow" page: a Business's open Appointments by Appointment
@@ -27,6 +28,7 @@ class WorkflowPage extends ConsumerStatefulWidget {
 
 class _WorkflowPageState extends ConsumerState<WorkflowPage> {
   bool _showClosed = false;
+  WorkflowDragData? _dragging;
 
   @override
   void initState() {
@@ -84,6 +86,11 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
           const SizedBox(height: 16),
           _StatsStrip(board: board),
           const SizedBox(height: 16),
+          CancelRefundDropZones(
+            dragging: _dragging,
+            isEligible: _canCloseOut,
+            onDrop: _onCloseOutDrop,
+          ),
           Expanded(child: _buildBoard(state.isLoading, state.error, board, viewer)),
         ],
       ),
@@ -176,6 +183,38 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
     await _advance(data.card, event);
   }
 
+  bool _canCloseOut(WorkflowDragData data) {
+    final appointments = ref
+        .read(appointmentListNotifierProvider(widget.businessId))
+        .appointments;
+    final match = appointments.where((a) => a.id == data.card.appointmentId);
+    return match.isNotEmpty && canCancelOrRefund(match.first.status);
+  }
+
+  /// A card was dropped on the Cancel or Refund zone: confirm, then fire.
+  Future<void> _onCloseOutDrop(
+      WorkflowDragData data, AppointmentEvent event) async {
+    setState(() => _dragging = null);
+    final verb = event == AppointmentEvent.canceled ? 'Cancel' : 'Refund';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('$verb appointment?'),
+        content: Text('$verb the appointment for ${data.card.clientName}? '
+            'It will leave the board.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Keep')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true), child: Text(verb)),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await _advance(data.card, event);
+  }
+
   /// Needs Assignment -> Scheduled drop: the same flow as "Assign…".
   void _onAssignDrop(WorkflowCard card) => startAssignFlow(card.appointmentId);
 
@@ -223,6 +262,7 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
                   ? (card) => _reassign(card.appointmentId)
                   : null,
               onDrop: _onDrop,
+              onDragChanged: (d) => setState(() => _dragging = d),
             ),
           ),
         ],
