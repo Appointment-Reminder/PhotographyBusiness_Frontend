@@ -20,9 +20,6 @@ class WorkflowCard extends Equatable {
   /// Null when unassigned; '?' when assigned to a member we cannot resolve.
   final String? photographerInitials;
 
-  /// Last failed action on this card (e.g. `assign` after a saved PATCH).
-  final String? error;
-
   const WorkflowCard({
     required this.appointmentId,
     required this.clientName,
@@ -30,14 +27,12 @@ class WorkflowCard extends Equatable {
     required this.packageLabel,
     required this.memberId,
     required this.photographerInitials,
-    this.error,
   });
 
   factory WorkflowCard.from(
     Appointment appointment, {
     Package? package,
     BusinessMember? member,
-    String? error,
   }) {
     return WorkflowCard(
       appointmentId: appointment.id,
@@ -47,7 +42,6 @@ class WorkflowCard extends Equatable {
       memberId: appointment.memberId,
       photographerInitials:
           appointment.memberId == null ? null : _initials(member),
-      error: error,
     );
   }
 
@@ -77,7 +71,6 @@ class WorkflowCard extends Equatable {
         packageLabel,
         memberId,
         photographerInitials,
-        error,
       ];
 }
 
@@ -94,7 +87,6 @@ class WorkflowBoard extends Equatable {
     required Map<int, BusinessMember> membersById,
     bool showClosed = false,
     WorkflowViewer viewer = WorkflowViewer.manager,
-    Map<int, String> cardErrors = const {},
 
     /// Photographer filter chip; only honoured for viewers who see the chips.
     int? filterMemberId,
@@ -121,7 +113,6 @@ class WorkflowBoard extends Equatable {
         a,
         package: a.packageId == null ? null : packagesById[a.packageId],
         member: a.memberId == null ? null : membersById[a.memberId],
-        error: cardErrors[a.id],
       ));
     }
     return WorkflowBoard._(columns, cards);

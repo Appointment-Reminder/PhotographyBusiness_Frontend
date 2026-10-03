@@ -86,81 +86,42 @@ void main() {
   Appointment byId(int id) =>
       notifier.state.appointments.firstWhere((a) => a.id == id);
 
-  group('assignAndSchedule', () {
-    test('PATCHes member_id then fires assign, and the card is Scheduled',
-        () async {
-      repo.patchResponse =
-          Right(appointment(1, 'needs_assignment', memberId: 5));
-      repo.eventResponse = Right(appointment(1, 'pending', memberId: 5));
+  group('assign', () {
+    test('only PATCHes member_id (no event) and takes the status from the '
+        'response, so the card is Scheduled', () async {
+      repo.patchResponse = Right(appointment(1, 'pending', memberId: 5));
 
-      final error = await notifier.assignAndSchedule(
-          businessId: 7, appointmentId: 1, memberId: 5);
+      final error =
+          await notifier.assign(businessId: 7, appointmentId: 1, memberId: 5);
 
       expect(error, isNull);
-      expect(repo.calls, ['PATCH 7/1 member_id=5', 'POST 7/1/assign']);
+      expect(repo.calls, ['PATCH 7/1 member_id=5']);
       expect(byId(1).status, 'pending');
       expect(byId(1).memberId, 5);
     });
 
-    test('does not fire assign when the PATCH fails', () async {
-      repo.patchResponse = const Left(ServerFailure('Forbidden'));
+    test('does not move the card before the response arrives', () async {
+      repo.patchResponse = Right(appointment(1, 'pending', memberId: 5));
 
-      final error = await notifier.assignAndSchedule(
-          businessId: 7, appointmentId: 1, memberId: 5);
+      final pending =
+          notifier.assign(businessId: 7, appointmentId: 1, memberId: 5);
 
-      expect(error, 'Forbidden');
-      expect(repo.calls, ['PATCH 7/1 member_id=5']);
       expect(byId(1).status, 'needs_assignment');
-      expect(byId(1).memberId, isNull);
-      expect(notifier.state.cardErrors, isEmpty,
-          reason: 'a PATCH failure is shown by snackbar, nothing was saved');
+      await pending;
     });
 
-    test(
-        'when assign fails after the PATCH the card stays in Needs Assignment '
-        'and the error is returned', () async {
+    test('the card stays in Needs Assignment when the response still says so',
+        () async {
       repo.patchResponse =
           Right(appointment(1, 'needs_assignment', memberId: 5));
-      repo.eventResponse = const Left(ServerFailure('Illegal transition'));
-
-      final error = await notifier.assignAndSchedule(
-          businessId: 7, appointmentId: 1, memberId: 5);
-
-      expect(error, 'Illegal transition');
-      expect(repo.calls, ['PATCH 7/1 member_id=5', 'POST 7/1/assign']);
-      expect(byId(1).status, 'needs_assignment');
-      expect(byId(1).memberId, 5, reason: 'the PATCH already succeeded');
-      expect(notifier.state.cardErrors, {1: 'Illegal transition'});
-    });
-
-    test('the card error clears on the next successful action', () async {
-      repo.patchResponse =
-          Right(appointment(1, 'needs_assignment', memberId: 5));
-      repo.eventResponse = const Left(ServerFailure('Illegal transition'));
-      await notifier.assignAndSchedule(
-          businessId: 7, appointmentId: 1, memberId: 5);
-
-      repo.eventResponse = Right(appointment(1, 'pending', memberId: 5));
-      final error = await notifier.assignAndSchedule(
-          businessId: 7, appointmentId: 1, memberId: 5);
-
-      expect(error, isNull);
-      expect(notifier.state.cardErrors, isEmpty);
-    });
-  });
-
-  group('reassign', () {
-    test('only PATCHes member_id, no event, status unchanged', () async {
-      repo.patchResponse =
-          Right(appointment(2, 'pending_selection', memberId: 9));
 
       final error =
-          await notifier.reassign(businessId: 7, appointmentId: 2, memberId: 9);
+          await notifier.assign(businessId: 7, appointmentId: 1, memberId: 5);
 
       expect(error, isNull);
-      expect(repo.calls, ['PATCH 7/2 member_id=9']);
-      expect(byId(2).memberId, 9);
-      expect(byId(2).status, 'pending_selection');
+      expect(repo.calls, ['PATCH 7/1 member_id=5'], reason: 'no fallback event');
+      expect(byId(1).status, 'needs_assignment');
+      expect(byId(1).memberId, 5);
     });
 
     test('returns the error and leaves the card untouched on failure',
@@ -168,10 +129,25 @@ void main() {
       repo.patchResponse = const Left(ServerFailure('Forbidden'));
 
       final error =
-          await notifier.reassign(businessId: 7, appointmentId: 2, memberId: 9);
+          await notifier.assign(businessId: 7, appointmentId: 1, memberId: 5);
 
       expect(error, 'Forbidden');
-      expect(byId(2).memberId, 3);
+      expect(repo.calls, ['PATCH 7/1 member_id=5']);
+      expect(byId(1).status, 'needs_assignment');
+      expect(byId(1).memberId, isNull);
+    });
+
+    test('reassigning an already-assigned card keeps its status', () async {
+      repo.patchResponse =
+          Right(appointment(2, 'pending_selection', memberId: 9));
+
+      final error =
+          await notifier.assign(businessId: 7, appointmentId: 2, memberId: 9);
+
+      expect(error, isNull);
+      expect(repo.calls, ['PATCH 7/2 member_id=9']);
+      expect(byId(2).memberId, 9);
+      expect(byId(2).status, 'pending_selection');
     });
   });
 }
