@@ -4,7 +4,6 @@ import 'workflow_column.dart';
 /// `POST /appointments/business/{id}/appointments/{id}/{event}`. The backend
 /// owns legality; `resultingStatus` is only used for optimistic UI.
 enum AppointmentEvent {
-  assign('assign', 'pending'),
   photoshoot('photoshoot', 'pending_selection'),
   selection('selection', 'pending_editing'),
   editing('editing', 'pending_review'),
@@ -56,19 +55,20 @@ AppointmentEvent? advanceEventFor(WorkflowColumn column) {
   }
 }
 
+/// True for the Needs Assignment -> Scheduled drop. It fires no Appointment
+/// Event: it opens the member picker, and the backend moves the status when
+/// the member is saved.
+bool isAssignMove(WorkflowColumn from, WorkflowColumn to) =>
+    from == WorkflowColumn.needsAssignment && to == WorkflowColumn.scheduled;
+
 /// The Appointment Event fired when a card is dropped from [from] onto [to],
-/// or null when the move is invalid (skipping columns, into Needs Assignment,
-/// Pending Review back to Pending Editing, or onto the same column).
-/// Needs Assignment to Scheduled returns [AppointmentEvent.assign]; callers
-/// must route that through the assign flow instead of firing it directly.
+/// or null when the move fires none: invalid moves (skipping columns, into
+/// Needs Assignment, Pending Review back to Pending Editing, onto the same
+/// column) and the assign move ([isAssignMove]).
 AppointmentEvent? eventForMove(WorkflowColumn from, WorkflowColumn to) {
   if (from == WorkflowColumn.pendingEditing &&
       to == WorkflowColumn.pendingSelection) {
     return AppointmentEvent.removeSelection;
-  }
-  if (from == WorkflowColumn.needsAssignment &&
-      to == WorkflowColumn.scheduled) {
-    return AppointmentEvent.assign;
   }
   final order = WorkflowColumn.allColumns;
   if (order.indexOf(to) != order.indexOf(from) + 1) return null;

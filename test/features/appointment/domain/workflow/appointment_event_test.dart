@@ -22,11 +22,29 @@ void main() {
     });
   });
 
+  group('isAssignMove', () {
+    test('only Needs Assignment -> Scheduled assigns a member', () {
+      expect(
+          isAssignMove(WorkflowColumn.needsAssignment, WorkflowColumn.scheduled),
+          isTrue);
+      expect(
+          isAssignMove(WorkflowColumn.scheduled, WorkflowColumn.pendingSelection),
+          isFalse);
+      expect(
+          isAssignMove(
+              WorkflowColumn.needsAssignment, WorkflowColumn.pendingSelection),
+          isFalse);
+    });
+
+    test('it is not an Appointment Event: eventForMove returns null', () {
+      expect(eventForMove(WorkflowColumn.needsAssignment, WorkflowColumn.scheduled),
+          isNull);
+    });
+  });
+
   group('eventForMove', () {
     const c = WorkflowColumn.values;
     test('each adjacent forward move fires its event', () {
-      expect(eventForMove(WorkflowColumn.needsAssignment, WorkflowColumn.scheduled),
-          AppointmentEvent.assign);
       expect(eventForMove(WorkflowColumn.scheduled, WorkflowColumn.pendingSelection),
           AppointmentEvent.photoshoot);
       expect(eventForMove(WorkflowColumn.pendingSelection, WorkflowColumn.pendingEditing),
@@ -80,7 +98,6 @@ void main() {
       expect(AppointmentEvent.selection.resultingStatus, 'pending_editing');
       expect(AppointmentEvent.editing.resultingStatus, 'pending_review');
       expect(AppointmentEvent.review.resultingStatus, 'completed');
-      expect(AppointmentEvent.assign.resultingStatus, 'pending');
       expect(
           AppointmentEvent.removeSelection.resultingStatus, 'pending_selection');
     });

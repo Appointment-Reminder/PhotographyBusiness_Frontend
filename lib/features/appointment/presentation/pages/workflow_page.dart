@@ -69,7 +69,6 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
       packagesById: packagesById,
       membersById: membersById,
       showClosed: _showClosed,
-      cardErrors: state.cardErrors,
       filterMemberId: _filterMemberId,
     );
 
@@ -122,19 +121,11 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
     );
   }
 
-  /// Assign flow for a Needs Assignment Appointment: member picker, then
-  /// PATCH `member_id`, then `assign`. Reusable entry point (also for the
-  /// Needs Assignment -> Scheduled drag).
-  Future<void> startAssignFlow(int appointmentId) => _pickMemberThen(
-      (notifier, memberId) => notifier.assignAndSchedule(
-            businessId: widget.businessId,
-            appointmentId: appointmentId,
-            memberId: memberId,
-          ));
-
-  /// "Assign to…" on an already-assigned card: PATCH `member_id` only.
-  Future<void> _reassign(int appointmentId) => _pickMemberThen(
-      (notifier, memberId) => notifier.reassign(
+  /// Member picker, then PATCH `member_id`. The backend moves a Needs
+  /// Assignment card to Scheduled itself, so no event is fired. Used by
+  /// "Assign…", "Assign to…" and the Needs Assignment -> Scheduled drag.
+  Future<void> _assign(int appointmentId) => _pickMemberThen(
+      (notifier, memberId) => notifier.assign(
             businessId: widget.businessId,
             appointmentId: appointmentId,
             memberId: memberId,
@@ -193,15 +184,15 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
   }
 
   /// A card was dropped on [to]. Invalid moves show a snackbar and send no
-  /// request; Needs Assignment -> Scheduled goes to [_onAssignDrop].
+  /// request; Needs Assignment -> Scheduled opens the member picker.
   Future<void> _onDrop(WorkflowDragData data, WorkflowColumn to) async {
+    if (isAssignMove(data.from, to)) {
+      await _assign(data.card.appointmentId);
+      return;
+    }
     final event = eventForMove(data.from, to);
     if (event == null) {
       _showSnack('Cannot move from ${data.from.label} to ${to.label}');
-      return;
-    }
-    if (event == AppointmentEvent.assign) {
-      _onAssignDrop(data.card);
       return;
     }
     await _advance(data.card, event);
@@ -238,9 +229,6 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
     if (confirmed != true || !mounted) return;
     await _advance(data.card, event);
   }
-
-  /// Needs Assignment -> Scheduled drop: the same flow as "Assign…".
-  void _onAssignDrop(WorkflowCard card) => startAssignFlow(card.appointmentId);
 
   void _showSnack(String message) {
     if (!mounted) return;
@@ -287,10 +275,10 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
               cards: board.cardsIn(board.columns[i]),
               onAdvance: _advance,
               onAssign: viewer.canAssign
-                  ? (card) => startAssignFlow(card.appointmentId)
+                  ? (card) => _assign(card.appointmentId)
                   : null,
               onReassign: viewer.canAssign
-                  ? (card) => _reassign(card.appointmentId)
+                  ? (card) => _assign(card.appointmentId)
                   : null,
               onDrop: _onDrop,
               onDragChanged: (d) => setState(() => _dragging = d),
