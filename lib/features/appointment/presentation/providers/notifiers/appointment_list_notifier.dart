@@ -5,6 +5,7 @@ import '../../../domain/usecases/get_appointments_for_business.dart';
 import '../../../domain/usecases/delete_appointment.dart';
 import '../../../domain/usecases/appointment_params.dart';
 import '../../../domain/usecases/fire_appointment_event.dart';
+import '../../../domain/usecases/update_appointment.dart';
 import '../../../domain/workflow/appointment_event.dart';
 import '../state/appointment_list_state.dart';
 
@@ -13,12 +14,14 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
   final GetAppointmentsForBusiness getAppointmentsForBusiness;
   final DeleteAppointment deleteAppointment;
   final FireAppointmentEvent fireAppointmentEvent;
+  final UpdateAppointment updateAppointment;
 
   AppointmentListNotifier({
     required this.getMyAppointments,
     required this.getAppointmentsForBusiness,
     required this.deleteAppointment,
     required this.fireAppointmentEvent,
+    required this.updateAppointment,
   }) : super(const AppointmentListState());
 
   Future<void> loadMine({String? status}) async {
@@ -79,6 +82,46 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
       _replace(appointmentId, (_) => updated);
       return null;
     });
+  }
+
+  /// Reassigns an Appointment: PATCH `member_id` only, no event, status
+  /// unchanged. Returns null on success, or the error message.
+  Future<String?> reassign({
+    required int businessId,
+    required int appointmentId,
+    required int memberId,
+  }) async {
+    final result = await updateAppointment(UpdateAppointmentParams(
+      businessId: businessId,
+      appointmentId: appointmentId,
+      memberId: memberId,
+    ));
+    return result.fold((f) => f.message, (updated) {
+      _replace(appointmentId, (_) => updated);
+      return null;
+    });
+  }
+
+  /// Assigns a Needs Assignment Appointment: PATCH `member_id`, then fires
+  /// `assign`. If the PATCH fails no event is fired. If `assign` fails after
+  /// the PATCH, the card stays in its column (member already saved).
+  /// Returns null on success, or the error message.
+  Future<String?> assignAndSchedule({
+    required int businessId,
+    required int appointmentId,
+    required int memberId,
+  }) async {
+    final patchError = await reassign(
+      businessId: businessId,
+      appointmentId: appointmentId,
+      memberId: memberId,
+    );
+    if (patchError != null) return patchError;
+    return fireEvent(
+      businessId: businessId,
+      appointmentId: appointmentId,
+      event: AppointmentEvent.assign,
+    );
   }
 
   void _replace(int id, Appointment Function(Appointment) change) {
