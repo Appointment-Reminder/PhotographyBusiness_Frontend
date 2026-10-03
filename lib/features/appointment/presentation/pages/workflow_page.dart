@@ -10,6 +10,7 @@ import 'package:photography_business_frontend/features/business/presentation/pro
 import 'package:photography_business_frontend/features/user_create/presentation/providers/auth_provders.dart';
 import 'package:photography_business_frontend/features/user_create/presentation/providers/state/auth_state.dart';
 import '../../domain/workflow/workflow_board.dart';
+import '../../domain/workflow/workflow_column.dart';
 import '../../domain/workflow/workflow_viewer.dart';
 import '../providers/appointment_providers.dart';
 import '../widgets/workflow/workflow_column_view.dart';
@@ -103,6 +104,32 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
     }
   }
 
+  /// A card was dropped on [to]. Invalid moves show a snackbar and send no
+  /// request; Needs Assignment -> Scheduled goes to [_onAssignDrop].
+  Future<void> _onDrop(WorkflowDragData data, WorkflowColumn to) async {
+    final event = eventForMove(data.from, to);
+    if (event == null) {
+      _showSnack('Cannot move from ${data.from.label} to ${to.label}');
+      return;
+    }
+    if (event == AppointmentEvent.assign) {
+      _onAssignDrop(data.card);
+      return;
+    }
+    await _advance(data.card, event);
+  }
+
+  /// Hook for the assign flow (member picker, PATCH member_id, then assign).
+  // TODO(ticket 04): replace this stub with the assign flow.
+  void _onAssignDrop(WorkflowCard card) {
+    _showSnack('Assigning is not available yet');
+  }
+
+  void _showSnack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   /// The current user's role on this Business. The business owner always
   /// counts as owner; otherwise the user's BusinessMember decides, and an
   /// unresolved member gets the restricted view.
@@ -134,6 +161,7 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
               column: board.columns[i],
               cards: board.cardsIn(board.columns[i]),
               onAdvance: _advance,
+              onDrop: _onDrop,
             ),
           ),
         ],
