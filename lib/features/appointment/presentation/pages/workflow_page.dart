@@ -5,6 +5,7 @@ import 'package:photography_business_frontend/core/Presentation/theme/app_text_s
 import 'package:photography_business_frontend/features/business/domain/entities/business_member.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/member_providers.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/package_providers.dart';
+import '../../domain/workflow/appointment_event.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
 import 'package:photography_business_frontend/features/user_create/presentation/providers/auth_provders.dart';
 import 'package:photography_business_frontend/features/user_create/presentation/providers/state/auth_state.dart';
@@ -88,6 +89,20 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
     );
   }
 
+  Future<void> _advance(WorkflowCard card, AppointmentEvent event) async {
+    final error = await ref
+        .read(appointmentListNotifierProvider(widget.businessId).notifier)
+        .fireEvent(
+          businessId: widget.businessId,
+          appointmentId: card.appointmentId,
+          event: event,
+        );
+    if (error != null && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+
   /// The current user's role on this Business. The business owner always
   /// counts as owner; otherwise the user's BusinessMember decides, and an
   /// unresolved member gets the restricted view.
@@ -118,6 +133,7 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
             child: WorkflowColumnView(
               column: board.columns[i],
               cards: board.cardsIn(board.columns[i]),
+              onAdvance: _advance,
             ),
           ),
         ],
