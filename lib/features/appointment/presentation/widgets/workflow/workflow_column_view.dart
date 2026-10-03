@@ -20,12 +20,17 @@ class WorkflowColumnView extends StatelessWidget {
   /// Called when a card dragged from another column is dropped here.
   final void Function(WorkflowDragData data, WorkflowColumn to)? onDrop;
 
+  /// Called with the dragged card when a drag starts, and with null when it
+  /// ends (dropped or canceled).
+  final void Function(WorkflowDragData? dragging)? onDragChanged;
+
   const WorkflowColumnView({
     super.key,
     required this.column,
     required this.cards,
     this.onAdvance,
     this.onDrop,
+    this.onDragChanged,
   });
 
   @override
@@ -106,6 +111,9 @@ class WorkflowColumnView extends StatelessWidget {
                       );
                       return Draggable<WorkflowDragData>(
                         data: (card: card, from: column),
+                        onDragStarted: () =>
+                            onDragChanged?.call((card: card, from: column)),
+                        onDragEnd: (_) => onDragChanged?.call(null),
                         feedback: SizedBox(
                           width: 240,
                           child: Material(

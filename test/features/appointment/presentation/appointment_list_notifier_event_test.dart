@@ -10,6 +10,7 @@ import 'package:photography_business_frontend/features/appointment/domain/usecas
 import 'package:photography_business_frontend/features/appointment/domain/usecases/get_appointments_for_business.dart';
 import 'package:photography_business_frontend/features/appointment/domain/usecases/get_my_appointments.dart';
 import 'package:photography_business_frontend/features/appointment/domain/workflow/appointment_event.dart';
+import 'package:photography_business_frontend/features/appointment/domain/workflow/workflow_column.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/providers/notifiers/appointment_list_notifier.dart';
 
 class FakeRepository implements AppointmentRepository {
@@ -107,6 +108,24 @@ void main() {
 
     repo.pending!.complete(const Left(ServerFailure('boom')));
     await Future.wait([first, second]);
+    expect(statusOf(1), 'pending');
+    expect(statusOf(2), 'pending_review');
+  });
+
+  test('canceled and refund events take the card off the board', () async {
+    repo.pending = Completer();
+    final cancel = notifier.fireEvent(
+        businessId: 7, appointmentId: 1, event: AppointmentEvent.canceled);
+    final refund = notifier.fireEvent(
+        businessId: 7, appointmentId: 2, event: AppointmentEvent.refund);
+    expect(statusOf(1), 'canceled');
+    expect(statusOf(2), 'refunded');
+    expect(workflowColumnForStatus(statusOf(1)), isNull);
+    expect(workflowColumnForStatus(statusOf(2)), isNull);
+
+    repo.pending!.complete(const Left(ServerFailure('nope')));
+    expect(await cancel, 'nope');
+    await refund;
     expect(statusOf(1), 'pending');
     expect(statusOf(2), 'pending_review');
   });
