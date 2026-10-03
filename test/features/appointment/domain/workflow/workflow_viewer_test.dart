@@ -154,17 +154,6 @@ void main() {
       expect(allIds(board).toSet(), {2});
     });
 
-    test('cards carry their error message', () {
-      final board = WorkflowBoard.build(
-        appointments: [appt(id: 1, status: 'needs_assignment', memberId: 5)],
-        packagesById: const {},
-        membersById: const {},
-        cardErrors: const {1: 'Illegal transition'},
-      );
-      expect(board.cardsIn(WorkflowColumn.needsAssignment).single.error,
-          'Illegal transition');
-    });
-
     test('unresolved restricted viewer is flagged', () {
       expect(WorkflowViewer.fromMember(null).isUnresolved, isTrue);
       expect(WorkflowViewer.manager.isUnresolved, isFalse);

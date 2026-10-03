@@ -98,53 +98,27 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
     }
   }
 
-  /// Reassigns an Appointment: PATCH `member_id` only, no event, status
-  /// unchanged. Returns null on success, or the error message.
-  Future<String?> reassign({
-    required int businessId,
-    required int appointmentId,
-    required int memberId,
-  }) =>
-      _commit(
-        appointmentId,
-        updateAppointment(UpdateAppointmentParams(
-          businessId: businessId,
-          appointmentId: appointmentId,
-          memberId: memberId,
-        )),
-      );
-
-  /// Assigns a Needs Assignment Appointment: PATCH `member_id`, then fires
-  /// `assign`. If the PATCH fails no event is fired. If `assign` fails after
-  /// the PATCH, the card stays in its column (member already saved) and
-  /// carries the error in [AppointmentListState.cardErrors].
+  /// Assigns a member to an Appointment: PATCH `member_id` only, no event.
+  /// The backend moves a Needs Assignment card to `pending` itself, so the card
+  /// takes whatever status the response carries (no optimistic move).
   /// Returns null on success, or the error message.
-  Future<String?> assignAndSchedule({
+  Future<String?> assign({
     required int businessId,
     required int appointmentId,
     required int memberId,
   }) async {
-    final patchError = await reassign(
-      businessId: businessId,
-      appointmentId: appointmentId,
-      memberId: memberId,
+    return _commit(
+      appointmentId,
+      updateAppointment(UpdateAppointmentParams(
+        businessId: businessId,
+        appointmentId: appointmentId,
+        memberId: memberId,
+      )),
     );
-    if (patchError != null) return patchError;
-    final eventError = await fireEvent(
-      businessId: businessId,
-      appointmentId: appointmentId,
-      event: AppointmentEvent.assign,
-    );
-    if (eventError != null) {
-      state = state.copyWith(
-        cardErrors: {...state.cardErrors, appointmentId: eventError},
-      );
-    }
-    return eventError;
   }
 
-  /// Applies a server response for one card: replaces it on success (and
-  /// clears its card error), returns the failure message otherwise.
+  /// Replaces one card with the server response, or returns the failure
+  /// message.
   Future<String?> _commit(
     int appointmentId,
     Future<Either<Failure, Appointment>> request,
@@ -152,11 +126,6 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
     final result = await request;
     return result.fold((f) => f.message, (updated) {
       _replace(appointmentId, (_) => updated);
-      if (state.cardErrors.containsKey(appointmentId)) {
-        state = state.copyWith(
-          cardErrors: {...state.cardErrors}..remove(appointmentId),
-        );
-      }
       return null;
     });
   }
