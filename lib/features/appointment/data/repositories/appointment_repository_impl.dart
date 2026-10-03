@@ -6,6 +6,7 @@ import 'package:photography_business_frontend/core/network/network_info.dart';
 import '../datasources/appointment_remote_datasource.dart';
 import '../../domain/entities/appointment.dart';
 import '../../domain/repositories/appointment_repository.dart';
+import '../../domain/workflow/appointment_event.dart';
 
 class AppointmentRepositoryImpl implements AppointmentRepository {
   final AppointmentRemoteDatasource remoteDatasource;
@@ -126,5 +127,18 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   @override
   Future<Either<Failure, void>> deleteAppointment(int appointmentId) {
     return _execute(() => remoteDatasource.deleteAppointment(appointmentId));
+  }
+
+  @override
+  Future<Either<Failure, Appointment>> fireAppointmentEvent({
+    required int businessId,
+    required int appointmentId,
+    required AppointmentEvent event,
+  }) {
+    return _execute(() => remoteDatasource.fireAppointmentEvent(
+          businessId: businessId,
+          appointmentId: appointmentId,
+          event: event,
+        ));
   }
 }

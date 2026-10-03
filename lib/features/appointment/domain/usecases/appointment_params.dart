@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../workflow/appointment_event.dart';
 
 class CreateAppointmentParams extends Equatable {
   final int? memberId;
@@ -150,4 +151,17 @@ class DeleteAppointmentParams extends Equatable {
   const DeleteAppointmentParams(this.appointmentId);
   @override
   List<Object?> get props => [appointmentId];
+}
+
+class FireAppointmentEventParams extends Equatable {
+  final int businessId;
+  final int appointmentId;
+  final AppointmentEvent event;
+  const FireAppointmentEventParams({
+    required this.businessId,
+    required this.appointmentId,
+    required this.event,
+  });
+  @override
+  List<Object?> get props => [businessId, appointmentId, event];
 }

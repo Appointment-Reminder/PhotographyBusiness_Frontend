@@ -4,6 +4,7 @@ import 'package:photography_business_frontend/core/Presentation/theme/app_colors
 import 'package:photography_business_frontend/core/Presentation/theme/app_text_styles.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/member_providers.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/package_providers.dart';
+import '../../domain/workflow/appointment_event.dart';
 import '../../domain/workflow/workflow_board.dart';
 import '../providers/appointment_providers.dart';
 import '../widgets/workflow/workflow_column_view.dart';
@@ -80,6 +81,20 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
     );
   }
 
+  Future<void> _advance(WorkflowCard card, AppointmentEvent event) async {
+    final error = await ref
+        .read(appointmentListNotifierProvider(widget.businessId).notifier)
+        .fireEvent(
+          businessId: widget.businessId,
+          appointmentId: card.appointmentId,
+          event: event,
+        );
+    if (error != null && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+
   Widget _buildBoard(bool isLoading, String? error, WorkflowBoard board) {
     if (isLoading && board.totalCount == 0) {
       return const Center(child: CircularProgressIndicator());
@@ -96,6 +111,7 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
             child: WorkflowColumnView(
               column: board.columns[i],
               cards: board.cardsIn(board.columns[i]),
+              onAdvance: _advance,
             ),
           ),
         ],
