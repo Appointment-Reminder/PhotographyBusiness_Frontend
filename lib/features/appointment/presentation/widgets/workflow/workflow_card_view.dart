@@ -12,11 +12,15 @@ class WorkflowCardView extends StatelessWidget {
   final String? advanceLabel;
   final VoidCallback? onAdvance;
 
+  /// Secondary "Assign to…" action (reassign, no event); hidden when null.
+  final VoidCallback? onReassign;
+
   const WorkflowCardView({
     super.key,
     required this.card,
     this.advanceLabel,
     this.onAdvance,
+    this.onReassign,
   });
 
   @override
@@ -93,6 +97,16 @@ class WorkflowCardView extends StatelessWidget {
                         child: OutlinedButton(
                           onPressed: onAdvance,
                           child: Text(advanceLabel!),
+                        ),
+                      ),
+                    ],
+                    if (onReassign != null) ...[
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton(
+                          onPressed: onReassign,
+                          child: const Text('Assign to…'),
                         ),
                       ),
                     ],
