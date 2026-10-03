@@ -84,7 +84,64 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
           const SizedBox(height: 16),
           _StatsStrip(board: board),
           const SizedBox(height: 16),
-          Expanded(child: _buildBoard(state.isLoading, state.error, board)),
+          Expanded(child: _buildBoard(state.isLoading, state.error, board, viewer)),
+        ],
+      ),
+    );
+  }
+
+  /// Assign flow for a Needs Assignment Appointment: member picker, then
+  /// PATCH `member_id`, then `assign`. Reusable entry point (also for the
+  /// Needs Assignment -> Scheduled drag).
+  Future<void> startAssignFlow(int appointmentId) async {
+    final memberId = await _pickMember();
+    if (memberId == null || !mounted) return;
+    final error = await ref
+        .read(appointmentListNotifierProvider(widget.businessId).notifier)
+        .assignAndSchedule(
+          businessId: widget.businessId,
+          appointmentId: appointmentId,
+          memberId: memberId,
+        );
+    if (error != null) _showSnack(error);
+  }
+
+  /// "Assign to…" on an already-assigned card: PATCH `member_id` only.
+  Future<void> _reassign(int appointmentId) async {
+    final memberId = await _pickMember();
+    if (memberId == null || !mounted) return;
+    final error = await ref
+        .read(appointmentListNotifierProvider(widget.businessId).notifier)
+        .reassign(
+          businessId: widget.businessId,
+          appointmentId: appointmentId,
+          memberId: memberId,
+        );
+    if (error != null) _showSnack(error);
+  }
+
+  /// Returns the chosen BusinessMember.id, or null when dismissed.
+  Future<int?> _pickMember() {
+    final members = ref
+        .read(businessMembersProvider(widget.businessId))
+        .members
+        .where((m) => m.isActive)
+        .toList();
+    return showDialog<int>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Assign to'),
+        children: [
+          if (members.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: Text('No active team members in this business'),
+            ),
+          for (final m in members)
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(ctx).pop(m.id),
+              child: Text(m.userName ?? m.userEmail ?? 'Unknown'),
+            ),
         ],
       ),
     );
@@ -119,11 +176,8 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
     await _advance(data.card, event);
   }
 
-  /// Hook for the assign flow (member picker, PATCH member_id, then assign).
-  // TODO(ticket 04): replace this stub with the assign flow.
-  void _onAssignDrop(WorkflowCard card) {
-    _showSnack('Assigning is not available yet');
-  }
+  /// Needs Assignment -> Scheduled drop: the same flow as "Assign…".
+  void _onAssignDrop(WorkflowCard card) => startAssignFlow(card.appointmentId);
 
   void _showSnack(String message) {
     if (!mounted) return;
@@ -144,7 +198,8 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
     return WorkflowViewer.fromMember(mine.isEmpty ? null : mine.first);
   }
 
-  Widget _buildBoard(bool isLoading, String? error, WorkflowBoard board) {
+  Widget _buildBoard(
+      bool isLoading, String? error, WorkflowBoard board, WorkflowViewer viewer) {
     if (isLoading && board.totalCount == 0) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -161,6 +216,12 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
               column: board.columns[i],
               cards: board.cardsIn(board.columns[i]),
               onAdvance: _advance,
+              onAssign: viewer.canAssign
+                  ? (card) => startAssignFlow(card.appointmentId)
+                  : null,
+              onReassign: viewer.canAssign
+                  ? (card) => _reassign(card.appointmentId)
+                  : null,
               onDrop: _onDrop,
             ),
           ),

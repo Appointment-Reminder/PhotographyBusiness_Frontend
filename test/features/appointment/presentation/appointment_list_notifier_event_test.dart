@@ -9,6 +9,7 @@ import 'package:photography_business_frontend/features/appointment/domain/usecas
 import 'package:photography_business_frontend/features/appointment/domain/usecases/fire_appointment_event.dart';
 import 'package:photography_business_frontend/features/appointment/domain/usecases/get_appointments_for_business.dart';
 import 'package:photography_business_frontend/features/appointment/domain/usecases/get_my_appointments.dart';
+import 'package:photography_business_frontend/features/appointment/domain/usecases/update_appointment.dart';
 import 'package:photography_business_frontend/features/appointment/domain/workflow/appointment_event.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/providers/notifiers/appointment_list_notifier.dart';
 
@@ -54,6 +55,7 @@ void main() {
       getAppointmentsForBusiness: GetAppointmentsForBusiness(repository: repo),
       deleteAppointment: DeleteAppointment(repository: repo),
       fireAppointmentEvent: FireAppointmentEvent(repository: repo),
+      updateAppointment: UpdateAppointment(repository: repo),
     );
     notifier.state = notifier.state.copyWith(appointments: [
       appointment(1, 'pending'),
