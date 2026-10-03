@@ -85,4 +85,33 @@ void main() {
           AppointmentEvent.removeSelection.resultingStatus, 'pending_selection');
     });
   });
+
+  group('cancel and refund', () {
+    test('wire names and resulting statuses', () {
+      expect(AppointmentEvent.canceled.wireName, 'canceled');
+      expect(AppointmentEvent.canceled.resultingStatus, 'canceled');
+      expect(AppointmentEvent.refund.wireName, 'refund');
+      expect(AppointmentEvent.refund.resultingStatus, 'refunded');
+    });
+
+    test('allowed from every status the backend accepts', () {
+      for (final s in const [
+        'new',
+        'needs_assignment',
+        'pending',
+        'pending_selection',
+        'pending_editing',
+        'pending_review',
+        'completed',
+      ]) {
+        expect(canCancelOrRefund(s), isTrue, reason: s);
+      }
+    });
+
+    test('unavailable for canceled, refunded and unknown statuses', () {
+      for (final s in const ['canceled', 'refunded', 'unassigned', '']) {
+        expect(canCancelOrRefund(s), isFalse, reason: s);
+      }
+    });
+  });
 }

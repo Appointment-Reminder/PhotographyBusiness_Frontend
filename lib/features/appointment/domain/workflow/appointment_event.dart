@@ -9,7 +9,9 @@ enum AppointmentEvent {
   selection('selection', 'pending_editing'),
   editing('editing', 'pending_review'),
   review('review', 'completed'),
-  removeSelection('remove_selection', 'pending_selection');
+  removeSelection('remove_selection', 'pending_selection'),
+  canceled('canceled', 'canceled'),
+  refund('refund', 'refunded');
 
   /// Path segment sent to the backend.
   final String wireName;
@@ -19,6 +21,21 @@ enum AppointmentEvent {
 
   const AppointmentEvent(this.wireName, this.resultingStatus);
 }
+
+const _closeOutStatuses = {
+  'new',
+  'needs_assignment',
+  'pending',
+  'pending_selection',
+  'pending_editing',
+  'pending_review',
+  'completed',
+};
+
+/// Whether the Cancel and Refund drop zones accept an Appointment in
+/// [status]. Cancel and refund are independent events; neither is legal from
+/// `canceled` or `refunded`.
+bool canCancelOrRefund(String status) => _closeOutStatuses.contains(status);
 
 /// The forward event fired by a card's Advance button in [column], or null
 /// when the button does not fire a plain event (Needs Assignment opens the
