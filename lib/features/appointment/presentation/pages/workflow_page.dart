@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_colors.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_text_styles.dart';
-import 'package:photography_business_frontend/features/business/domain/entities/business_member.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/member_providers.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/package_providers.dart';
 import '../../domain/workflow/appointment_event.dart';
@@ -14,10 +13,13 @@ import '../../domain/workflow/workflow_column.dart';
 import '../../domain/workflow/workflow_viewer.dart';
 import '../providers/appointment_providers.dart';
 import '../widgets/workflow/cancel_refund_drop_zones.dart';
+import '../providers/notifiers/appointment_list_notifier.dart';
 import '../widgets/workflow/workflow_column_view.dart';
+import '../widgets/workflow/workflow_filters.dart';
 
 /// Kanban "Workflow" page: a Business's open Appointments by Appointment
-/// Status. Read-only for now.
+/// Status. Cards advance by Appointment Event (button or drag), can be
+/// assigned/reassigned, and can be canceled or refunded via the drop zones.
 class WorkflowPage extends ConsumerStatefulWidget {
   final int businessId;
   const WorkflowPage({super.key, required this.businessId});
@@ -29,6 +31,7 @@ class WorkflowPage extends ConsumerStatefulWidget {
 class _WorkflowPageState extends ConsumerState<WorkflowPage> {
   bool _showClosed = false;
   WorkflowDragData? _dragging;
+  int? _filterMemberId;
 
   @override
   void initState() {
@@ -43,8 +46,8 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(appointmentListNotifierProvider(widget.businessId));
-    final members =
-        ref.watch(businessMembersProvider(widget.businessId)).members;
+    final membersState = ref.watch(businessMembersProvider(widget.businessId));
+    final members = membersState.members;
     final pricingState = ref.watch(packagesPricingMapProvider);
 
     final packagesById = {
@@ -53,7 +56,12 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
     };
     final membersById = {for (final m in members) m.id: m};
 
-    final viewer = _resolveViewer(members);
+    final viewer = WorkflowViewer.resolve(
+      userId: _currentUserId(),
+      businessOwnerId: ref.watch(selectedBusinessProvider)?.ownerId,
+      members: members,
+    );
+    final activeMembers = members.where((m) => m.isActive).toList();
 
     final board = WorkflowBoard.build(
       viewer: viewer,
@@ -61,6 +69,8 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
       packagesById: packagesById,
       membersById: membersById,
       showClosed: _showClosed,
+      cardErrors: state.cardErrors,
+      filterMemberId: _filterMemberId,
     );
 
     return Padding(
@@ -83,6 +93,14 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
               ),
             ],
           ),
+          if (viewer.showsFiltersAndLegend) ...[
+            const SizedBox(height: 16),
+            WorkflowFilterChips(
+              members: activeMembers,
+              selectedMemberId: _filterMemberId,
+              onChanged: (id) => setState(() => _filterMemberId = id),
+            ),
+          ],
           const SizedBox(height: 16),
           _StatsStrip(board: board),
           const SizedBox(height: 16),
@@ -91,7 +109,14 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
             isEligible: _canCloseOut,
             onDrop: _onCloseOutDrop,
           ),
-          Expanded(child: _buildBoard(state.isLoading, state.error, board, viewer)),
+          Expanded(
+            child: _buildBoard(state.isLoading, state.error, board, viewer,
+                membersLoading: membersState.isLoading),
+          ),
+          if (viewer.showsFiltersAndLegend) ...[
+            const SizedBox(height: 16),
+            WorkflowLegend(members: activeMembers),
+          ],
         ],
       ),
     );
@@ -100,30 +125,32 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
   /// Assign flow for a Needs Assignment Appointment: member picker, then
   /// PATCH `member_id`, then `assign`. Reusable entry point (also for the
   /// Needs Assignment -> Scheduled drag).
-  Future<void> startAssignFlow(int appointmentId) async {
-    final memberId = await _pickMember();
-    if (memberId == null || !mounted) return;
-    final error = await ref
-        .read(appointmentListNotifierProvider(widget.businessId).notifier)
-        .assignAndSchedule(
-          businessId: widget.businessId,
-          appointmentId: appointmentId,
-          memberId: memberId,
-        );
-    if (error != null) _showSnack(error);
-  }
+  Future<void> startAssignFlow(int appointmentId) => _pickMemberThen(
+      (notifier, memberId) => notifier.assignAndSchedule(
+            businessId: widget.businessId,
+            appointmentId: appointmentId,
+            memberId: memberId,
+          ));
 
   /// "Assign to…" on an already-assigned card: PATCH `member_id` only.
-  Future<void> _reassign(int appointmentId) async {
+  Future<void> _reassign(int appointmentId) => _pickMemberThen(
+      (notifier, memberId) => notifier.reassign(
+            businessId: widget.businessId,
+            appointmentId: appointmentId,
+            memberId: memberId,
+          ));
+
+  /// Member picker, then [action]; a returned error goes to a snackbar.
+  Future<void> _pickMemberThen(
+    Future<String?> Function(AppointmentListNotifier notifier, int memberId)
+        action,
+  ) async {
     final memberId = await _pickMember();
     if (memberId == null || !mounted) return;
-    final error = await ref
-        .read(appointmentListNotifierProvider(widget.businessId).notifier)
-        .reassign(
-          businessId: widget.businessId,
-          appointmentId: appointmentId,
-          memberId: memberId,
-        );
+    final error = await action(
+      ref.read(appointmentListNotifierProvider(widget.businessId).notifier),
+      memberId,
+    );
     if (error != null) _showSnack(error);
   }
 
@@ -162,10 +189,7 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
           appointmentId: card.appointmentId,
           event: event,
         );
-    if (error != null && mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error)));
-    }
+    if (error != null) _showSnack(error);
   }
 
   /// A card was dropped on [to]. Invalid moves show a snackbar and send no
@@ -223,27 +247,34 @@ class _WorkflowPageState extends ConsumerState<WorkflowPage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  /// The current user's role on this Business. The business owner always
-  /// counts as owner; otherwise the user's BusinessMember decides, and an
-  /// unresolved member gets the restricted view.
-  WorkflowViewer _resolveViewer(List<BusinessMember> members) {
+  int? _currentUserId() {
     final auth = ref.watch(authNotifierProvider);
-    final userId = auth is AuthAuthenticated ? auth.user.id : null;
-    if (userId == null) return WorkflowViewer.fromMember(null);
-    if (ref.watch(selectedBusinessProvider)?.ownerId == userId) {
-      return WorkflowViewer.manager;
-    }
-    final mine = members.where((m) => m.userId == userId);
-    return WorkflowViewer.fromMember(mine.isEmpty ? null : mine.first);
+    return auth is AuthAuthenticated ? auth.user.id : null;
   }
 
   Widget _buildBoard(
-      bool isLoading, String? error, WorkflowBoard board, WorkflowViewer viewer) {
-    if (isLoading && board.totalCount == 0) {
+    bool isLoading,
+    String? error,
+    WorkflowBoard board,
+    WorkflowViewer viewer, {
+    required bool membersLoading,
+  }) {
+    if ((isLoading || membersLoading) && board.totalCount == 0) {
       return const Center(child: CircularProgressIndicator());
     }
     if (error != null) {
       return Center(child: Text(error, style: AppTextStyles.muted12));
+    }
+    if (viewer.isUnresolved) {
+      return Center(
+        child: Text(
+          'Your account is not linked to a team member of this business, '
+          'so your appointments cannot be shown. Ask the owner to check '
+          'your membership.',
+          style: AppTextStyles.muted12,
+          textAlign: TextAlign.center,
+        ),
+      );
     }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,

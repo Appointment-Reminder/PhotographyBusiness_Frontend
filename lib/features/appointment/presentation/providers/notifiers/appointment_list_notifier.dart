@@ -1,4 +1,6 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photography_business_frontend/core/error/failure.dart';
 import '../../../domain/entities/appointment.dart';
 import '../../../domain/usecases/get_my_appointments.dart';
 import '../../../domain/usecases/get_appointments_for_business.dart';
@@ -57,6 +59,11 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
     }, (_) => true);
   }
 
+  /// Cards with an event request in flight. A second event on the same card
+  /// is refused, so a rollback always restores the last server-confirmed
+  /// status.
+  final Set<int> _eventsInFlight = {};
+
   /// Fires an Appointment Event. The card moves optimistically to the event's
   /// resulting status; on failure only that card's status is rolled back.
   /// Returns null on success, or the error message (for a snackbar).
@@ -67,21 +74,28 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
   }) async {
     final index = state.appointments.indexWhere((a) => a.id == appointmentId);
     if (index < 0) return 'Appointment not found';
+    if (!_eventsInFlight.add(appointmentId)) {
+      return 'Another change to this appointment is still in progress';
+    }
     final previousStatus = state.appointments[index].status;
     _replace(appointmentId, (a) => a.copyWith(status: event.resultingStatus));
 
-    final result = await fireAppointmentEvent(FireAppointmentEventParams(
-      businessId: businessId,
-      appointmentId: appointmentId,
-      event: event,
-    ));
-    return result.fold((f) {
-      _replace(appointmentId, (a) => a.copyWith(status: previousStatus));
-      return f.message;
-    }, (updated) {
-      _replace(appointmentId, (_) => updated);
-      return null;
-    });
+    try {
+      final error = await _commit(
+        appointmentId,
+        fireAppointmentEvent(FireAppointmentEventParams(
+          businessId: businessId,
+          appointmentId: appointmentId,
+          event: event,
+        )),
+      );
+      if (error != null) {
+        _replace(appointmentId, (a) => a.copyWith(status: previousStatus));
+      }
+      return error;
+    } finally {
+      _eventsInFlight.remove(appointmentId);
+    }
   }
 
   /// Reassigns an Appointment: PATCH `member_id` only, no event, status
@@ -90,21 +104,20 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
     required int businessId,
     required int appointmentId,
     required int memberId,
-  }) async {
-    final result = await updateAppointment(UpdateAppointmentParams(
-      businessId: businessId,
-      appointmentId: appointmentId,
-      memberId: memberId,
-    ));
-    return result.fold((f) => f.message, (updated) {
-      _replace(appointmentId, (_) => updated);
-      return null;
-    });
-  }
+  }) =>
+      _commit(
+        appointmentId,
+        updateAppointment(UpdateAppointmentParams(
+          businessId: businessId,
+          appointmentId: appointmentId,
+          memberId: memberId,
+        )),
+      );
 
   /// Assigns a Needs Assignment Appointment: PATCH `member_id`, then fires
   /// `assign`. If the PATCH fails no event is fired. If `assign` fails after
-  /// the PATCH, the card stays in its column (member already saved).
+  /// the PATCH, the card stays in its column (member already saved) and
+  /// carries the error in [AppointmentListState.cardErrors].
   /// Returns null on success, or the error message.
   Future<String?> assignAndSchedule({
     required int businessId,
@@ -117,11 +130,35 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
       memberId: memberId,
     );
     if (patchError != null) return patchError;
-    return fireEvent(
+    final eventError = await fireEvent(
       businessId: businessId,
       appointmentId: appointmentId,
       event: AppointmentEvent.assign,
     );
+    if (eventError != null) {
+      state = state.copyWith(
+        cardErrors: {...state.cardErrors, appointmentId: eventError},
+      );
+    }
+    return eventError;
+  }
+
+  /// Applies a server response for one card: replaces it on success (and
+  /// clears its card error), returns the failure message otherwise.
+  Future<String?> _commit(
+    int appointmentId,
+    Future<Either<Failure, Appointment>> request,
+  ) async {
+    final result = await request;
+    return result.fold((f) => f.message, (updated) {
+      _replace(appointmentId, (_) => updated);
+      if (state.cardErrors.containsKey(appointmentId)) {
+        state = state.copyWith(
+          cardErrors: {...state.cardErrors}..remove(appointmentId),
+        );
+      }
+      return null;
+    });
   }
 
   void _replace(int id, Appointment Function(Appointment) change) {
