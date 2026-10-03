@@ -90,6 +90,24 @@ class WorkflowCardView extends StatelessWidget {
                       DateFormat('dd MMM').format(card.date),
                       style: AppTextStyles.monoMuted10,
                     ),
+                    if (card.error != null) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.error_outline,
+                              size: 14, color: Colors.redAccent),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              card.error!,
+                              style: AppTextStyles.muted12
+                                  .copyWith(color: Colors.redAccent),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     if (advanceLabel != null && onAdvance != null) ...[
                       const SizedBox(height: 8),
                       SizedBox(
