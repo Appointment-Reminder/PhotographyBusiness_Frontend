@@ -1,4 +1,5 @@
 import '../../domain/entities/appointment.dart';
+import '../../domain/workflow/appointment_event.dart';
 
 abstract class AppointmentRemoteDatasource {
   Future<Appointment> createAppointment({
@@ -46,4 +47,11 @@ abstract class AppointmentRemoteDatasource {
   });
 
   Future<void> deleteAppointment(int appointmentId);
+
+  /// Fires an Appointment Event; returns the Appointment with its new status.
+  Future<Appointment> fireAppointmentEvent({
+    required int businessId,
+    required int appointmentId,
+    required AppointmentEvent event,
+  });
 }

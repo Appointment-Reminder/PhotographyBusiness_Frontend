@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:photography_business_frontend/core/error/failure.dart';
 import '../entities/appointment.dart';
+import '../workflow/appointment_event.dart';
 
 abstract class AppointmentRepository {
   Future<Either<Failure, Appointment>> createAppointment({
@@ -51,4 +52,11 @@ abstract class AppointmentRepository {
   });
 
   Future<Either<Failure, void>> deleteAppointment(int appointmentId);
+
+  /// Status changes only go through events; the backend decides legality.
+  Future<Either<Failure, Appointment>> fireAppointmentEvent({
+    required int businessId,
+    required int appointmentId,
+    required AppointmentEvent event,
+  });
 }
