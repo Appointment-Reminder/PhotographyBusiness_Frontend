@@ -112,6 +112,8 @@ void main() {
       expect(repo.calls, ['PATCH 7/1 member_id=5']);
       expect(byId(1).status, 'needs_assignment');
       expect(byId(1).memberId, isNull);
+      expect(notifier.state.cardErrors, isEmpty,
+          reason: 'a PATCH failure is shown by snackbar, nothing was saved');
     });
 
     test(
@@ -128,6 +130,22 @@ void main() {
       expect(repo.calls, ['PATCH 7/1 member_id=5', 'POST 7/1/assign']);
       expect(byId(1).status, 'needs_assignment');
       expect(byId(1).memberId, 5, reason: 'the PATCH already succeeded');
+      expect(notifier.state.cardErrors, {1: 'Illegal transition'});
+    });
+
+    test('the card error clears on the next successful action', () async {
+      repo.patchResponse =
+          Right(appointment(1, 'needs_assignment', memberId: 5));
+      repo.eventResponse = const Left(ServerFailure('Illegal transition'));
+      await notifier.assignAndSchedule(
+          businessId: 7, appointmentId: 1, memberId: 5);
+
+      repo.eventResponse = Right(appointment(1, 'pending', memberId: 5));
+      final error = await notifier.assignAndSchedule(
+          businessId: 7, appointmentId: 1, memberId: 5);
+
+      expect(error, isNull);
+      expect(notifier.state.cardErrors, isEmpty);
     });
   });
 

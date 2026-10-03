@@ -123,6 +123,7 @@ class WorkflowColumnView extends StatelessWidget {
                                 ? null
                                 : () => onAdvance!(card, event),
                         onReassign: !isAssignColumn &&
+                                column != WorkflowColumn.completed &&
                                 card.memberId != null &&
                                 onReassign != null
                             ? () => onReassign!(card)

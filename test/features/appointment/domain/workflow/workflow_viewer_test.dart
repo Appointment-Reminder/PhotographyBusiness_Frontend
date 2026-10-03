@@ -64,6 +64,36 @@ void main() {
     });
   });
 
+  group('resolve', () {
+    final members = [memberWithRole(5, 'photographer')]; // userId 105
+
+    test('the business owner is a manager even without a member row', () {
+      final v = WorkflowViewer.resolve(
+          userId: 1, businessOwnerId: 1, members: const []);
+      expect(v.canSeeAll, isTrue);
+    });
+
+    test('other users resolve through their member row', () {
+      final v = WorkflowViewer.resolve(
+          userId: 105, businessOwnerId: 1, members: members);
+      expect(v.memberId, 5);
+      expect(v.canSeeAll, isFalse);
+    });
+
+    test('no signed-in user or no member row is unresolved', () {
+      expect(
+          WorkflowViewer.resolve(
+                  userId: null, businessOwnerId: 1, members: members)
+              .isUnresolved,
+          isTrue);
+      expect(
+          WorkflowViewer.resolve(
+                  userId: 999, businessOwnerId: 1, members: members)
+              .isUnresolved,
+          isTrue);
+    });
+  });
+
   group('board scoping', () {
     test('owner/admin see every appointment and the Needs Assignment column', () {
       final board = boardFor(WorkflowViewer.fromMember(memberWithRole(9, 'admin')));
@@ -93,6 +123,55 @@ void main() {
     test('totals only count visible cards', () {
       final board = boardFor(WorkflowViewer.fromMember(memberWithRole(5, 'photographer')));
       expect(board.totalCount, 2);
+    });
+
+    test("manager filter by member shows only that member's cards", () {
+      final board = WorkflowBoard.build(
+        appointments: [
+          appt(id: 1, status: 'needs_assignment'),
+          appt(id: 2, status: 'pending', memberId: 5),
+          appt(id: 3, status: 'pending_editing', memberId: 6),
+        ],
+        packagesById: const {},
+        membersById: const {},
+        viewer: WorkflowViewer.manager,
+        filterMemberId: 5,
+      );
+      expect(allIds(board).toSet(), {2});
+    });
+
+    test('a restricted viewer cannot widen their board with a filter', () {
+      final board = WorkflowBoard.build(
+        appointments: [
+          appt(id: 2, status: 'pending', memberId: 5),
+          appt(id: 3, status: 'pending_editing', memberId: 6),
+        ],
+        packagesById: const {},
+        membersById: const {},
+        viewer: WorkflowViewer.fromMember(memberWithRole(5, 'photographer')),
+        filterMemberId: 6,
+      );
+      expect(allIds(board).toSet(), {2});
+    });
+
+    test('cards carry their error message', () {
+      final board = WorkflowBoard.build(
+        appointments: [appt(id: 1, status: 'needs_assignment', memberId: 5)],
+        packagesById: const {},
+        membersById: const {},
+        cardErrors: const {1: 'Illegal transition'},
+      );
+      expect(board.cardsIn(WorkflowColumn.needsAssignment).single.error,
+          'Illegal transition');
+    });
+
+    test('unresolved restricted viewer is flagged', () {
+      expect(WorkflowViewer.fromMember(null).isUnresolved, isTrue);
+      expect(WorkflowViewer.manager.isUnresolved, isFalse);
+      expect(
+          WorkflowViewer.fromMember(memberWithRole(5, 'photographer'))
+              .isUnresolved,
+          isFalse);
     });
   });
 }
