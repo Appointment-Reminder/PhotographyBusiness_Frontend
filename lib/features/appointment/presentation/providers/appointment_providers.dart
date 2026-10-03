@@ -65,6 +65,7 @@ final appointmentListNotifierProvider = StateNotifierProvider.family<
     getAppointmentsForBusiness: ref.read(getAppointmentsForBusinessProvider),
     deleteAppointment: ref.read(deleteAppointmentProvider),
     fireAppointmentEvent: ref.read(fireAppointmentEventProvider),
+    updateAppointment: ref.read(updateAppointmentProvider),
   );
   notifier.loadForBusiness(businessId);
   return notifier;

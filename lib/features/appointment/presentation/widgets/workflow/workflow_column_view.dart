@@ -13,11 +13,21 @@ class WorkflowColumnView extends StatelessWidget {
   /// Called when a card's Advance button is pressed.
   final void Function(WorkflowCard card, AppointmentEvent event)? onAdvance;
 
+  /// Called when the Needs Assignment "Assign…" button is pressed. The
+  /// button is hidden when null.
+  final void Function(WorkflowCard card)? onAssign;
+
+  /// Called for "Assign to…" on already-assigned cards. The action is hidden
+  /// when null.
+  final void Function(WorkflowCard card)? onReassign;
+
   const WorkflowColumnView({
     super.key,
     required this.column,
     required this.cards,
     this.onAdvance,
+    this.onAssign,
+    this.onReassign,
   });
 
   @override
@@ -80,12 +90,22 @@ class WorkflowColumnView extends StatelessWidget {
                     itemBuilder: (_, i) {
                       final card = cards[i];
                       final event = advanceEventFor(column);
+                      final isAssignColumn =
+                          column == WorkflowColumn.needsAssignment;
                       return WorkflowCardView(
                         card: card,
-                        advanceLabel: advanceLabelFor(column),
-                        onAdvance: event == null || onAdvance == null
-                            ? null
-                            : () => onAdvance!(card, event),
+                        advanceLabel:
+                            isAssignColumn ? 'Assign…' : advanceLabelFor(column),
+                        onAdvance: isAssignColumn
+                            ? (onAssign == null ? null : () => onAssign!(card))
+                            : event == null || onAdvance == null
+                                ? null
+                                : () => onAdvance!(card, event),
+                        onReassign: !isAssignColumn &&
+                                card.memberId != null &&
+                                onReassign != null
+                            ? () => onReassign!(card)
+                            : null,
                       );
                     },
                   ),
