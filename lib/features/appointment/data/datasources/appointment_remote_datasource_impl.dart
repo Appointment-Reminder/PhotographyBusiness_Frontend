@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../models/appointment_model.dart';
 import '../../domain/entities/appointment.dart';
+import '../../domain/workflow/appointment_event.dart';
 import 'appointment_remote_datasource.dart';
 
 class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
@@ -118,5 +119,17 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
   @override
   Future<void> deleteAppointment(int appointmentId) async {
     await client.delete('/appointments/$appointmentId');
+  }
+
+  @override
+  Future<Appointment> fireAppointmentEvent({
+    required int businessId,
+    required int appointmentId,
+    required AppointmentEvent event,
+  }) async {
+    final response = await client.post(
+      '/appointments/business/$businessId/appointments/$appointmentId/${event.wireName}',
+    );
+    return AppointmentModel.fromJson(response.data);
   }
 }

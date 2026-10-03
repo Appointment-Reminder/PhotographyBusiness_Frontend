@@ -7,7 +7,17 @@ import '../photographer_colors.dart';
 
 class WorkflowCardView extends StatelessWidget {
   final WorkflowCard card;
-  const WorkflowCardView({super.key, required this.card});
+
+  /// Advance button label and handler; no button when either is null.
+  final String? advanceLabel;
+  final VoidCallback? onAdvance;
+
+  const WorkflowCardView({
+    super.key,
+    required this.card,
+    this.advanceLabel,
+    this.onAdvance,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +86,16 @@ class WorkflowCardView extends StatelessWidget {
                       DateFormat('dd MMM').format(card.date),
                       style: AppTextStyles.monoMuted10,
                     ),
+                    if (advanceLabel != null && onAdvance != null) ...[
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: onAdvance,
+                          child: Text(advanceLabel!),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

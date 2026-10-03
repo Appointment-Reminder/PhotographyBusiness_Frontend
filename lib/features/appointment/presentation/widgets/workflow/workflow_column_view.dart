@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_colors.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_text_styles.dart';
+import '../../../domain/workflow/appointment_event.dart';
 import '../../../domain/workflow/workflow_board.dart';
 import '../../../domain/workflow/workflow_column.dart';
 import 'workflow_card_view.dart';
@@ -9,10 +10,14 @@ class WorkflowColumnView extends StatelessWidget {
   final WorkflowColumn column;
   final List<WorkflowCard> cards;
 
+  /// Called when a card's Advance button is pressed.
+  final void Function(WorkflowCard card, AppointmentEvent event)? onAdvance;
+
   const WorkflowColumnView({
     super.key,
     required this.column,
     required this.cards,
+    this.onAdvance,
   });
 
   @override
@@ -72,7 +77,17 @@ class WorkflowColumnView extends StatelessWidget {
                 : ListView.separated(
                     itemCount: cards.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (_, i) => WorkflowCardView(card: cards[i]),
+                    itemBuilder: (_, i) {
+                      final card = cards[i];
+                      final event = advanceEventFor(column);
+                      return WorkflowCardView(
+                        card: card,
+                        advanceLabel: advanceLabelFor(column),
+                        onAdvance: event == null || onAdvance == null
+                            ? null
+                            : () => onAdvance!(card, event),
+                      );
+                    },
                   ),
           ),
         ],
