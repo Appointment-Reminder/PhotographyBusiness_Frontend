@@ -114,6 +114,35 @@ void main() {
     expect(statusOf(2), 'pending_review');
   });
 
+  test('a second event on a card in flight is refused, so rollback is exact',
+      () async {
+    repo.pending = Completer();
+    final first = notifier.fireEvent(
+        businessId: 7, appointmentId: 1, event: AppointmentEvent.photoshoot);
+    final second = await notifier.fireEvent(
+        businessId: 7, appointmentId: 1, event: AppointmentEvent.selection);
+
+    expect(second, isNotNull);
+    expect(repo.calls, ['7/1/photoshoot'], reason: 'no second request');
+    expect(statusOf(1), 'pending_selection');
+
+    repo.pending!.complete(const Left(ServerFailure('boom')));
+    expect(await first, 'boom');
+    expect(statusOf(1), 'pending', reason: 'last server-confirmed status');
+  });
+
+  test('the card accepts a new event once the previous one settled', () async {
+    repo.response = const Left(ServerFailure('boom'));
+    await notifier.fireEvent(
+        businessId: 7, appointmentId: 1, event: AppointmentEvent.photoshoot);
+    repo.response = Right(appointment(1, 'pending_selection'));
+    expect(
+        await notifier.fireEvent(
+            businessId: 7, appointmentId: 1, event: AppointmentEvent.photoshoot),
+        isNull);
+    expect(statusOf(1), 'pending_selection');
+  });
+
   test('canceled and refund events take the card off the board', () async {
     repo.pending = Completer();
     final cancel = notifier.fireEvent(

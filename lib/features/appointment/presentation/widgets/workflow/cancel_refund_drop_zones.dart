@@ -4,6 +4,11 @@ import 'package:photography_business_frontend/core/Presentation/theme/app_text_s
 import '../../../domain/workflow/appointment_event.dart';
 import 'workflow_column_view.dart';
 
+const _zones = [
+  (label: 'Cancel', event: AppointmentEvent.canceled),
+  (label: 'Refund', event: AppointmentEvent.refund),
+];
+
 /// "Cancel" and "Refund" drop zones, shown only while a card is being dragged
 /// ([dragging] non-null). A zone accepts the card only when [isEligible] says
 /// so; otherwise it renders disabled.
@@ -28,21 +33,16 @@ class CancelRefundDropZones extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
-          Expanded(
-            child: _Zone(
-              label: 'Cancel',
-              eligible: eligible,
-              onDrop: (d) => onDrop(d, AppointmentEvent.canceled),
+          for (final (i, zone) in _zones.indexed) ...[
+            if (i > 0) const SizedBox(width: 16),
+            Expanded(
+              child: _Zone(
+                label: zone.label,
+                eligible: eligible,
+                onDrop: (d) => onDrop(d, zone.event),
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _Zone(
-              label: 'Refund',
-              eligible: eligible,
-              onDrop: (d) => onDrop(d, AppointmentEvent.refund),
-            ),
-          ),
+          ],
         ],
       ),
     );
