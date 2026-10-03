@@ -3,6 +3,7 @@ import 'package:photography_business_frontend/features/business/domain/entities/
 import 'package:photography_business_frontend/features/package/domain/entities/package.dart';
 import '../entities/appointment.dart';
 import 'workflow_column.dart';
+import 'workflow_viewer.dart';
 
 /// What a Workflow Board card displays. Colour is derived from `memberId`
 /// in the presentation layer (see PhotographerColors).
@@ -85,10 +86,17 @@ class WorkflowBoard extends Equatable {
     required Map<int, Package> packagesById,
     required Map<int, BusinessMember> membersById,
     bool showClosed = false,
+    WorkflowViewer viewer = WorkflowViewer.manager,
   }) {
-    final columns =
-        showClosed ? WorkflowColumn.allColumns : WorkflowColumn.openColumns;
-    final sorted = [...appointments]
+    final columns = (showClosed
+            ? WorkflowColumn.allColumns
+            : WorkflowColumn.openColumns)
+        .where((c) => viewer.canAssign || c != WorkflowColumn.needsAssignment)
+        .toList();
+    final sorted = appointments
+        .where((a) => viewer.canSeeAll ||
+            (viewer.memberId != null && a.memberId == viewer.memberId))
+        .toList()
       ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
     final cards = {for (final c in columns) c: <WorkflowCard>[]};
     for (final a in sorted) {
