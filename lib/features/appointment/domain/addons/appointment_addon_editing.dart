@@ -13,51 +13,6 @@ class AppointmentAddonEditing {
       isManager && !_closedStatuses.contains(status);
 }
 
-/// One request needed to turn the current Add-ons into the desired ones.
-sealed class AddonChange extends Equatable {
-  final int addonId;
-  const AddonChange(this.addonId);
-}
-
-class AddAddon extends AddonChange {
-  final int quantity;
-  const AddAddon(super.addonId, this.quantity);
-  @override
-  List<Object?> get props => [addonId, quantity];
-}
-
-class ChangeAddonQuantity extends AddonChange {
-  final int quantity;
-  const ChangeAddonQuantity(super.addonId, this.quantity);
-  @override
-  List<Object?> get props => [addonId, quantity];
-}
-
-class RemoveAddon extends AddonChange {
-  const RemoveAddon(super.addonId);
-  @override
-  List<Object?> get props => [addonId];
-}
-
-/// The requests that turn [current] into [desired] (Add-on id to quantity,
-/// zero or absent meaning not selected): adds, then quantity changes, then
-/// removes. Untouched Add-ons produce nothing, so they keep their frozen price.
-List<AddonChange> diffAddons(List<AppointmentAddon> current, Map<int, int> desired) {
-  final have = {for (final a in current) a.addonId: a.quantity};
-  final want = {
-    for (final e in desired.entries)
-      if (e.value > 0) e.key: e.value,
-  };
-  return [
-    for (final e in want.entries)
-      if (!have.containsKey(e.key)) AddAddon(e.key, e.value),
-    for (final e in want.entries)
-      if (have.containsKey(e.key) && have[e.key] != e.value) ChangeAddonQuantity(e.key, e.value),
-    for (final id in have.keys)
-      if (!want.containsKey(id)) RemoveAddon(id),
-  ];
-}
-
 /// The editor's draft: Add-on id to quantity, held until Save.
 class AddonDraft extends Equatable {
   final Map<int, int> quantities;
@@ -92,7 +47,8 @@ class AddonChoice extends Equatable {
   final Addon addon;
 
   /// False for an inactive Add-on already on the Appointment: it stays shown
-  /// (history stays truthful) but cannot be newly selected.
+  /// (history stays truthful) but cannot be newly selected. Also false for an
+  /// Add-on with no current price, which the backend could not freeze.
   final bool canSelectNew;
   const AddonChoice(this.addon, {required this.canSelectNew});
 
@@ -104,7 +60,8 @@ class AddonChoice extends Equatable {
     final onIds = {for (final a in onAppointment) a.addonId};
     return [
       for (final a in catalog)
-        if (a.isActive || onIds.contains(a.id)) AddonChoice(a, canSelectNew: a.isActive),
+        if (a.isActive || onIds.contains(a.id))
+          AddonChoice(a, canSelectNew: a.isActive && a.currentPrice != null),
     ];
   }
 }

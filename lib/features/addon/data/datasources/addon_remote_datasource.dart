@@ -69,16 +69,24 @@ class AddonRemoteDatasource {
     return [for (final j in r.data as List) addonPriceFromJson(j)];
   }
 
-  Future<AddonPrice> getCurrentAddonPrice(int addonId) async {
-    final r = await client.get('/business/addons/$addonId/prices/current');
-    return addonPriceFromJson(r.data);
-  }
-
-  Future<AddonCommission> getMemberAddonCommission({
-    required int addonId,
+  Future<List<AddonCommission>> listMemberAddonCommissions({
+    required int businessId,
     required int memberId,
   }) async {
-    final r = await client.get('/business/addons/$addonId/members/$memberId/commission');
+    final r = await client.get('/business/$businessId/members/$memberId/addon-commissions');
+    return [for (final j in r.data as List) addonCommissionFromJson(j)];
+  }
+
+  Future<AddonCommission> updateAddonCommission({
+    required int id,
+    required int commissionAmount,
+    required bool commissionIsPercentage,
+  }) async {
+    final r = await client.patch('/business/addons/commissions', data: {
+      'id': id,
+      'commission_amount': commissionAmount,
+      'commission_isPercentage': commissionIsPercentage,
+    });
     return addonCommissionFromJson(r.data);
   }
 

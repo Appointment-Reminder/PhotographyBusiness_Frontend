@@ -20,7 +20,11 @@ class FakeAddonRepository implements AddonRepository {
   @override
   Future<Either<Failure, List<Addon>>> getAddons(int businessId) async {
     calls.add('list $businessId');
-    return Right(addons);
+    // The backend embeds the price in effect now in every listed Add-on.
+    return Right([
+      for (final a in addons)
+        a.withCurrentPrice(AddonPrice.currentOf(prices[a.id] ?? [], DateTime.now())?.price),
+    ]);
   }
 
   @override
@@ -84,13 +88,6 @@ class FakeAddonRepository implements AddonRepository {
   }
 
   @override
-  Future<Either<Failure, AddonPrice>> getCurrentAddonPrice(int addonId) async {
-    calls.add('current $addonId');
-    final current = AddonPrice.currentOf(prices[addonId] ?? [], DateTime.now());
-    return current == null ? _fail : Right(current);
-  }
-
-  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -130,6 +127,7 @@ void main() {
 
       expect(notifier.state.addons.map((a) => a.id), [1, 2]);
       expect(notifier.state.currentPrices, {1: 80, 2: 120});
+      expect(repo.calls, ['list 7'], reason: 'prices come with the list, no per-Add-on reads');
       expect(notifier.state.isLoading, isFalse);
       expect(notifier.state.error, isNull);
     });
@@ -137,7 +135,7 @@ void main() {
     test('an add-on with no current price is listed without a price', () async {
       repo.addons = [addon(1), addon(2)];
       repo.prices[1] = [price(1, 1, 80, past)];
-      // add-on 2: current-price endpoint fails (400)
+      // add-on 2 has no price in effect
 
       await notifier.load(7);
 

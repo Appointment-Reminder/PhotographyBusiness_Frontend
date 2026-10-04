@@ -22,14 +22,40 @@ class FakeAddonRepository implements AddonRepository {
   }
 
   @override
-  Future<Either<Failure, AddonCommission>> getMemberAddonCommission({
-    required int addonId,
+  Future<Either<Failure, List<AddonCommission>>> listMemberAddonCommissions({
+    required int businessId,
     required int memberId,
   }) async {
-    calls.add('get $memberId/$addonId');
+    calls.add('list-commissions $businessId/$memberId');
     if (failRead) return const Left(ServerFailure('boom'));
-    // The backend answers a flat 0 when the member has none.
-    return Right(commissions['$memberId/$addonId'] ?? flat0(memberId, addonId));
+    // The backend answers every active Add-on, a flat 0 (null id) where the
+    // member has none.
+    return Right([
+      for (final a in addons)
+        if (a.isActive) commissions['$memberId/${a.id}'] ?? flat0(memberId, a.id),
+    ]);
+  }
+
+  @override
+  Future<Either<Failure, AddonCommission>> updateAddonCommission({
+    required int id,
+    required int commissionAmount,
+    required bool commissionIsPercentage,
+  }) async {
+    calls.add('update $id $commissionAmount ${commissionIsPercentage ? '%' : 'EUR'}');
+    if (failSave) return const Left(ServerFailure('save refused'));
+    final key = commissions.keys.firstWhere((k) => commissions[k]!.id == id);
+    final old = commissions[key]!;
+    final c = AddonCommission(
+      id: id,
+      businessMemberId: old.businessMemberId,
+      addonId: old.addonId,
+      commissionAmount: commissionAmount,
+      commissionIsPercentage: commissionIsPercentage,
+      effectiveFrom: old.effectiveFrom,
+    );
+    commissions[key] = c;
+    return Right(c);
   }
 
   @override
@@ -43,7 +69,7 @@ class FakeAddonRepository implements AddonRepository {
     calls.add('create $memberId/$addonId $commissionAmount ${commissionIsPercentage ? '%' : 'EUR'}');
     if (failSave) return const Left(ServerFailure('save refused'));
     final c = AddonCommission(
-      id: 1,
+      id: nextId++,
       businessMemberId: memberId,
       addonId: addonId,
       commissionAmount: commissionAmount,
@@ -56,6 +82,7 @@ class FakeAddonRepository implements AddonRepository {
   }
 
   DateTime? lastEffectiveFrom;
+  int nextId = 100;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -127,6 +154,25 @@ void main() {
       expect(notifier.state.isLoading, isFalse);
     });
 
+      test('a failed reload drops the earlier values of that Member instead of showing stale ones', () async {
+      repo.addons = [addon(1)];
+      repo.commissions['5/1'] = AddonCommission(
+        id: 4,
+        businessMemberId: 5,
+        addonId: 1,
+        commissionAmount: 20,
+        commissionIsPercentage: true,
+        effectiveFrom: DateTime(2026),
+      );
+      await notifier.loadForMember(businessId: 7, memberId: 5);
+      repo.failRead = true;
+
+      await notifier.loadForMember(businessId: 7, memberId: 5);
+
+      expect(notifier.state.error, 'boom');
+      expect(notifier.state.commissions[5], isNull);
+    });
+
     test('a failing add-on listing is shown as an error', () async {
       repo.failListing = true;
 
@@ -135,14 +181,14 @@ void main() {
       expect(notifier.state.error, 'no access');
     });
 
-    test('switching Member reads that Member\'s commissions', () async {
-      repo.addons = [addon(1)];
+    test('switching Member reads the new Member commissions in one call', () async {
+      repo.addons = [addon(1), addon(2)];
       await notifier.loadForMember(businessId: 7, memberId: 5);
       repo.calls.clear();
 
       await notifier.loadForMember(businessId: 7, memberId: 6);
 
-      expect(repo.calls, contains('get 6/1'));
+      expect(repo.calls.where((c) => c.startsWith('list-commissions')), ['list-commissions 7/6']);
     });
   });
 
@@ -152,7 +198,7 @@ void main() {
       await notifier.loadForMember(businessId: 7, memberId: 5);
     });
 
-    test('posts a new version effective now and shows it', () async {
+    test('with no commission yet, posts a first version effective now and shows it', () async {
       final before = DateTime.now();
 
       final error = await notifier.save(memberId: 5, addonId: 1, value: '15', isPercentage: true);
@@ -162,6 +208,36 @@ void main() {
       expect(repo.lastEffectiveFrom!.isBefore(before), isFalse);
       final c = notifier.state.commissionFor(5, 1);
       expect((c.commissionAmount, c.commissionIsPercentage), (15, true));
+    });
+
+    test('a Member with no commission yet gets a new version; one with a '
+        'commission has it corrected in place, never a new version', () async {
+      await notifier.save(memberId: 5, addonId: 1, value: '10', isPercentage: false);
+      repo.calls.clear();
+
+      final error = await notifier.save(memberId: 5, addonId: 1, value: '12', isPercentage: true);
+
+      expect(error, isNull);
+      expect(repo.calls, ['update 100 12 %']);
+      final c = notifier.state.commissionFor(5, 1);
+      expect((c.commissionAmount, c.commissionIsPercentage), (12, true));
+    });
+
+    test('a commission loaded with an id is corrected in place', () async {
+      repo.commissions['5/1'] = AddonCommission(
+        id: 4,
+        businessMemberId: 5,
+        addonId: 1,
+        commissionAmount: 20,
+        commissionIsPercentage: true,
+        effectiveFrom: DateTime(2026),
+      );
+      await notifier.loadForMember(businessId: 7, memberId: 5);
+      repo.calls.clear();
+
+      await notifier.save(memberId: 5, addonId: 1, value: '25', isPercentage: true);
+
+      expect(repo.calls, ['update 4 25 %']);
     });
 
     test('rejects non-numeric and negative values without calling the backend', () async {

@@ -12,6 +12,7 @@ Addon addonFromJson(Map<String, dynamic> j) => Addon(
       hasDuration: j['has_duration'],
       hasQuantity: j['has_quantity'],
       durationMinutes: j['duration_minutes'],
+      currentPrice: j['current_price'],
     );
 
 AddonPrice addonPriceFromJson(Map<String, dynamic> j) => AddonPrice(

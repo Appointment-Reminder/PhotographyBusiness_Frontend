@@ -13,6 +13,10 @@ class Addon extends Equatable {
   final bool hasQuantity;
   final int? durationMinutes;
 
+  /// The price in effect now, in whole euros; null when it has none. Read-only:
+  /// it comes with the listing and is never sent back on an update.
+  final int? currentPrice;
+
   const Addon({
     required this.id,
     required this.businessId,
@@ -23,6 +27,7 @@ class Addon extends Equatable {
     required this.hasDuration,
     required this.hasQuantity,
     this.durationMinutes,
+    this.currentPrice,
   });
 
   Addon copyWith({
@@ -44,8 +49,22 @@ class Addon extends Equatable {
       hasDuration: duration,
       hasQuantity: hasQuantity ?? this.hasQuantity,
       durationMinutes: duration ? (durationMinutes ?? this.durationMinutes) : null,
+      currentPrice: currentPrice,
     );
   }
+
+  Addon withCurrentPrice(int? price) => Addon(
+        id: id,
+        businessId: businessId,
+        name: name,
+        jotformAlias: jotformAlias,
+        isActive: isActive,
+        categoryId: categoryId,
+        hasDuration: hasDuration,
+        hasQuantity: hasQuantity,
+        durationMinutes: durationMinutes,
+        currentPrice: price,
+      );
 
   @override
   List<Object?> get props => [
@@ -58,5 +77,6 @@ class Addon extends Equatable {
         hasDuration,
         hasQuantity,
         durationMinutes,
+        currentPrice,
       ];
 }

@@ -54,9 +54,8 @@ class MemberAddonCommissionNotifier extends StateNotifier<MemberAddonCommissionS
   MemberAddonCommissionNotifier({required this.repository})
       : super(const MemberAddonCommissionState());
 
-  /// Reads the Member's current commission on every active Add-on. One call
-  /// per Add-on until the backend lists a Member's Add-on Commissions at once;
-  /// that swap stays inside this method.
+  /// Reads the active Add-ons and the Member's current commission on each, in
+  /// one call. The backend fills in a flat 0 where there is none.
   Future<void> loadForMember({required int businessId, required int memberId}) async {
     state = state.copyWith(isLoading: true, error: null);
     final listed = await repository.getAddons(businessId);
@@ -67,25 +66,30 @@ class MemberAddonCommissionNotifier extends StateNotifier<MemberAddonCommissionS
       return;
     }
     final addons = all.where((a) => a.isActive).toList();
-    final forMember = <int, AddonCommission>{};
-    for (final a in addons) {
-      final result = await repository.getMemberAddonCommission(addonId: a.id, memberId: memberId);
-      final failure = result.fold((f) => f, (_) => null);
-      if (failure != null) {
-        state = state.copyWith(isLoading: false, addons: addons, error: failure.message);
-        return;
-      }
-      forMember[a.id] = result.getOrElse(() => throw StateError('unreachable'));
-    }
-    state = state.copyWith(
-      isLoading: false,
-      addons: addons,
-      commissions: {...state.commissions, memberId: forMember},
+    final result =
+        await repository.listMemberAddonCommissions(businessId: businessId, memberId: memberId);
+    result.fold(
+      (f) => state = state.copyWith(
+        isLoading: false,
+        addons: addons,
+        commissions: {...state.commissions}..remove(memberId),
+        error: f.message,
+      ),
+      (list) => state = state.copyWith(
+        isLoading: false,
+        addons: addons,
+        commissions: {
+          ...state.commissions,
+          memberId: {for (final c in list) c.addonId: c},
+        },
+      ),
     );
   }
 
-  /// Posts a new commission version effective now (earlier Appointments keep
-  /// their frozen commission). [value] must be a whole, non-negative number.
+  /// Saves a Member's commission on an Add-on. One that already has a stored
+  /// version is corrected in place; one still on the flat 0 default gets its
+  /// first version, effective now (earlier Appointments keep their frozen
+  /// commission either way). [value] must be a whole, non-negative number.
   /// Returns null on success, or the error message; on failure the previous
   /// value is kept.
   Future<String?> save({
@@ -96,13 +100,20 @@ class MemberAddonCommissionNotifier extends StateNotifier<MemberAddonCommissionS
   }) async {
     final amount = int.tryParse(value.trim());
     if (amount == null || amount < 0) return 'Enter a whole number, 0 or more';
-    final result = await repository.createAddonCommission(
-      memberId: memberId,
-      addonId: addonId,
-      commissionAmount: amount,
-      commissionIsPercentage: isPercentage,
-      effectiveFrom: DateTime.now(),
-    );
+    final existingId = state.commissions[memberId]?[addonId]?.id;
+    final result = existingId == null
+        ? await repository.createAddonCommission(
+            memberId: memberId,
+            addonId: addonId,
+            commissionAmount: amount,
+            commissionIsPercentage: isPercentage,
+            effectiveFrom: DateTime.now(),
+          )
+        : await repository.updateAddonCommission(
+            id: existingId,
+            commissionAmount: amount,
+            commissionIsPercentage: isPercentage,
+          );
     return result.fold((f) {
       state = state.copyWith(error: f.message);
       return f.message;

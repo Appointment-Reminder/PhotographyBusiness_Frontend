@@ -22,8 +22,6 @@ class PendingAddonPrice extends Equatable {
 class AddonCatalogState extends Equatable {
   final List<Addon> addons;
 
-  /// addonId -> price in effect now. Absent when the Add-on has none.
-  final Map<int, int> currentPrices;
   final int? selectedId;
 
   /// Price history of the selected Add-on, newest first.
@@ -35,7 +33,6 @@ class AddonCatalogState extends Equatable {
 
   const AddonCatalogState({
     this.addons = const [],
-    this.currentPrices = const {},
     this.selectedId,
     this.history = const [],
     this.pendingPrice,
@@ -51,6 +48,12 @@ class AddonCatalogState extends Equatable {
     return null;
   }
 
+  /// addonId -> price in effect now. Absent when the Add-on has none.
+  Map<int, int> get currentPrices => {
+        for (final a in addons)
+          if (a.currentPrice != null) a.id: a.currentPrice!,
+      };
+
   bool get hasPendingPrice => pendingPrice != null;
 
   /// Id of the history entry that is in effect now (never a future-dated one).
@@ -58,7 +61,6 @@ class AddonCatalogState extends Equatable {
 
   AddonCatalogState copyWith({
     List<Addon>? addons,
-    Map<int, int>? currentPrices,
     int? selectedId,
     List<AddonPrice>? history,
     PendingAddonPrice? pendingPrice,
@@ -69,7 +71,6 @@ class AddonCatalogState extends Equatable {
   }) =>
       AddonCatalogState(
         addons: addons ?? this.addons,
-        currentPrices: currentPrices ?? this.currentPrices,
         selectedId: selectedId ?? this.selectedId,
         history: history ?? this.history,
         pendingPrice: clearPendingPrice ? null : (pendingPrice ?? this.pendingPrice),
@@ -80,5 +81,5 @@ class AddonCatalogState extends Equatable {
 
   @override
   List<Object?> get props =>
-      [addons, currentPrices, selectedId, history, pendingPrice, isLoading, isSubmitting, error];
+      [addons, selectedId, history, pendingPrice, isLoading, isSubmitting, error];
 }

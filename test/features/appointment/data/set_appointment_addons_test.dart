@@ -32,104 +32,70 @@ Appointment appointment(List<AppointmentAddon> addons) => Appointment(
       addons: addons,
     );
 
-/// A fake backend that applies each request to its own Add-on list.
+/// A fake backend whose replace applies the whole set or nothing.
 class FakeDatasource implements AppointmentRemoteDatasource {
   List<AppointmentAddon> addons;
   final calls = <String>[];
-  String? failOn; // e.g. 'PATCH 2'
+  bool fail = false;
 
   FakeDatasource(this.addons);
 
-  Future<Appointment> _apply(String call, void Function() change) async {
-    calls.add(call);
-    if (call == failOn) {
-      throw DioException(requestOptions: RequestOptions(path: '/x'));
-    }
-    change();
-    return appointment(addons);
+  @override
+  Future<Appointment> replaceAppointmentAddons({
+    required int businessId,
+    required int appointmentId,
+    required Map<int, int> addons,
+  }) async {
+    calls.add('PUT $addons');
+    if (fail) throw DioException(requestOptions: RequestOptions(path: '/x'));
+    this.addons = [for (final e in addons.entries) addonLine(e.key, e.value)];
+    return appointment(this.addons);
   }
-
-  @override
-  Future<Appointment> getAppointmentById({required int businessId, required int appointmentId}) async {
-    calls.add('GET');
-    return appointment(addons);
-  }
-
-  @override
-  Future<Appointment> addAppointmentAddon({
-    required int businessId,
-    required int appointmentId,
-    required int addonId,
-    required int quantity,
-  }) =>
-      _apply('POST $addonId', () => addons = [...addons, addonLine(addonId, quantity)]);
-
-  @override
-  Future<Appointment> changeAppointmentAddonQuantity({
-    required int businessId,
-    required int appointmentId,
-    required int addonId,
-    required int quantity,
-  }) =>
-      _apply('PATCH $addonId', () {
-        addons = [for (final a in addons) a.addonId == addonId ? addonLine(addonId, quantity) : a];
-      });
-
-  @override
-  Future<Appointment> removeAppointmentAddon({
-    required int businessId,
-    required int appointmentId,
-    required int addonId,
-  }) =>
-      _apply('DELETE $addonId', () => addons = addons.where((a) => a.addonId != addonId).toList());
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
-  FakeDatasource backend(List<AppointmentAddon> addons) => FakeDatasource(addons);
   AppointmentRepositoryImpl repo(FakeDatasource d) =>
       AppointmentRepositoryImpl(remoteDatasource: d, networkInfo: _Online());
 
-  test('sends only what changed, adds then changes then removes, and returns the '
-      'final Appointment', () async {
-    final d = backend([addonLine(1, 1), addonLine(2, 3), addonLine(3, 2)]);
+  test('sends the whole desired set in one request and returns the Appointment', () async {
+    final d = FakeDatasource([addonLine(1, 1)]);
 
     final result = await repo(d).setAppointmentAddons(
       businessId: 7,
       appointmentId: 1,
-      desired: {2: 5, 3: 2, 4: 1},
+      desired: {2: 5, 3: 2},
     );
 
-    expect(d.calls, ['GET', 'POST 4', 'PATCH 2', 'DELETE 1']);
+    expect(d.calls, ['PUT {2: 5, 3: 2}']);
     final a = result.getOrElse(() => throw 'expected success');
-    expect(a.addons.map((x) => '${x.addonId}x${x.quantity}'), ['2x5', '3x2', '4x1']);
+    expect(a.addons.map((x) => '${x.addonId}x${x.quantity}'), ['2x5', '3x2']);
   });
 
-  test('an unchanged draft sends nothing but the read', () async {
-    final d = backend([addonLine(1, 1)]);
+  test('leaves out Add-ons whose quantity is zero', () async {
+    final d = FakeDatasource([]);
 
-    final result = await repo(d).setAppointmentAddons(
+    await repo(d).setAppointmentAddons(
       businessId: 7,
       appointmentId: 1,
-      desired: {1: 1},
+      desired: {1: 0, 2: 1},
     );
 
-    expect(d.calls, ['GET']);
-    expect(result.isRight(), isTrue);
+    expect(d.calls, ['PUT {2: 1}']);
   });
 
-  test('stops at the first failure and does not send the rest', () async {
-    final d = backend([addonLine(1, 1), addonLine(2, 1)])..failOn = 'PATCH 2';
+  test('a failure comes back as a failure and nothing is applied', () async {
+    final d = FakeDatasource([addonLine(1, 1)])..fail = true;
 
     final result = await repo(d).setAppointmentAddons(
       businessId: 7,
       appointmentId: 1,
-      desired: {1: 0, 2: 4, 3: 1},
+      desired: {1: 0},
     );
 
     expect(result.isLeft(), isTrue);
-    expect(d.calls, ['GET', 'POST 3', 'PATCH 2']);
+    expect(d.addons.map((a) => a.addonId), [1]);
   });
 }

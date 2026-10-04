@@ -72,15 +72,23 @@ class AddonRepositoryImpl implements AddonRepository {
       _execute(() => remote.getAddonPriceHistory(addonId));
 
   @override
-  Future<Either<Failure, AddonPrice>> getCurrentAddonPrice(int addonId) =>
-      _execute(() => remote.getCurrentAddonPrice(addonId));
-
-  @override
-  Future<Either<Failure, AddonCommission>> getMemberAddonCommission({
-    required int addonId,
+  Future<Either<Failure, List<AddonCommission>>> listMemberAddonCommissions({
+    required int businessId,
     required int memberId,
   }) =>
-      _execute(() => remote.getMemberAddonCommission(addonId: addonId, memberId: memberId));
+      _execute(() => remote.listMemberAddonCommissions(businessId: businessId, memberId: memberId));
+
+  @override
+  Future<Either<Failure, AddonCommission>> updateAddonCommission({
+    required int id,
+    required int commissionAmount,
+    required bool commissionIsPercentage,
+  }) =>
+      _execute(() => remote.updateAddonCommission(
+            id: id,
+            commissionAmount: commissionAmount,
+            commissionIsPercentage: commissionIsPercentage,
+          ));
 
   @override
   Future<Either<Failure, AddonCommission>> createAddonCommission({

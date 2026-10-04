@@ -76,7 +76,6 @@ final appointmentListNotifierProvider = StateNotifierProvider.family<
     deleteAppointment: ref.read(deleteAppointmentProvider),
     fireAppointmentEvent: ref.read(fireAppointmentEventProvider),
     updateAppointment: ref.read(updateAppointmentProvider),
-    getAppointmentById: ref.read(getAppointmentByIdProvider),
     setAppointmentAddons: ref.read(setAppointmentAddonsProvider),
     resolveUnresolvedAddon: ref.read(resolveUnresolvedAddonProvider),
   );

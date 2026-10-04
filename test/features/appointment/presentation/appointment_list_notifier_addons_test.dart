@@ -6,7 +6,6 @@ import 'package:photography_business_frontend/features/appointment/domain/entiti
 import 'package:photography_business_frontend/features/appointment/domain/repositories/appointment_repository.dart';
 import 'package:photography_business_frontend/features/appointment/domain/usecases/delete_appointment.dart';
 import 'package:photography_business_frontend/features/appointment/domain/usecases/fire_appointment_event.dart';
-import 'package:photography_business_frontend/features/appointment/domain/usecases/get_appointment_by_id.dart';
 import 'package:photography_business_frontend/features/appointment/domain/usecases/get_appointments_for_business.dart';
 import 'package:photography_business_frontend/features/appointment/domain/usecases/get_my_appointments.dart';
 import 'package:photography_business_frontend/features/appointment/domain/usecases/resolve_unresolved_addon.dart';
@@ -95,7 +94,6 @@ void main() {
       deleteAppointment: DeleteAppointment(repository: repo),
       fireAppointmentEvent: FireAppointmentEvent(repository: repo),
       updateAppointment: UpdateAppointment(repository: repo),
-      getAppointmentById: GetAppointmentById(repository: repo),
       setAppointmentAddons: SetAppointmentAddons(repository: repo),
       resolveUnresolvedAddon: ResolveUnresolvedAddon(repository: repo),
     );
@@ -124,10 +122,9 @@ void main() {
       expect(byId(1).addonTotal, 30);
     });
 
-    test('on failure shows the error and refetches the Appointment from the server', () async {
+    test('on failure shows the error and leaves the Appointment as it was, with no refetch', () async {
       repo.setResponse = const Left(ServerFailure('quantity refused'));
-      // The backend ended up half-applied: the add went through.
-      repo.getResponse = Right(appointment(1, 'pending', addons: [line(1, 1), line(2, 1)]));
+      final before = byId(1);
 
       final error = await notifier.setAddons(
         businessId: 7,
@@ -136,8 +133,8 @@ void main() {
       );
 
       expect(error, 'quantity refused');
-      expect(repo.calls, ['SET 7/1 {1: 1, 2: 5}', 'GET 7/1']);
-      expect(byId(1).addons.map((a) => a.addonId), [1, 2]);
+      expect(repo.calls, ['SET 7/1 {1: 1, 2: 5}']);
+      expect(byId(1), before);
     });
 
     test('is refused on a completed Appointment without calling the backend', () async {

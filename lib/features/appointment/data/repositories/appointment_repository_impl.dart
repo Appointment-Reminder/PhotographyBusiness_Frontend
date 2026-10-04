@@ -6,7 +6,6 @@ import 'package:photography_business_frontend/core/network/network_info.dart';
 import '../datasources/appointment_remote_datasource.dart';
 import '../../domain/entities/appointment.dart';
 import '../../domain/repositories/appointment_repository.dart';
-import '../../domain/addons/appointment_addon_editing.dart';
 import '../../domain/workflow/appointment_event.dart';
 
 class AppointmentRepositoryImpl implements AppointmentRepository {
@@ -143,49 +142,22 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
         ));
   }
 
-  /// Diffs against the server's current Add-ons and applies only what changed
-  /// (adds, quantity changes, removes), stopping at the first failure. Not
-  /// atomic: a failure can leave the Appointment half-updated, so callers
-  /// refetch it.
+  /// One atomic replace of the Appointment's Add-ons. Add-ons with a zero
+  /// quantity are not selected, so they are left out of the request.
   @override
   Future<Either<Failure, Appointment>> setAppointmentAddons({
     required int businessId,
     required int appointmentId,
     required Map<int, int> desired,
-  }) async {
-    var current = await getAppointmentById(
-      businessId: businessId,
-      appointmentId: appointmentId,
-    );
-    final changes = current.fold(
-      (_) => const <AddonChange>[],
-      (a) => diffAddons(a.addons, desired),
-    );
-    for (final change in changes) {
-      final next = await _execute(() => switch (change) {
-            AddAddon(:final addonId, :final quantity) => remoteDatasource.addAppointmentAddon(
-                businessId: businessId,
-                appointmentId: appointmentId,
-                addonId: addonId,
-                quantity: quantity,
-              ),
-            ChangeAddonQuantity(:final addonId, :final quantity) =>
-              remoteDatasource.changeAppointmentAddonQuantity(
-                businessId: businessId,
-                appointmentId: appointmentId,
-                addonId: addonId,
-                quantity: quantity,
-              ),
-            RemoveAddon(:final addonId) => remoteDatasource.removeAppointmentAddon(
-                businessId: businessId,
-                appointmentId: appointmentId,
-                addonId: addonId,
-              ),
-          });
-      if (next.isLeft()) return next;
-      current = next;
-    }
-    return current;
+  }) {
+    return _execute(() => remoteDatasource.replaceAppointmentAddons(
+          businessId: businessId,
+          appointmentId: appointmentId,
+          addons: {
+            for (final e in desired.entries)
+              if (e.value > 0) e.key: e.value,
+          },
+        ));
   }
 
   @override

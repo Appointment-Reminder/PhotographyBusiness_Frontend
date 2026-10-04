@@ -48,24 +48,12 @@ abstract class AppointmentRemoteDatasource {
 
   Future<void> deleteAppointment(int appointmentId);
 
-  Future<Appointment> addAppointmentAddon({
+  /// Replaces the Appointment's whole set of Add-ons (Add-on id to quantity),
+  /// all or nothing.
+  Future<Appointment> replaceAppointmentAddons({
     required int businessId,
     required int appointmentId,
-    required int addonId,
-    required int quantity,
-  });
-
-  Future<Appointment> changeAppointmentAddonQuantity({
-    required int businessId,
-    required int appointmentId,
-    required int addonId,
-    required int quantity,
-  });
-
-  Future<Appointment> removeAppointmentAddon({
-    required int businessId,
-    required int appointmentId,
-    required int addonId,
+    required Map<int, int> addons,
   });
 
   Future<Appointment> resolveUnresolvedAddon({

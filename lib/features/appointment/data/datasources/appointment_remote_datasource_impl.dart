@@ -137,41 +137,16 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
       '/appointments/business/$businessId/appointments/$appointmentId';
 
   @override
-  Future<Appointment> addAppointmentAddon({
+  Future<Appointment> replaceAppointmentAddons({
     required int businessId,
     required int appointmentId,
-    required int addonId,
-    required int quantity,
+    required Map<int, int> addons,
   }) async {
-    final response = await client.post(
+    final response = await client.put(
       '${_appointmentPath(businessId, appointmentId)}/addons',
-      data: {'addon_id': addonId, 'quantity': quantity},
-    );
-    return AppointmentModel.fromJson(response.data);
-  }
-
-  @override
-  Future<Appointment> changeAppointmentAddonQuantity({
-    required int businessId,
-    required int appointmentId,
-    required int addonId,
-    required int quantity,
-  }) async {
-    final response = await client.patch(
-      '${_appointmentPath(businessId, appointmentId)}/addons/$addonId',
-      data: {'quantity': quantity},
-    );
-    return AppointmentModel.fromJson(response.data);
-  }
-
-  @override
-  Future<Appointment> removeAppointmentAddon({
-    required int businessId,
-    required int appointmentId,
-    required int addonId,
-  }) async {
-    final response = await client.delete(
-      '${_appointmentPath(businessId, appointmentId)}/addons/$addonId',
+      data: [
+        for (final e in addons.entries) {'addon_id': e.key, 'quantity': e.value},
+      ],
     );
     return AppointmentModel.fromJson(response.data);
   }

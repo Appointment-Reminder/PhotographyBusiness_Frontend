@@ -5,7 +5,6 @@ import '../../../domain/entities/appointment.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/usecases/get_my_appointments.dart';
 import '../../../domain/addons/appointment_addon_editing.dart';
-import '../../../domain/usecases/get_appointment_by_id.dart';
 import '../../../domain/usecases/get_appointments_for_business.dart';
 import '../../../domain/usecases/resolve_unresolved_addon.dart';
 import '../../../domain/usecases/set_appointment_addons.dart';
@@ -22,7 +21,6 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
   final DeleteAppointment deleteAppointment;
   final FireAppointmentEvent fireAppointmentEvent;
   final UpdateAppointment updateAppointment;
-  final GetAppointmentById getAppointmentById;
   final SetAppointmentAddons setAppointmentAddons;
   final ResolveUnresolvedAddon resolveUnresolvedAddon;
 
@@ -32,7 +30,6 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
     required this.deleteAppointment,
     required this.fireAppointmentEvent,
     required this.updateAppointment,
-    required this.getAppointmentById,
     required this.setAppointmentAddons,
     required this.resolveUnresolvedAddon,
   }) : super(const AppointmentListState());
@@ -128,9 +125,10 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
     );
   }
 
-  /// Saves the Add-on editor's draft (Add-on id to quantity). On the first
-  /// failure the Appointment is refetched, so the screen shows what the
-  /// backend has, and the error message is returned. Returns null on success.
+  /// Saves the Add-on editor's draft (Add-on id to quantity) in one atomic
+  /// request. The response replaces the Appointment; on failure nothing was
+  /// applied, so the Appointment stays as it was. Returns null on success, or
+  /// the error message.
   Future<String?> setAddons({
     required int businessId,
     required int appointmentId,
@@ -154,7 +152,6 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
           desired: desired,
         )),
       );
-      if (error != null) await _refetch(businessId, appointmentId);
       return error;
     } finally {
       _eventsInFlight.remove(appointmentId);
@@ -182,12 +179,6 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
       )),
     );
   }
-
-  Future<void> _refetch(int businessId, int appointmentId) => _commit(
-        appointmentId,
-        getAppointmentById(
-            GetAppointmentByIdParams(businessId: businessId, appointmentId: appointmentId)),
-      );
 
   /// Replaces one card with the server response, or returns the failure
   /// message.

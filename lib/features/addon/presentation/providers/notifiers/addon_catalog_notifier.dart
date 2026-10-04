@@ -14,22 +14,8 @@ class AddonCatalogNotifier extends StateNotifier<AddonCatalogState> {
     final result = await repository.getAddons(businessId);
     await result.fold(
       (f) async => state = state.copyWith(isLoading: false, error: f.message),
-      (addons) async {
-        final prices = <int, int>{};
-        for (final a in addons) {
-          final price = await _currentPrice(a.id);
-          if (price != null) prices[a.id] = price;
-        }
-        state = state.copyWith(isLoading: false, addons: addons, currentPrices: prices);
-      },
+      (addons) async => state = state.copyWith(isLoading: false, addons: addons),
     );
-  }
-
-  /// The current-price endpoint fails when the Add-on has no price in effect;
-  /// that is a normal state, not an error.
-  Future<int?> _currentPrice(int addonId) async {
-    final result = await repository.getCurrentAddonPrice(addonId);
-    return result.fold((_) => null, (p) => p.price);
   }
 
   Future<void> select(int addonId) async {
@@ -101,16 +87,14 @@ class AddonCatalogNotifier extends StateNotifier<AddonCatalogState> {
     });
   }
 
-  /// Refreshes the list price and, if selected, the history of [addonId].
+  /// Re-reads the list, which carries each Add-on's price in effect now, and
+  /// the history of [addonId] if it is selected.
   Future<void> _refreshPrices(int addonId) async {
-    final current = await _currentPrice(addonId);
-    final prices = {...state.currentPrices};
-    if (current == null) {
-      prices.remove(addonId);
-    } else {
-      prices[addonId] = current;
+    final addon = _byId(addonId);
+    if (addon != null) {
+      final listed = await repository.getAddons(addon.businessId);
+      listed.fold((_) {}, (addons) => state = state.copyWith(addons: addons));
     }
-    state = state.copyWith(currentPrices: prices);
     if (state.selectedId == addonId) await _loadHistory(addonId);
   }
 

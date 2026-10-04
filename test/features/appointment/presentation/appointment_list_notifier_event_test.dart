@@ -9,7 +9,6 @@ import 'package:photography_business_frontend/features/appointment/domain/usecas
 import 'package:photography_business_frontend/features/appointment/domain/usecases/fire_appointment_event.dart';
 import 'package:photography_business_frontend/features/appointment/domain/usecases/get_appointments_for_business.dart';
 import 'package:photography_business_frontend/features/appointment/domain/usecases/get_my_appointments.dart';
-import 'package:photography_business_frontend/features/appointment/domain/usecases/get_appointment_by_id.dart';
 import 'package:photography_business_frontend/features/appointment/domain/usecases/resolve_unresolved_addon.dart';
 import 'package:photography_business_frontend/features/appointment/domain/usecases/set_appointment_addons.dart';
 import 'package:photography_business_frontend/features/appointment/domain/usecases/update_appointment.dart';
@@ -60,7 +59,6 @@ void main() {
       deleteAppointment: DeleteAppointment(repository: repo),
       fireAppointmentEvent: FireAppointmentEvent(repository: repo),
       updateAppointment: UpdateAppointment(repository: repo),
-      getAppointmentById: GetAppointmentById(repository: repo),
       setAppointmentAddons: SetAppointmentAddons(repository: repo),
       resolveUnresolvedAddon: ResolveUnresolvedAddon(repository: repo),
     );

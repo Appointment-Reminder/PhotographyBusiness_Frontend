@@ -30,9 +30,8 @@ class _AppointmentCalendarPageState extends ConsumerState<AppointmentCalendarPag
     super.initState();
     Future.microtask(() {
       ref.read(packagesPricingMapProvider.notifier).loadForBusiness(widget.businessId);
-      if (ref.read(isBusinessManagerProvider(widget.businessId))) {
-        ref.read(addonCatalogProvider.notifier).load(widget.businessId);
-      }
+      // Every member can read the active Add-ons, so names resolve for all.
+      ref.read(addonCatalogProvider.notifier).load(widget.businessId);
     });
   }
 

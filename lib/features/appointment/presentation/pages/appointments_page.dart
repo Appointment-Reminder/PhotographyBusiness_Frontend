@@ -6,7 +6,6 @@ import 'package:photography_business_frontend/features/package/presentation/prov
 import '../../../../core/Presentation/theme/app_text_styles.dart';
 import '../../domain/entities/appointment.dart';
 import 'package:photography_business_frontend/features/addon/presentation/providers/addon_providers.dart';
-import '../providers/appointment_addon_providers.dart';
 import '../providers/appointment_providers.dart';
 import '../widgets/appointment_addons_section.dart';
 import '../widgets/appointment_row.dart';
@@ -31,10 +30,8 @@ class _AppointmentsPageState extends ConsumerState<AppointmentsPage> {
     super.initState();
     Future.microtask(() {
       ref.read(packagesPricingMapProvider.notifier).loadForBusiness(widget.businessId);
-      // The Add-on catalogue is owner and admin only; others see raw labels.
-      if (ref.read(isBusinessManagerProvider(widget.businessId))) {
-        ref.read(addonCatalogProvider.notifier).load(widget.businessId);
-      }
+      // Every member can read the active Add-ons, so names resolve for all.
+      ref.read(addonCatalogProvider.notifier).load(widget.businessId);
     });
   }
 

@@ -11,7 +11,7 @@ AppointmentAddon onAppointment(int addonId, int quantity) => AppointmentAddon(
       priceTotal: 10.0 * quantity,
     );
 
-Addon addon(int id, {bool active = true}) => Addon(
+Addon addon(int id, {bool active = true, int? price = 10}) => Addon(
       id: id,
       businessId: 7,
       name: 'A$id',
@@ -19,6 +19,7 @@ Addon addon(int id, {bool active = true}) => Addon(
       isActive: active,
       hasDuration: false,
       hasQuantity: true,
+      currentPrice: price,
     );
 
 void main() {
@@ -33,30 +34,6 @@ void main() {
       for (final status in ['completed', 'canceled', 'refunded']) {
         expect(AppointmentAddonEditing.canEdit(isManager: true, status: status), isFalse, reason: status);
       }
-    });
-  });
-
-  group('diffAddons', () {
-    final current = [onAppointment(1, 1), onAppointment(2, 3), onAppointment(3, 2)];
-
-    test('nothing changed produces nothing, so untouched Add-ons keep their frozen price', () {
-      expect(diffAddons(current, {1: 1, 2: 3, 3: 2}), isEmpty);
-    });
-
-    test('orders adds, then quantity changes, then removes', () {
-      final changes = diffAddons(current, {2: 5, 3: 0, 4: 1});
-
-      expect(changes, const [
-        AddAddon(4, 1),
-        ChangeAddonQuantity(2, 5),
-        RemoveAddon(1),
-        RemoveAddon(3),
-      ]);
-    });
-
-    test('an Add-on absent from the draft is removed, zero means not selected', () {
-      expect(diffAddons(current, {1: 1, 2: 3}), const [RemoveAddon(3)]);
-      expect(diffAddons(current, {1: 1, 2: 3, 3: 0}), const [RemoveAddon(3)]);
     });
   });
 
@@ -92,6 +69,14 @@ void main() {
       expect(choices.map((c) => c.addon.id), [1, 3]);
       expect(choices.firstWhere((c) => c.addon.id == 1).canSelectNew, isTrue);
       expect(choices.firstWhere((c) => c.addon.id == 3).canSelectNew, isFalse);
+    });
+
+    test('an active Add-on with no current price is shown but cannot be newly '
+        'selected, since there is no price to freeze', () {
+      final choices = AddonChoice.build([addon(1, price: null)], const []);
+
+      expect(choices.single.addon.id, 1);
+      expect(choices.single.canSelectNew, isFalse);
     });
   });
 }
