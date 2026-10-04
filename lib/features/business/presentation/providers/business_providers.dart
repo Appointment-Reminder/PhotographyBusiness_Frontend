@@ -112,7 +112,6 @@ final selectedBusinessProvider = Provider<Business?>((ref) {
   return businesses.firstWhere((b) => b.id == id, orElse: () => businesses.first);
 });
 
-final businessTabProvider = StateProvider<String>((ref) => 'overview');
 
 
 final businessListNotifierProvider =

@@ -22,6 +22,16 @@
 
 **Member Commission**: The amount or percentage a Business Member earns on a Package, effective from a date.
 
+**Catalog**: The Packages, Package Categories, and Package Prices a Business offers, grouped as one area of the app.
+
+**Team**: The Business Members of the Selected Business, as labelled in the app (not the login User).
+
+**Analytics**: Interactive, live metrics about a Business's activity, such as Appointments per Appointment Status or load per Business Member. Not built yet.
+
+**Report**: A period-based, exportable summary of a Business's activity, such as commissions owed per Business Member. Not built yet.
+
+**Selected Business**: The one Business the user is currently working in; every view in the app shows data for it.
+
 **Jotform Credential**: A Business's stored access to its Jotform account.
 
 **Jotform Form**: A Jotform form imported for a Business, whose questions map onto Appointment fields.

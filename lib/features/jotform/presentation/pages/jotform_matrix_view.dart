@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photography_business_frontend/core/Presentation/navigation/app_section.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_colors.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_text_styles.dart';
 import 'package:photography_business_frontend/core/Presentation/widgets/atoms/progress_bar.dart';
@@ -119,7 +120,7 @@ class _JotformMatrixViewState extends ConsumerState<JotformMatrixView> {
         Text('Connect a Jotform account first.', style: AppTextStyles.muted12),
         const SizedBox(height: 16),
         ElevatedButton(
-          onPressed: () => ref.read(businessTabProvider.notifier).state = 'Jotform Integration',
+          onPressed: () => navigateTo(ref, AppSection.settings, 'jotform-integration'),
           child: const Text('Set up Jotform integration'),
         ),
       ]));
