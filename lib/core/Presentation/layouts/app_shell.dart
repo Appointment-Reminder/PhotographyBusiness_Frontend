@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photography_business_frontend/core/Presentation/navigation/app_section.dart';
 import 'package:photography_business_frontend/core/Presentation/widgets/NavBar/TopNavBar/top_nav_bar.dart';
 import 'package:photography_business_frontend/core/Presentation/widgets/app_nav_bar.dart';
+import 'package:photography_business_frontend/features/addon/presentation/pages/addons_catalog_view.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/pages/appointment_calendar_page.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/pages/appointments_page.dart';
 import 'package:photography_business_frontend/features/appointment/presentation/pages/workflow_page.dart';
@@ -96,7 +97,9 @@ class _Content extends ConsumerWidget {
       case AppSection.team:
         return TeamCommissionsView(businessId: id);
       case AppSection.catalog:
-        return PackagesPricingView(businessId: id);
+        return subView == SubView.catalogAddons
+            ? AddonsCatalogView(businessId: id)
+            : PackagesPricingView(businessId: id);
       case AppSection.analytics:
         return const Center(child: Text('Analytics: coming soon'));
       case AppSection.report:

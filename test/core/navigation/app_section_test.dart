@@ -9,9 +9,15 @@ void main() {
     ]);
   });
 
-  test('only Appointments and Settings show tabs', () {
+  test('only Appointments, Catalog and Settings show tabs', () {
     expect(AppSection.values.where((s) => s.hasTabs),
-        [AppSection.appointments, AppSection.settings]);
+        [AppSection.appointments, AppSection.catalog, AppSection.settings]);
+  });
+
+  test('Catalog has Packages and Add-ons, Packages first', () {
+    expect(AppSection.catalog.subViews, [SubView.catalogPackages, SubView.catalogAddons]);
+    expect(SubView.catalogPackages.label, 'Packages');
+    expect(SubView.catalogAddons.label, 'Add-ons');
   });
 
   test('each section starts on its first sub-view', () {
@@ -19,6 +25,7 @@ void main() {
     addTearDown(c.dispose);
     expect(c.read(selectedSectionProvider), AppSection.dashboard);
     expect(c.read(sectionSubViewProvider(AppSection.appointments)), SubView.appointmentList);
+    expect(c.read(sectionSubViewProvider(AppSection.catalog)), SubView.catalogPackages);
     expect(c.read(sectionSubViewProvider(AppSection.team)), isNull);
   });
 }

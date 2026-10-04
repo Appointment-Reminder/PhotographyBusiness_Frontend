@@ -6,6 +6,8 @@ enum SubView {
   appointmentList('Appointments'),
   calendar('Calendar'),
   workflow('Workflow'),
+  catalogPackages('Packages'),
+  catalogAddons('Add-ons'),
   settingsGeneral('General'),
   jotform('Jotform'),
   jotformIntegration('Jotform Integration');
@@ -24,7 +26,10 @@ enum AppSection {
     SubView.workflow,
   ]),
   team('Team', Icons.group_outlined),
-  catalog('Catalog', Icons.inventory_2_outlined),
+  catalog('Catalog', Icons.inventory_2_outlined, [
+    SubView.catalogPackages,
+    SubView.catalogAddons,
+  ]),
   analytics('Analytics', Icons.insights_outlined),
   report('Report', Icons.description_outlined),
   settings('Settings', Icons.settings_outlined, [
