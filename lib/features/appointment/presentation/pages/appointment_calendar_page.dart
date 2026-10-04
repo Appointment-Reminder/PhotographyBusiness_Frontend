@@ -4,6 +4,8 @@ import 'package:photography_business_frontend/core/Presentation/theme/app_text_s
 import 'package:photography_business_frontend/features/business/presentation/providers/member_providers.dart';
 import 'package:photography_business_frontend/features/package/presentation/providers/package_providers.dart';
 import '../../domain/entities/appointment.dart';
+import 'package:photography_business_frontend/features/addon/presentation/providers/addon_providers.dart';
+import '../providers/appointment_addon_providers.dart';
 import '../providers/appointment_providers.dart';
 import '../widgets/appointment_form_sheet.dart';
 import '../widgets/calendar/appointment_detail_panel.dart';
@@ -26,8 +28,12 @@ class _AppointmentCalendarPageState extends ConsumerState<AppointmentCalendarPag
   @override
   void initState() {
     super.initState();
-    Future.microtask(() =>
-        ref.read(packagesPricingMapProvider.notifier).loadForBusiness(widget.businessId));
+    Future.microtask(() {
+      ref.read(packagesPricingMapProvider.notifier).loadForBusiness(widget.businessId);
+      if (ref.read(isBusinessManagerProvider(widget.businessId))) {
+        ref.read(addonCatalogProvider.notifier).load(widget.businessId);
+      }
+    });
   }
 
   void _shiftMonth(int delta) => setState(() {
@@ -118,6 +124,7 @@ class _AppointmentCalendarPageState extends ConsumerState<AppointmentCalendarPag
                     appointment: selected,
                     package: packagesById[selected?.packageId],
                     photographer: membersById[selected?.memberId],
+                    addonNames: ref.watch(addonNamesProvider),
                     onClose: () => setState(() => _selectedId = null),
                   ),
                 ),

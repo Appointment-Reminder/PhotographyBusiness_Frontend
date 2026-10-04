@@ -165,3 +165,40 @@ class FireAppointmentEventParams extends Equatable {
   @override
   List<Object?> get props => [businessId, appointmentId, event];
 }
+
+
+class SetAppointmentAddonsParams extends Equatable {
+  final int businessId;
+  final int appointmentId;
+
+  /// Add-on id to quantity; zero or absent means not selected.
+  final Map<int, int> desired;
+
+  const SetAppointmentAddonsParams({
+    required this.businessId,
+    required this.appointmentId,
+    required this.desired,
+  });
+
+  @override
+  List<Object?> get props => [businessId, appointmentId, desired];
+}
+
+class ResolveUnresolvedAddonParams extends Equatable {
+  final int businessId;
+  final int appointmentId;
+  final int unresolvedId;
+  final int addonId;
+  final int quantity;
+
+  const ResolveUnresolvedAddonParams({
+    required this.businessId,
+    required this.appointmentId,
+    required this.unresolvedId,
+    required this.addonId,
+    required this.quantity,
+  });
+
+  @override
+  List<Object?> get props => [businessId, appointmentId, unresolvedId, addonId, quantity];
+}

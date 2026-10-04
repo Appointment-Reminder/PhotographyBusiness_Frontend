@@ -4,7 +4,11 @@ import 'package:photography_business_frontend/core/error/failure.dart';
 import '../../../domain/entities/appointment.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/usecases/get_my_appointments.dart';
+import '../../../domain/addons/appointment_addon_editing.dart';
+import '../../../domain/usecases/get_appointment_by_id.dart';
 import '../../../domain/usecases/get_appointments_for_business.dart';
+import '../../../domain/usecases/resolve_unresolved_addon.dart';
+import '../../../domain/usecases/set_appointment_addons.dart';
 import '../../../domain/usecases/delete_appointment.dart';
 import '../../../domain/usecases/appointment_params.dart';
 import '../../../domain/usecases/fire_appointment_event.dart';
@@ -18,6 +22,9 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
   final DeleteAppointment deleteAppointment;
   final FireAppointmentEvent fireAppointmentEvent;
   final UpdateAppointment updateAppointment;
+  final GetAppointmentById getAppointmentById;
+  final SetAppointmentAddons setAppointmentAddons;
+  final ResolveUnresolvedAddon resolveUnresolvedAddon;
 
   AppointmentListNotifier({
     required this.getMyAppointments,
@@ -25,6 +32,9 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
     required this.deleteAppointment,
     required this.fireAppointmentEvent,
     required this.updateAppointment,
+    required this.getAppointmentById,
+    required this.setAppointmentAddons,
+    required this.resolveUnresolvedAddon,
   }) : super(const AppointmentListState());
 
   Future<void> loadMine({String? status}) async {
@@ -117,6 +127,67 @@ class AppointmentListNotifier extends StateNotifier<AppointmentListState> {
       )),
     );
   }
+
+  /// Saves the Add-on editor's draft (Add-on id to quantity). On the first
+  /// failure the Appointment is refetched, so the screen shows what the
+  /// backend has, and the error message is returned. Returns null on success.
+  Future<String?> setAddons({
+    required int businessId,
+    required int appointmentId,
+    required Map<int, int> desired,
+  }) async {
+    final index = state.appointments.indexWhere((a) => a.id == appointmentId);
+    if (index < 0) return 'Appointment not found';
+    if (!AppointmentAddonEditing.canEdit(
+        isManager: true, status: state.appointments[index].status)) {
+      return 'Add-ons can no longer be changed on this appointment';
+    }
+    if (!_eventsInFlight.add(appointmentId)) {
+      return 'Another change to this appointment is still in progress';
+    }
+    try {
+      final error = await _commit(
+        appointmentId,
+        setAppointmentAddons(SetAppointmentAddonsParams(
+          businessId: businessId,
+          appointmentId: appointmentId,
+          desired: desired,
+        )),
+      );
+      if (error != null) await _refetch(businessId, appointmentId);
+      return error;
+    } finally {
+      _eventsInFlight.remove(appointmentId);
+    }
+  }
+
+  /// Resolves an Unresolved Add-on against a catalogue Add-on. The response
+  /// replaces the Appointment; on failure nothing changes. Returns null on
+  /// success, or the error message.
+  Future<String?> resolveAddon({
+    required int businessId,
+    required int appointmentId,
+    required int unresolvedId,
+    required int addonId,
+    required int quantity,
+  }) {
+    return _commit(
+      appointmentId,
+      resolveUnresolvedAddon(ResolveUnresolvedAddonParams(
+        businessId: businessId,
+        appointmentId: appointmentId,
+        unresolvedId: unresolvedId,
+        addonId: addonId,
+        quantity: quantity,
+      )),
+    );
+  }
+
+  Future<void> _refetch(int businessId, int appointmentId) => _commit(
+        appointmentId,
+        getAppointmentById(
+            GetAppointmentByIdParams(businessId: businessId, appointmentId: appointmentId)),
+      );
 
   /// Replaces one card with the server response, or returns the failure
   /// message.

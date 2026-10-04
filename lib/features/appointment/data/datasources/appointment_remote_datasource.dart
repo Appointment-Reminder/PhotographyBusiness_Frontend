@@ -48,6 +48,34 @@ abstract class AppointmentRemoteDatasource {
 
   Future<void> deleteAppointment(int appointmentId);
 
+  Future<Appointment> addAppointmentAddon({
+    required int businessId,
+    required int appointmentId,
+    required int addonId,
+    required int quantity,
+  });
+
+  Future<Appointment> changeAppointmentAddonQuantity({
+    required int businessId,
+    required int appointmentId,
+    required int addonId,
+    required int quantity,
+  });
+
+  Future<Appointment> removeAppointmentAddon({
+    required int businessId,
+    required int appointmentId,
+    required int addonId,
+  });
+
+  Future<Appointment> resolveUnresolvedAddon({
+    required int businessId,
+    required int appointmentId,
+    required int unresolvedId,
+    required int addonId,
+    required int quantity,
+  });
+
   /// Fires an Appointment Event; returns the Appointment with its new status.
   Future<Appointment> fireAppointmentEvent({
     required int businessId,

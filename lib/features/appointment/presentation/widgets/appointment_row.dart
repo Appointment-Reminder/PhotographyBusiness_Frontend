@@ -16,6 +16,9 @@ class AppointmentRow extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
+  /// The Add-ons part of the expanded row; null shows none.
+  final Widget? addonsSection;
+
   const AppointmentRow({
     super.key,
     required this.appointment,
@@ -25,6 +28,7 @@ class AppointmentRow extends StatelessWidget {
     required this.onToggle,
     required this.onEdit,
     required this.onDelete,
+    this.addonsSection,
   });
 
   String formatDuration(int minutes) {
@@ -103,7 +107,11 @@ class AppointmentRow extends StatelessWidget {
                           Text(
                             '${appointment.numberOfPersons!}',
                             style: AppTextStyles.muted12,
-                          )
+                          ),
+                          if (appointment.addons.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            _AddonsChip(count: appointment.addons.length),
+                          ],
                         ],
                       ),
                       Row(
@@ -312,6 +320,7 @@ class AppointmentRow extends StatelessWidget {
                     ), //APPOINTMENT NOTES
                   ],
                 ), //APPOINTMENT INFO
+                if (addonsSection != null) addonsSection!,
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -332,6 +341,23 @@ class AppointmentRow extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class _AddonsChip extends StatelessWidget {
+  final int count;
+  const _AddonsChip({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: AppColors.primaryText.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Text('+$count add-on${count == 1 ? '' : 's'}', style: AppTextStyles.mono10),
     );
   }
 }

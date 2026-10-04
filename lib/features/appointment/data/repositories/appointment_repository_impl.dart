@@ -6,6 +6,7 @@ import 'package:photography_business_frontend/core/network/network_info.dart';
 import '../datasources/appointment_remote_datasource.dart';
 import '../../domain/entities/appointment.dart';
 import '../../domain/repositories/appointment_repository.dart';
+import '../../domain/addons/appointment_addon_editing.dart';
 import '../../domain/workflow/appointment_event.dart';
 
 class AppointmentRepositoryImpl implements AppointmentRepository {
@@ -139,6 +140,68 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
           businessId: businessId,
           appointmentId: appointmentId,
           event: event,
+        ));
+  }
+
+  /// Diffs against the server's current Add-ons and applies only what changed
+  /// (adds, quantity changes, removes), stopping at the first failure. Not
+  /// atomic: a failure can leave the Appointment half-updated, so callers
+  /// refetch it.
+  @override
+  Future<Either<Failure, Appointment>> setAppointmentAddons({
+    required int businessId,
+    required int appointmentId,
+    required Map<int, int> desired,
+  }) async {
+    var current = await getAppointmentById(
+      businessId: businessId,
+      appointmentId: appointmentId,
+    );
+    final changes = current.fold(
+      (_) => const <AddonChange>[],
+      (a) => diffAddons(a.addons, desired),
+    );
+    for (final change in changes) {
+      final next = await _execute(() => switch (change) {
+            AddAddon(:final addonId, :final quantity) => remoteDatasource.addAppointmentAddon(
+                businessId: businessId,
+                appointmentId: appointmentId,
+                addonId: addonId,
+                quantity: quantity,
+              ),
+            ChangeAddonQuantity(:final addonId, :final quantity) =>
+              remoteDatasource.changeAppointmentAddonQuantity(
+                businessId: businessId,
+                appointmentId: appointmentId,
+                addonId: addonId,
+                quantity: quantity,
+              ),
+            RemoveAddon(:final addonId) => remoteDatasource.removeAppointmentAddon(
+                businessId: businessId,
+                appointmentId: appointmentId,
+                addonId: addonId,
+              ),
+          });
+      if (next.isLeft()) return next;
+      current = next;
+    }
+    return current;
+  }
+
+  @override
+  Future<Either<Failure, Appointment>> resolveUnresolvedAddon({
+    required int businessId,
+    required int appointmentId,
+    required int unresolvedId,
+    required int addonId,
+    required int quantity,
+  }) {
+    return _execute(() => remoteDatasource.resolveUnresolvedAddon(
+          businessId: businessId,
+          appointmentId: appointmentId,
+          unresolvedId: unresolvedId,
+          addonId: addonId,
+          quantity: quantity,
         ));
   }
 }

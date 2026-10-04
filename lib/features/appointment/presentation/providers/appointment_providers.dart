@@ -11,6 +11,8 @@ import '../../domain/usecases/fire_appointment_event.dart';
 import '../../domain/usecases/get_appointment_by_id.dart';
 import '../../domain/usecases/get_appointments_for_business.dart';
 import '../../domain/usecases/get_my_appointments.dart';
+import '../../domain/usecases/resolve_unresolved_addon.dart';
+import '../../domain/usecases/set_appointment_addons.dart';
 import '../../domain/usecases/update_appointment.dart';
 import 'notifiers/appointment_form_notifier.dart';
 import 'notifiers/appointment_list_notifier.dart';
@@ -56,6 +58,14 @@ final fireAppointmentEventProvider = Provider<FireAppointmentEvent>((ref) {
   return FireAppointmentEvent(repository: ref.read(appointmentRepositoryProvider));
 });
 
+final setAppointmentAddonsProvider = Provider<SetAppointmentAddons>((ref) {
+  return SetAppointmentAddons(repository: ref.read(appointmentRepositoryProvider));
+});
+
+final resolveUnresolvedAddonProvider = Provider<ResolveUnresolvedAddon>((ref) {
+  return ResolveUnresolvedAddon(repository: ref.read(appointmentRepositoryProvider));
+});
+
 /// Keyed by businessId so switching business doesn't leak state — same
 /// pattern as businessMembersProvider.
 final appointmentListNotifierProvider = StateNotifierProvider.family<
@@ -66,6 +76,9 @@ final appointmentListNotifierProvider = StateNotifierProvider.family<
     deleteAppointment: ref.read(deleteAppointmentProvider),
     fireAppointmentEvent: ref.read(fireAppointmentEventProvider),
     updateAppointment: ref.read(updateAppointmentProvider),
+    getAppointmentById: ref.read(getAppointmentByIdProvider),
+    setAppointmentAddons: ref.read(setAppointmentAddonsProvider),
+    resolveUnresolvedAddon: ref.read(resolveUnresolvedAddonProvider),
   );
   notifier.loadForBusiness(businessId);
   return notifier;

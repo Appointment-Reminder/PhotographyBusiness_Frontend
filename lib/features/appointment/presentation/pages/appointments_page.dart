@@ -5,7 +5,10 @@ import 'package:photography_business_frontend/features/business/presentation/pro
 import 'package:photography_business_frontend/features/package/presentation/providers/package_providers.dart';
 import '../../../../core/Presentation/theme/app_text_styles.dart';
 import '../../domain/entities/appointment.dart';
+import 'package:photography_business_frontend/features/addon/presentation/providers/addon_providers.dart';
+import '../providers/appointment_addon_providers.dart';
 import '../providers/appointment_providers.dart';
+import '../widgets/appointment_addons_section.dart';
 import '../widgets/appointment_row.dart';
 import '../widgets/appointment_form_sheet.dart';
 
@@ -26,9 +29,13 @@ class _AppointmentsPageState extends ConsumerState<AppointmentsPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => ref.read(packagesPricingMapProvider.notifier).loadForBusiness(widget.businessId),
-    );
+    Future.microtask(() {
+      ref.read(packagesPricingMapProvider.notifier).loadForBusiness(widget.businessId);
+      // The Add-on catalogue is owner and admin only; others see raw labels.
+      if (ref.read(isBusinessManagerProvider(widget.businessId))) {
+        ref.read(addonCatalogProvider.notifier).load(widget.businessId);
+      }
+    });
   }
 
   @override
@@ -332,6 +339,10 @@ class _AppointmentsPageState extends ConsumerState<AppointmentsPage> {
                               ? null
                               : membersById[a.memberId],
                           isExpanded: _expandedId == a.id,
+                          addonsSection: AppointmentAddonsSection(
+                            appointment: a,
+                            businessId: widget.businessId,
+                          ),
                           onToggle: () {
                             setState(() {
                               _expandedId =

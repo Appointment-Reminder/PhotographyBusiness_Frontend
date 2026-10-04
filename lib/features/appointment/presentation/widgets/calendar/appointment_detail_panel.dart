@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_colors.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_text_styles.dart';
 import 'package:photography_business_frontend/core/Presentation/widgets/section_label.dart';
+import 'package:photography_business_frontend/core/utils/money_format.dart';
 import 'package:photography_business_frontend/features/business/domain/entities/business_member.dart';
 import 'package:photography_business_frontend/features/package/domain/entities/package.dart';
 import '../../../domain/entities/appointment.dart';
@@ -14,12 +15,16 @@ class AppointmentDetailPanel extends StatelessWidget {
   final BusinessMember? photographer;
   final VoidCallback onClose;
 
+  /// Add-on names by id; empty when the user cannot read the catalogue.
+  final Map<int, String> addonNames;
+
   const AppointmentDetailPanel({
     super.key,
     required this.appointment,
     required this.package,
     required this.photographer,
     required this.onClose,
+    this.addonNames = const {},
   });
 
   @override
@@ -78,6 +83,16 @@ class AppointmentDetailPanel extends StatelessWidget {
                     '${a.priceAtBooking!.toStringAsFixed(0)} EUR (deposit ${a.depositAmount?.toStringAsFixed(0) ?? '—'})',
                     style: AppTextStyles.monoMuted11),
             ]),
+            if (a.addons.isNotEmpty)
+              _Section('Add-ons', [
+                for (final line in a.addons)
+                  Row(children: [
+                    Expanded(
+                        child: Text('${line.label(addonNames)} x${line.quantity}',
+                            style: AppTextStyles.body14)),
+                    Text('${formatAmount(line.priceTotal)} EUR', style: AppTextStyles.monoMuted11),
+                  ]),
+              ]),
             _Section('Photographer', [
               Row(children: [
                 Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),

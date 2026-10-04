@@ -132,4 +132,62 @@ class AppointmentRemoteDatasourceImpl implements AppointmentRemoteDatasource {
     );
     return AppointmentModel.fromJson(response.data);
   }
+
+  String _appointmentPath(int businessId, int appointmentId) =>
+      '/appointments/business/$businessId/appointments/$appointmentId';
+
+  @override
+  Future<Appointment> addAppointmentAddon({
+    required int businessId,
+    required int appointmentId,
+    required int addonId,
+    required int quantity,
+  }) async {
+    final response = await client.post(
+      '${_appointmentPath(businessId, appointmentId)}/addons',
+      data: {'addon_id': addonId, 'quantity': quantity},
+    );
+    return AppointmentModel.fromJson(response.data);
+  }
+
+  @override
+  Future<Appointment> changeAppointmentAddonQuantity({
+    required int businessId,
+    required int appointmentId,
+    required int addonId,
+    required int quantity,
+  }) async {
+    final response = await client.patch(
+      '${_appointmentPath(businessId, appointmentId)}/addons/$addonId',
+      data: {'quantity': quantity},
+    );
+    return AppointmentModel.fromJson(response.data);
+  }
+
+  @override
+  Future<Appointment> removeAppointmentAddon({
+    required int businessId,
+    required int appointmentId,
+    required int addonId,
+  }) async {
+    final response = await client.delete(
+      '${_appointmentPath(businessId, appointmentId)}/addons/$addonId',
+    );
+    return AppointmentModel.fromJson(response.data);
+  }
+
+  @override
+  Future<Appointment> resolveUnresolvedAddon({
+    required int businessId,
+    required int appointmentId,
+    required int unresolvedId,
+    required int addonId,
+    required int quantity,
+  }) async {
+    final response = await client.post(
+      '${_appointmentPath(businessId, appointmentId)}/unresolved-addons/$unresolvedId/resolve',
+      data: {'addon_id': addonId, 'quantity': quantity},
+    );
+    return AppointmentModel.fromJson(response.data);
+  }
 }

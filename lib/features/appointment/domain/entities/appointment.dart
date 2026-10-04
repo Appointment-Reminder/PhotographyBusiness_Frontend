@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'appointment_addon.dart';
 
 /// Mirrors AppointmentRead. `id` is typed nullable in the schema (looks like
 /// a backend slip — a persisted appointment always has one) so we coerce
@@ -26,6 +27,8 @@ class Appointment extends Equatable {
   final int? numberOfPersons;
   final String? privacyOptOut;
   final String? addsOns;
+  final List<AppointmentAddon> addons;
+  final List<UnresolvedAddon> unresolvedAddons;
   final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -53,6 +56,8 @@ class Appointment extends Equatable {
     this.numberOfPersons,
     this.privacyOptOut,
     this.addsOns,
+    this.addons = const [],
+    this.unresolvedAddons = const [],
     required this.status,
     required this.createdAt,
     required this.updatedAt,
@@ -81,10 +86,16 @@ class Appointment extends Equatable {
         numberOfPersons: numberOfPersons,
         privacyOptOut: privacyOptOut,
         addsOns: addsOns,
+        addons: addons,
+        unresolvedAddons: unresolvedAddons,
         status: status ?? this.status,
         createdAt: createdAt,
         updatedAt: updatedAt,
       );
+
+  /// Sum of the Appointment Add-on totals. Package price, deposit, remaining
+  /// amount and duration are never recomputed from it.
+  double get addonTotal => addons.fold(0, (sum, a) => sum + a.priceTotal);
 
   String get clientName => '$clientFirstName $clientLastName'.trim();
 
@@ -112,6 +123,8 @@ class Appointment extends Equatable {
         numberOfPersons,
         privacyOptOut,
         addsOns,
+        addons,
+        unresolvedAddons,
         status,
         createdAt,
         updatedAt,

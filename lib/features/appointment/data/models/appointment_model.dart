@@ -1,4 +1,5 @@
 import '../../domain/entities/appointment.dart';
+import '../../domain/entities/appointment_addon.dart';
 
 class AppointmentModel extends Appointment {
   const AppointmentModel({
@@ -24,12 +25,26 @@ class AppointmentModel extends Appointment {
     super.numberOfPersons,
     super.privacyOptOut,
     super.addsOns,
+    super.addons,
+    super.unresolvedAddons,
     required super.status,
     required super.createdAt,
     required super.updatedAt,
   });
 
   static double? _num(dynamic v) => v == null ? null : (v as num).toDouble();
+
+  static AppointmentAddon _addon(Map<String, dynamic> j) => AppointmentAddon(
+        id: j['id'],
+        addonId: j['addon_id'],
+        addonPriceId: j['addon_price_id'] ?? 0,
+        quantity: j['quantity'],
+        unitPrice: _num(j['unit_price']) ?? 0,
+        unitDuration: j['unit_duration'] ?? 0,
+        priceTotal: _num(j['price_total']) ?? 0,
+        commissionTotal: _num(j['commission_total']),
+        rawLabel: j['raw_label'],
+      );
 
   factory AppointmentModel.fromJson(Map<String, dynamic> json) {
     return AppointmentModel(
@@ -58,6 +73,11 @@ class AppointmentModel extends Appointment {
       numberOfPersons: json['number_of_persons'],
       privacyOptOut: json['privacy_opt_out'],
       addsOns: json['adds_ons'],
+      addons: [for (final a in (json['addons'] as List? ?? [])) _addon(a)],
+      unresolvedAddons: [
+        for (final u in (json['unresolved_addons'] as List? ?? []))
+          UnresolvedAddon(id: u['id'], rawLabel: u['raw_label']),
+      ],
       status: json['status'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),

@@ -53,6 +53,24 @@ abstract class AppointmentRepository {
 
   Future<Either<Failure, void>> deleteAppointment(int appointmentId);
 
+  /// Makes the Appointment's Add-ons match [desired] (Add-on id to quantity,
+  /// zero or absent meaning not selected) and returns the resulting
+  /// Appointment. One operation on purpose: the backend's atomic replace can
+  /// stand behind it without callers changing.
+  Future<Either<Failure, Appointment>> setAppointmentAddons({
+    required int businessId,
+    required int appointmentId,
+    required Map<int, int> desired,
+  });
+
+  Future<Either<Failure, Appointment>> resolveUnresolvedAddon({
+    required int businessId,
+    required int appointmentId,
+    required int unresolvedId,
+    required int addonId,
+    required int quantity,
+  });
+
   /// Status changes only go through events; the backend decides legality.
   Future<Either<Failure, Appointment>> fireAppointmentEvent({
     required int businessId,
