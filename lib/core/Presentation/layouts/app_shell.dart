@@ -9,6 +9,7 @@ import 'package:photography_business_frontend/features/appointment/presentation/
 import 'package:photography_business_frontend/features/appointment/presentation/pages/workflow_page.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
 import 'package:photography_business_frontend/features/business/presentation/widgets/create_business_dialog.dart';
+import 'package:photography_business_frontend/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:photography_business_frontend/features/jotform/presentation/pages/jotform_integration_view.dart';
 import 'package:photography_business_frontend/features/jotform/presentation/pages/jotform_matrix_view.dart';
 import 'package:photography_business_frontend/features/package/presentation/pages/package_pricing_view.dart';
@@ -84,7 +85,7 @@ class _Content extends ConsumerWidget {
     final id = business.id;
     switch (section) {
       case AppSection.dashboard:
-        return Center(child: Text('Dashboard of ${business.name} in progress'));
+        return DashboardPage(businessId: id);
       case AppSection.appointments:
         switch (subView) {
           case SubView.calendar:
