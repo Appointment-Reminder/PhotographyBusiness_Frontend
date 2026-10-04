@@ -31,4 +31,16 @@ enum BusinessRole{
         throw ArgumentError('Invalid role: $role');
     }
   }
+
+  /// True for roles that manage the whole business (owner, admin). Unknown
+  /// or null roles are not managers.
+  static bool isManager(String? role) {
+    switch (role?.toLowerCase()) {
+      case 'owner':
+      case 'admin':
+        return true;
+      default:
+        return false;
+    }
+  }
 }
