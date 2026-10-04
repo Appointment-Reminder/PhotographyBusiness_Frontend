@@ -51,7 +51,6 @@ class AppNavBar extends ConsumerWidget {
                       padding: const EdgeInsets.only(bottom: 2),
                       child: NavBarButton(
                         label: section.label,
-                        routes: '/',
                         isSelected: section == selected,
                         onTap: () => ref.read(selectedSectionProvider.notifier).state = section,
                       ),

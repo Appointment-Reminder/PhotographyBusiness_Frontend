@@ -18,7 +18,7 @@ void main() {
     final c = ProviderContainer();
     addTearDown(c.dispose);
     expect(c.read(selectedSectionProvider), AppSection.dashboard);
-    expect(c.read(sectionSubViewProvider(AppSection.appointments)), 'appointments');
+    expect(c.read(sectionSubViewProvider(AppSection.appointments)), SubView.appointmentList);
     expect(c.read(sectionSubViewProvider(AppSection.team)), isNull);
   });
 }

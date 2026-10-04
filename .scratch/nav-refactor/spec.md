@@ -10,7 +10,7 @@ The left nav bar holds four route links (Business, packages, appointments, home)
 
 ### Shell
 - One persistent shell: left sidebar + content area. Navigation is Riverpod state (selected section, selected sub-view), not named routes.
-- Remove the `/businesses`, `/packages`, `/appointments` and `/home` named routes and the standalone `PackagesPage`. `/login`, `/register` stay.
+- Remove the `/businesses`, `/packages` and `/appointments` named routes and the standalone `PackagesPage`/`PackageDetailPage`. `/home` stays as the entry route and now renders the shell; `/login`, `/register` stay.
 - Reuse `TopNavBar` as the per-section secondary nav; the Business picker and "create business" leave it.
 
 ### Sidebar (top to bottom)

@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SubView {
-  final String id;
+/// A view inside a section, shown as a secondary tab.
+enum SubView {
+  appointmentList('Appointments'),
+  calendar('Calendar'),
+  workflow('Workflow'),
+  settingsGeneral('General'),
+  jotform('Jotform'),
+  jotformIntegration('Jotform Integration');
+
   final String label;
-  const SubView(this.id, this.label);
+  const SubView(this.label);
 }
 
 /// A top-level destination of the sidebar. Sections with several [subViews]
@@ -12,18 +19,18 @@ class SubView {
 enum AppSection {
   dashboard('Dashboard', Icons.dashboard_outlined),
   appointments('Appointments', Icons.event_outlined, [
-    SubView('appointments', 'Appointments'),
-    SubView('calendar', 'Calendar'),
-    SubView('workflow', 'Workflow'),
+    SubView.appointmentList,
+    SubView.calendar,
+    SubView.workflow,
   ]),
   team('Team', Icons.group_outlined),
   catalog('Catalog', Icons.inventory_2_outlined),
   analytics('Analytics', Icons.insights_outlined),
   report('Report', Icons.description_outlined),
   settings('Settings', Icons.settings_outlined, [
-    SubView('general', 'General'),
-    SubView('jotform', 'Jotform'),
-    SubView('jotform-integration', 'Jotform Integration'),
+    SubView.settingsGeneral,
+    SubView.jotform,
+    SubView.jotformIntegration,
   ]);
 
   final String label;
@@ -34,7 +41,7 @@ enum AppSection {
 
   bool get hasTabs => subViews.length > 1;
 
-  String? get defaultSubViewId => subViews.isEmpty ? null : subViews.first.id;
+  SubView? get defaultSubView => subViews.isEmpty ? null : subViews.first;
 }
 
 final selectedSectionProvider =
@@ -42,12 +49,12 @@ final selectedSectionProvider =
 
 /// The selected sub-view of each section (remembered while switching sections).
 final sectionSubViewProvider =
-    StateProvider.family<String?, AppSection>((ref, section) => section.defaultSubViewId);
+    StateProvider.family<SubView?, AppSection>((ref, section) => section.defaultSubView);
 
 /// Jumps to a sub-view of a section, e.g. from a "configure" link in another view.
-void navigateTo(WidgetRef ref, AppSection section, [String? subViewId]) {
-  if (subViewId != null) {
-    ref.read(sectionSubViewProvider(section).notifier).state = subViewId;
+void navigateTo(WidgetRef ref, AppSection section, [SubView? subView]) {
+  if (subView != null) {
+    ref.read(sectionSubViewProvider(section).notifier).state = subView;
   }
   ref.read(selectedSectionProvider.notifier).state = section;
 }

@@ -120,7 +120,7 @@ class _JotformMatrixViewState extends ConsumerState<JotformMatrixView> {
         Text('Connect a Jotform account first.', style: AppTextStyles.muted12),
         const SizedBox(height: 16),
         ElevatedButton(
-          onPressed: () => navigateTo(ref, AppSection.settings, 'jotform-integration'),
+          onPressed: () => navigateTo(ref, AppSection.settings, SubView.jotformIntegration),
           child: const Text('Set up Jotform integration'),
         ),
       ]));

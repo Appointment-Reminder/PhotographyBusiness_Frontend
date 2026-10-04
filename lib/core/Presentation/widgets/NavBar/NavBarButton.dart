@@ -8,13 +8,11 @@ class NavBarButton extends StatefulWidget {
   const NavBarButton({
     super.key,
     required this.label,
-    required this.routes,
     required this.isSelected,
     required this.onTap,
 });
 
   final String label;
-  final String routes;
   final bool isSelected;
   final VoidCallback onTap;
 

@@ -20,7 +20,7 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final section = ref.watch(selectedSectionProvider);
-    final subViewId = ref.watch(sectionSubViewProvider(section));
+    final subView = ref.watch(sectionSubViewProvider(section));
 
     return Scaffold(
       body: Row(
@@ -33,12 +33,12 @@ class AppShell extends ConsumerWidget {
                 if (section.hasTabs)
                   TopNavBar(
                     brandName: section.label,
-                    items: [for (final v in section.subViews) TopNavBarItem(id: v.id, label: v.label)],
-                    activeId: subViewId ?? '',
+                    items: [for (final v in section.subViews) TopNavBarItem(id: v.name, label: v.label)],
+                    activeId: subView?.name ?? '',
                     onItemSelected: (id) =>
-                        ref.read(sectionSubViewProvider(section).notifier).state = id,
+                        ref.read(sectionSubViewProvider(section).notifier).state = SubView.values.byName(id),
                   ),
-                Expanded(child: _Content(section: section, subViewId: subViewId)),
+                Expanded(child: _Content(section: section, subView: subView)),
               ],
             ),
           ),
@@ -50,8 +50,8 @@ class AppShell extends ConsumerWidget {
 
 class _Content extends ConsumerWidget {
   final AppSection section;
-  final String? subViewId;
-  const _Content({required this.section, required this.subViewId});
+  final SubView? subView;
+  const _Content({required this.section, required this.subView});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -85,10 +85,10 @@ class _Content extends ConsumerWidget {
       case AppSection.dashboard:
         return Center(child: Text('Dashboard of ${business.name} in progress'));
       case AppSection.appointments:
-        switch (subViewId) {
-          case 'calendar':
+        switch (subView) {
+          case SubView.calendar:
             return AppointmentCalendarPage(businessId: id);
-          case 'workflow':
+          case SubView.workflow:
             return WorkflowPage(businessId: id);
           default:
             return AppointmentsPage(businessId: id);
@@ -102,10 +102,10 @@ class _Content extends ConsumerWidget {
       case AppSection.report:
         return const Center(child: Text('Report: coming soon'));
       case AppSection.settings:
-        switch (subViewId) {
-          case 'jotform':
+        switch (subView) {
+          case SubView.jotform:
             return JotformMatrixView(businessId: id);
-          case 'jotform-integration':
+          case SubView.jotformIntegration:
             return JotformIntegrationView(businessId: id);
           default:
             return Center(child: Text('Settings of ${business.name} in progress'));
