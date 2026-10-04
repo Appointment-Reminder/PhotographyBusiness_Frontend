@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photography_business_frontend/core/error/failure.dart';
 import '../../../domain/entities/appointment.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/usecases/get_my_appointments.dart';
 import '../../../domain/usecases/get_appointments_for_business.dart';
 import '../../../domain/usecases/delete_appointment.dart';
