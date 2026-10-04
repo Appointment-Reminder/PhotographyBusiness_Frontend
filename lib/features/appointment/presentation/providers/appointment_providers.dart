@@ -7,6 +7,7 @@ import '../../data/repositories/appointment_repository_impl.dart';
 import '../../domain/repositories/appointment_repository.dart';
 import '../../domain/usecases/create_appointment.dart';
 import '../../domain/usecases/delete_appointment.dart';
+import '../../domain/usecases/fire_appointment_event.dart';
 import '../../domain/usecases/get_appointment_by_id.dart';
 import '../../domain/usecases/get_appointments_for_business.dart';
 import '../../domain/usecases/get_my_appointments.dart';
@@ -51,6 +52,10 @@ final deleteAppointmentProvider = Provider<DeleteAppointment>((ref) {
   return DeleteAppointment(repository: ref.read(appointmentRepositoryProvider));
 });
 
+final fireAppointmentEventProvider = Provider<FireAppointmentEvent>((ref) {
+  return FireAppointmentEvent(repository: ref.read(appointmentRepositoryProvider));
+});
+
 /// Keyed by businessId so switching business doesn't leak state — same
 /// pattern as businessMembersProvider.
 final appointmentListNotifierProvider = StateNotifierProvider.family<
@@ -59,6 +64,18 @@ final appointmentListNotifierProvider = StateNotifierProvider.family<
     getMyAppointments: ref.read(getMyAppointmentsProvider),
     getAppointmentsForBusiness: ref.read(getAppointmentsForBusinessProvider),
     deleteAppointment: ref.read(deleteAppointmentProvider),
+    fireAppointmentEvent: ref.read(fireAppointmentEventProvider),
+    updateAppointment: ref.read(updateAppointmentProvider),
+  );
+  notifier.loadForBusiness(businessId);
+  return notifier;
+});
+
+final appointmentFormNotifierProvider =
+    StateNotifierProvider<AppointmentFormNotifier, AppointmentFormState>((ref) {
+  return AppointmentFormNotifier(
+    createAppointment: ref.read(createAppointmentUserProvider),
+    updateAppointment: ref.read(updateAppointmentProvider),
   );
   notifier.loadForBusiness(businessId);
   return notifier;

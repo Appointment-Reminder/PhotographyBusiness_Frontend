@@ -58,6 +58,34 @@ class Appointment extends Equatable {
     required this.updatedAt,
   });
 
+  Appointment copyWith({String? status}) => Appointment(
+        id: id,
+        businessId: businessId,
+        memberId: memberId,
+        formId: formId,
+        packageId: packageId,
+        packagePriceId: packagePriceId,
+        clientFirstName: clientFirstName,
+        clientLastName: clientLastName,
+        clientPhone: clientPhone,
+        clientEmail: clientEmail,
+        priceAtBooking: priceAtBooking,
+        depositAmount: depositAmount,
+        remainingAmount: remainingAmount,
+        commissionPercentAtBooking: commissionPercentAtBooking,
+        commissionAmountAtBooking: commissionAmountAtBooking,
+        appointmentDate: appointmentDate,
+        appointmentLocation: appointmentLocation,
+        appointmentDuration: appointmentDuration,
+        appointmentNote: appointmentNote,
+        numberOfPersons: numberOfPersons,
+        privacyOptOut: privacyOptOut,
+        addsOns: addsOns,
+        status: status ?? this.status,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
+
   String get clientName => '$clientFirstName $clientLastName'.trim();
 
   @override
