@@ -100,7 +100,7 @@ class _Body extends ConsumerWidget {
                 )
               : data.chart.isEmpty
                   ? const SizedBox.shrink()
-                  : _IncomeChart(points: data.chart, bucket: _bucketOf(data.chart)),
+                  : _IncomeChart(points: data.chart, bucket: ref.watch(timeframeProvider).bucket),
         ),
         if (data.members.isNotEmpty) ...[
           const SizedBox(height: 24),
@@ -108,13 +108,6 @@ class _Body extends ConsumerWidget {
         ],
       ],
     );
-  }
-
-  /// The chart labels follow the spacing of the points the backend returned.
-  OverviewBucket _bucketOf(List<SeriesPoint> p) {
-    if (p.length < 2) return OverviewBucket.day;
-    final gap = p[1].start.difference(p[0].start).inDays;
-    return gap >= 28 ? OverviewBucket.month : (gap >= 7 ? OverviewBucket.week : OverviewBucket.day);
   }
 }
 
@@ -206,12 +199,10 @@ class _AlertChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ActionChip(
-      avatar: Icon(icon, size: 16, color: const Color(0xFFB45309)),
-      label: Text(label),
-      backgroundColor: const Color(0xFFFEF3C7),
-      onPressed: onTap ?? () {},
-    );
+    final avatar = Icon(icon, size: 16, color: const Color(0xFFB45309));
+    const bg = Color(0xFFFEF3C7);
+    if (onTap == null) return Chip(avatar: avatar, label: Text(label), backgroundColor: bg);
+    return ActionChip(avatar: avatar, label: Text(label), backgroundColor: bg, onPressed: onTap);
   }
 }
 
@@ -221,7 +212,7 @@ class _IncomeChart extends StatelessWidget {
   const _IncomeChart({required this.points, required this.bucket});
 
   String _label(DateTime d) => switch (bucket) {
-        OverviewBucket.day => DateFormat('d').format(d),
+        OverviewBucket.day => DateFormat('d MMM').format(d),
         OverviewBucket.week => DateFormat('d MMM').format(d),
         OverviewBucket.month => DateFormat('MMM').format(d),
       };
