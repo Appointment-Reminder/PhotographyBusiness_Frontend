@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photography_business_frontend/core/presentation/theme/app_text_styles.dart';
+import 'package:photography_business_frontend/features/addon/presentation/providers/addon_providers.dart';
 import 'package:photography_business_frontend/features/business/domain/entities/business_member.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/commission_providers.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/member_providers.dart';
@@ -19,6 +20,11 @@ class TeamCommissionsView extends ConsumerStatefulWidget {
 class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
   String? _selectedId;
   String? _editingId;
+
+  /// Packages | Add-ons side of the member panel. Held here, not per Member,
+  /// so it survives selecting another Member.
+  bool _showAddons = false;
+  int _addonRowRevision = 0;
 
   static const _inviteRoles = ['photographer', 'assistant', 'admin'];
 
@@ -66,6 +72,83 @@ class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
     final match = s.categories.where((c) => c.id == categoryId).firstOrNull;
     return match?.name ?? 'Unknown';
   }
+
+  void _selectMember(String id) {
+    setState(() => _selectedId = id);
+    if (_showAddons) _loadAddonCommissions();
+  }
+
+  void _loadAddonCommissions() {
+    final id = _selectedId;
+    if (id == null) return;
+    Future.microtask(() => ref.read(memberAddonCommissionProvider.notifier).loadForMember(
+          businessId: widget.businessId,
+          memberId: int.parse(id),
+        ));
+  }
+
+  void _setSide(bool addons) {
+    if (addons == _showAddons) return;
+    setState(() => _showAddons = addons);
+    if (addons) _loadAddonCommissions();
+  }
+
+  Future<void> _saveAddonCommission(int memberId, int addonId, String value, bool isPercentage) async {
+    final error = await ref.read(memberAddonCommissionProvider.notifier).save(
+          memberId: memberId,
+          addonId: addonId,
+          value: value,
+          isPercentage: isPercentage,
+        );
+    if (error != null && mounted) {
+      // Rebuild the fields so they show the kept previous value.
+      setState(() => _addonRowRevision++);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+
+  Widget _buildAddonCommissionsCard(MemberData selected) {
+    final s = ref.watch(memberAddonCommissionProvider);
+    final memberId = int.parse(selected.id);
+    final commissions = [
+      for (final a in s.addons)
+        CommissionData(
+          packageId: a.id.toString(),
+          packageName: a.name,
+          categoryName: '',
+          categoryId: 0,
+          value: s.commissionFor(memberId, a.id).commissionAmount.toString(),
+          isPercent: s.commissionFor(memberId, a.id).commissionIsPercentage,
+        ),
+    ];
+    return MemberCommissionsCard(
+      memberName: selected.name,
+      memberRole: selected.role,
+      memberEmail: selected.email,
+      commissions: commissions,
+      itemLabel: 'Add-on',
+      showCategory: false,
+      rowRevision: _addonRowRevision,
+      headerAction: _sideSwitch(),
+      statusMessage: s.isLoading ? 'Loading add-on commissions…' : s.error,
+      onValueChanged: (addonId, value) => _saveAddonCommission(
+          memberId, int.parse(addonId), value, s.commissionFor(memberId, int.parse(addonId)).commissionIsPercentage),
+      onTypeChanged: (addonId, isPercent) => _saveAddonCommission(memberId, int.parse(addonId),
+          s.commissionFor(memberId, int.parse(addonId)).commissionAmount.toString(), isPercent),
+      onRemove: (_) {},
+    );
+  }
+
+  Widget _sideSwitch() => SegmentedButton<bool>(
+        showSelectedIcon: false,
+        style: const ButtonStyle(visualDensity: VisualDensity.compact),
+        segments: const [
+          ButtonSegment(value: false, label: Text('Packages')),
+          ButtonSegment(value: true, label: Text('Add-ons')),
+        ],
+        selected: {_showAddons},
+        onSelectionChanged: (v) => _setSide(v.first),
+      );
 
   Future<void> _handleInvite(String email, String role) =>
       ref.read(businessMemberFormNotifierProvider.notifier).invite(widget.businessId, email, role);
@@ -135,9 +218,7 @@ class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
           members: members,
           selectedId: _selectedId!,
           editingId: _editingId,
-          onSelect: (id) => setState(() {
-            _selectedId = id;
-          }),
+          onSelect: _selectMember,
           onEditTap: (id) => setState(() {
             _editingId = id;
           }),
@@ -148,7 +229,10 @@ class _TeamCommissionsViewState extends ConsumerState<TeamCommissionsView> {
         ),
         const SizedBox(width: 20),
         Expanded(
-          child: MemberCommissionsCard(
+          child: _showAddons
+              ? _buildAddonCommissionsCard(selected)
+              : MemberCommissionsCard(
+            headerAction: _sideSwitch(),
             memberName: selected.name,
             memberRole: selected.role,
             memberEmail: selected.email,

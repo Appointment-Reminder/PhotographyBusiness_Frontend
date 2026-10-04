@@ -40,6 +40,20 @@ class MemberCommissionsCard extends StatelessWidget {
   final ValueChanged<String> onRemove;       // packageId
   final double maxHeight;
 
+  /// Header text on the right and the first column's title, so the card can
+  /// show Package or Add-on commissions.
+  final String itemLabel;
+  final bool showCategory;
+
+  /// Shown in the header, e.g. the Packages | Add-ons switch.
+  final Widget? headerAction;
+
+  /// Loading or error text shown under the column headers.
+  final String? statusMessage;
+
+  /// Bump to rebuild the rows' text fields from the model (e.g. after a failed save).
+  final int rowRevision;
+
   const MemberCommissionsCard({
     super.key,
     required this.memberName,
@@ -50,6 +64,11 @@ class MemberCommissionsCard extends StatelessWidget {
     required this.onTypeChanged,
     required this.onRemove,
     this.maxHeight = 480,
+    this.itemLabel = 'Package',
+    this.showCategory = true,
+    this.headerAction,
+    this.statusMessage,
+    this.rowRevision = 0,
   });
 
   @override
@@ -92,7 +111,8 @@ class MemberCommissionsCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                SectionLabel('${commissions.length} packages'),
+                if (headerAction != null) ...[headerAction!, const SizedBox(width: 16)],
+                SectionLabel('${commissions.length} ${itemLabel.toLowerCase()}s'),
               ],
             ),
           ),
@@ -106,14 +126,22 @@ class MemberCommissionsCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Expanded(child: SectionLabel('Package')),
-                SizedBox(width: 100, child: SectionLabel('Category')),
-                SizedBox(width: 55,),
+                Expanded(child: SectionLabel(itemLabel)),
+                if (showCategory) ...[
+                  SizedBox(width: 100, child: SectionLabel('Category')),
+                  SizedBox(width: 55,),
+                ],
                 SizedBox(width: 140, child: SectionLabel('Commission')),
                 const SizedBox(width: 30),
               ],
             ),
           ),
+
+          if (statusMessage != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              child: Text(statusMessage!, style: AppTextStyles.muted12),
+            ),
 
           // Rows
           Flexible(
@@ -123,9 +151,11 @@ class MemberCommissionsCard extends StatelessWidget {
                   itemBuilder: (context, i){
                     final c = commissions[i];
                     return CommissionRow(
+                      key: ValueKey('${c.packageId}-$rowRevision'),
                       packageName:   c.packageName,
                       categoryName:  c.categoryName,
                       categoryId:    c.categoryId,
+                      showCategory:  showCategory,
                       value:         c.value,
                       isPercent:     c.isPercent,
                       onValueChanged: (v) => onValueChanged(c.packageId, v),

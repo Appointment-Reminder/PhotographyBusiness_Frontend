@@ -15,6 +15,9 @@ class CommissionRow extends StatefulWidget {
   final ValueChanged<bool> onTypeChanged;
   final VoidCallback onRemove;
 
+  /// Add-ons have no category: hides the badge column.
+  final bool showCategory;
+
   const CommissionRow({
     super.key,
     required this.packageName,
@@ -24,6 +27,7 @@ class CommissionRow extends StatefulWidget {
     required this.onValueChanged,
     required this.onTypeChanged,
     required this.onRemove, required this.categoryId,
+    this.showCategory = true,
   });
 
   @override
@@ -88,11 +92,13 @@ class _CommissionRowState extends State<CommissionRow> {
             ),
 
             // Category badge
-            SizedBox(
-              width: 100,
-              child: CategoryBadge(categoryName: widget.categoryName, categoryId: widget.categoryId,),
-            ),
-            SizedBox(width: 70,),
+            if (widget.showCategory) ...[
+              SizedBox(
+                width: 100,
+                child: CategoryBadge(categoryName: widget.categoryName, categoryId: widget.categoryId,),
+              ),
+              SizedBox(width: 70,),
+            ],
 
             // Value input + toggle
             SizedBox(
