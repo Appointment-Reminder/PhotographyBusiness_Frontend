@@ -16,26 +16,27 @@ class PackagesPage extends ConsumerStatefulWidget {
 }
 
 class _PackagesPageState extends ConsumerState<PackagesPage> {
-  int? _selectedBusinessId;
+  void _loadPackages(int? businessId) {
+    if (businessId != null) {
+      ref.read(packageListNotifierProvider.notifier).load(businessId);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(businessListNotifierProvider.notifier).load();
-    });
-  }
-
-  void _loadPackages() {
-    if (_selectedBusinessId != null) {
-      ref.read(packageListNotifierProvider.notifier).load(_selectedBusinessId!);
-    }
+    Future.microtask(() => _loadPackages(ref.read(selectedBusinessProvider)?.id));
   }
 
   @override
   Widget build(BuildContext context) {
     final packageState = ref.watch(packageListNotifierProvider);
     final businessState = ref.watch(businessListNotifierProvider);
+    final selectedId = ref.watch(selectedBusinessProvider)?.id;
+
+    ref.listen(selectedBusinessProvider, (prev, next) {
+      if (prev?.id != next?.id) _loadPackages(next?.id);
+    });
 
     return MainLayout(
       title: 'Packages',
@@ -45,7 +46,7 @@ class _PackagesPageState extends ConsumerState<PackagesPage> {
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
-              onPressed: _selectedBusinessId != null ? _loadPackages : null,
+              onPressed: selectedId != null ? () => _loadPackages(selectedId) : null,
             ),
           ],
         ),
@@ -59,7 +60,7 @@ class _PackagesPageState extends ConsumerState<PackagesPage> {
                     labelText: 'Select Business',
                     border: OutlineInputBorder(),
                   ),
-                  value: _selectedBusinessId,
+                  value: selectedId,
                   items: businessState.businesses
                       .map((b) => DropdownMenuItem(
                             value: b.id,
@@ -67,23 +68,22 @@ class _PackagesPageState extends ConsumerState<PackagesPage> {
                           ))
                       .toList(),
                   onChanged: (businessId) {
-                    setState(() => _selectedBusinessId = businessId);
                     if (businessId != null) {
-                      ref.read(packageListNotifierProvider.notifier).load(businessId);
+                      ref.read(selectedBusinessIdProvider.notifier).select(businessId);
                     }
                   },
                 ),
               ),
-            Expanded(child: _buildBody(packageState)),
+            Expanded(child: _buildBody(packageState, selectedId)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBody(PackageListState state) {
+  Widget _buildBody(PackageListState state, int? selectedId) {
     
-    if (_selectedBusinessId == null) { return const Center(child: Text('Select a business to view packages')); }
+    if (selectedId == null) { return const Center(child: Text('Select a business to view packages')); }
     if (state.isLoading) return const Center(child: CircularProgressIndicator());
     if (state.error != null) return Center( child: Text(state.error!));
     if(state.packages.isEmpty) return const Center(child: Text('No packages found'));

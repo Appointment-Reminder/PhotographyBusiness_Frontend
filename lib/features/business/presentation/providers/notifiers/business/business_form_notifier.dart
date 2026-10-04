@@ -6,14 +6,18 @@ import 'package:photography_business_frontend/features/business/presentation/pro
 
 class BusinessFormNotifier extends StateNotifier<BusinessFormState> {
   final CreateBusinessUser createBusiness;
-  BusinessFormNotifier({required this.createBusiness}) : super(const BusinessFormState());
+  final void Function()? onCreated;
+  BusinessFormNotifier({required this.createBusiness, this.onCreated}) : super(const BusinessFormState());
 
   Future<void> create(String name, String? description) async {
     state = state.copyWith(isSubmitting: true, error: null);
     final result = await createBusiness(CreateBusinessParams(name: name, description: description));
     result.fold(
           (f) => state = state.copyWith(isSubmitting: false, error: f.message),
-          (b) => state = state.copyWith(isSubmitting: false, saved: b),
+          (b) {
+            state = state.copyWith(isSubmitting: false, saved: b);
+            onCreated?.call();
+          },
     );
   }
 }

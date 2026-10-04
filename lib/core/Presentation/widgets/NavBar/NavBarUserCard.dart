@@ -1,12 +1,14 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photography_business_frontend/features/user_create/presentation/providers/auth_provders.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_text_styles.dart' show AppTextStyles;
 import 'package:photography_business_frontend/core/extension/StringExtension.dart';
 import 'package:photography_business_frontend/features/business/domain/entities/business_role.dart';
 import 'package:photography_business_frontend/core/Presentation/theme/app_colors.dart';
 
-class NavBarUserCard extends StatefulWidget {
+class NavBarUserCard extends ConsumerStatefulWidget {
 
   final String FirstName;
   final String LastName;
@@ -15,11 +17,11 @@ class NavBarUserCard extends StatefulWidget {
   const NavBarUserCard({super.key, required this.FirstName, required this.LastName, required this.Role});
 
   @override
-  State<StatefulWidget> createState() => _NavBarUserCardState();
+  ConsumerState<NavBarUserCard> createState() => _NavBarUserCardState();
 }
 
 
-class _NavBarUserCardState extends State<NavBarUserCard> {
+class _NavBarUserCardState extends ConsumerState<NavBarUserCard> {
 
   @override
   Widget build(BuildContext) {
@@ -78,9 +80,7 @@ class _NavBarUserCardState extends State<NavBarUserCard> {
             Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () {
-                  // logout logic
-                },
+                onTap: () => ref.read(authNotifierProvider.notifier).logout(),
                 borderRadius: BorderRadius.circular(8),
                 hoverColor: AppColors.greyText.withOpacity(0.15),
                 splashColor: Colors.transparent,

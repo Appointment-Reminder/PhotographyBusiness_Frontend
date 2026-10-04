@@ -21,14 +21,44 @@ void main() async {
   // Initialize SharedPreferences
   final sharedPreferences = await SharedPreferences.getInstance();
 
-  runApp(
-    ProviderScope(
+  runApp(SessionRoot(sharedPreferences: sharedPreferences));
+}
+
+/// Recreates the ProviderScope on logout so no user-scoped state survives.
+class SessionRoot extends StatefulWidget {
+  final SharedPreferences sharedPreferences;
+  const SessionRoot({super.key, required this.sharedPreferences});
+
+  @override
+  State<SessionRoot> createState() => _SessionRootState();
+}
+
+class _SessionRootState extends State<SessionRoot> {
+  int _session = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return ProviderScope(
+      key: ValueKey(_session),
       overrides: [
-        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+        sharedPreferencesProvider.overrideWithValue(widget.sharedPreferences),
       ],
-      child: const MyApp(),
-    ),
-  );
+      child: _LogoutWatcher(onLogout: () => setState(() => _session++)),
+    );
+  }
+}
+
+class _LogoutWatcher extends ConsumerWidget {
+  final VoidCallback onLogout;
+  const _LogoutWatcher({required this.onLogout});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<AuthState>(authNotifierProvider, (prev, next) {
+      if (prev is AuthAuthenticated && next is AuthUnauthenticated) onLogout();
+    });
+    return const MyApp();
+  }
 }
 
 class MyApp extends StatelessWidget {

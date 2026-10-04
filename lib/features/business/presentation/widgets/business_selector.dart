@@ -22,6 +22,7 @@ class BusinessSelector extends ConsumerWidget {
     
     return DropdownButton<Business>(
         value: ref.watch(selectedBusinessProvider),
+        hint: const Text('Select a business'),
         items: state.businesses.map((business) {
           return DropdownMenuItem(
             value: business,
@@ -30,7 +31,7 @@ class BusinessSelector extends ConsumerWidget {
         }).toList(), 
         onChanged: (business) {
           if (business == null) return;
-          ref.read(selectedBusinessProvider.notifier).state = business;
+          ref.read(selectedBusinessIdProvider.notifier).select(business.id);
         }
         );
   }

@@ -77,14 +77,5 @@ final appointmentFormNotifierProvider =
     createAppointment: ref.read(createAppointmentUserProvider),
     updateAppointment: ref.read(updateAppointmentProvider),
   );
-  notifier.loadForBusiness(businessId);
-  return notifier;
 });
 
-final appointmentFormNotifierProvider =
-    StateNotifierProvider<AppointmentFormNotifier, AppointmentFormState>((ref) {
-  return AppointmentFormNotifier(
-    createAppointment: ref.read(createAppointmentUserProvider),
-    updateAppointment: ref.read(updateAppointmentProvider),
-  );
-});

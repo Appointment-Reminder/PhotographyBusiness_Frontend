@@ -41,8 +41,13 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, void>> logout() {
-    throw UnimplementedError();
+  Future<Either<Failure, void>> logout() async {
+    try {
+      await local.Logout();
+      return const Right(null);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
   }
 
   @override

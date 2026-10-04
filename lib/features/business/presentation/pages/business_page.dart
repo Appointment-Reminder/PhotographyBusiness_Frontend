@@ -36,9 +36,6 @@ class _BusinessPageState extends ConsumerState<BusinessPage>{
   void initState() {
     super.initState();
 
-    Future.microtask((){
-      ref.read(businessListNotifierProvider.notifier).getMyBusinesses(GetMyBusinessesParams(isActive: true));
-    });
 
   }
 

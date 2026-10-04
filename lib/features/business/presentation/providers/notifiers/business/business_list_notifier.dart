@@ -12,6 +12,7 @@ class BusinessListNotifier extends StateNotifier<BusinessListState> {
   Future<void> load({bool? isActive}) async {
     state = state.copyWith(isLoading: true, error: null);
     final result = await getMyBusinesses(GetMyBusinessesParams(isActive: isActive));
+    if (!mounted) return;
     result.fold(
           (f) => state = state.copyWith(isLoading: false, error: f.message),
           (list) => state = state.copyWith(isLoading: false, businesses: list),
