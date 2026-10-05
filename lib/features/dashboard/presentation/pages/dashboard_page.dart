@@ -121,7 +121,7 @@ class _Body extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final topCards = [data.myEarnings, data.businessEarnings].whereType<SplitKpi>();
-    final bottomCards = [data.bookedRevenue, data.appointments, data.averageAppointmentValue].whereType<Kpi>();
+    final bottomCards = [data.bookedRevenue, data.appointments, data.appointmentsBooked, data.averageAppointmentValue].whereType<Kpi>();
     final chart = _ChartPanel(data: data);
 
     return Column(
@@ -218,7 +218,7 @@ class _Change extends StatelessWidget {
     if (delta != null) {
       final prefix = delta == 0 ? '' : (delta > 0 ? 'Up ' : 'Down ');
       return Text('$prefix${formatAmount(delta.abs())} from last period',
-          style: AppTextStyles.muted.copyWith(fontSize: 11));
+          style: AppTextStyles.muted.copyWith(fontSize: 11, color: _toneColor(kpi.tone)));
     }
     if (!kpi.showChange) return const SizedBox.shrink();
     final change = kpi.changePercent;
@@ -278,6 +278,7 @@ class _EarningsCard extends StatelessWidget {
             _SplitBar(split: card.split),
             const SizedBox(height: 12),
             _SplitLegend(split: card.split),
+            if (card.mismatch) const _MismatchNote(),
           ],
         ),
       );
@@ -323,16 +324,22 @@ class _TotalIncomeCard extends StatelessWidget {
           line(_depositColor, 'Deposit', s.deposit),
           line(_sessionColor, 'Shooting session', s.session),
           line(_addonsColor, 'Add-ons', s.addons),
-          if (data.splitMismatch)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text('The breakdown does not add up to Total income.',
-                  style: AppTextStyles.muted12.copyWith(color: _bad)),
-            ),
+          if (card.mismatch) const _MismatchNote(),
         ],
       ),
     );
   }
+}
+
+class _MismatchNote extends StatelessWidget {
+  const _MismatchNote();
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Text('The breakdown does not add up to the total.',
+            style: AppTextStyles.muted12.copyWith(color: _bad)),
+      );
 }
 
 /// Deposit / Shooting session / Add-ons as one proportional bar; a neutral track when all are 0.
@@ -553,24 +560,26 @@ class _MembersTable extends StatelessWidget {
           DataColumn(label: Text('INCOME'), numeric: true),
           DataColumn(label: Text('APPOINTMENTS'), numeric: true),
           DataColumn(label: Text('COMMISSION EARNED'), numeric: true),
-          DataColumn(label: Text('EFFECTIVE RATE'), numeric: true),
+          DataColumn(label: Text('COMMISSION RATE'), numeric: true),
         ],
         rows: [
           for (final m in rows)
             DataRow(cells: [
               DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
-                CircleAvatar(
-                  radius: 14,
-                  backgroundColor: AppColors.TNB_greyText,
-                  child: Text(m.initials, style: const TextStyle(fontSize: 10, color: Colors.white)),
-                ),
-                const SizedBox(width: 10),
+                if (!m.isUnassigned) ...[
+                  CircleAvatar(
+                    radius: 14,
+                    backgroundColor: AppColors.TNB_greyText,
+                    child: Text(m.initials, style: const TextStyle(fontSize: 10, color: Colors.white)),
+                  ),
+                  const SizedBox(width: 10),
+                ],
                 Text(m.name),
               ])),
               DataCell(Text(formatAmount(m.income))),
               DataCell(Text('${m.appointmentsMade}')),
               DataCell(Text(formatAmount(m.commissionEarned))),
-              DataCell(Text(m.effectiveRate == null ? '—' : '${(m.effectiveRate! * 100).round()}%')),
+              DataCell(Text(m.commissionRate == null ? '—' : '${(m.commissionRate! * 100).round()}%')),
             ]),
         ],
       ),

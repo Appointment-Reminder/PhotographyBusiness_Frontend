@@ -108,14 +108,22 @@ The Dashboard section shows the financial overview of the Selected Business for 
 
 ## Addendum: Figma redesign (docs/figma/Dashboard)
 
-Supersedes the earlier decisions where it conflicts. Out-of-scope items below that this brings in: `owner_take`, `addon_income`, `package_balance`, average appointment value, the chart bucket toggle. Backend gaps are tracked in `docs/backend-requests/dashboard.md`.
+Supersedes the earlier decisions where it conflicts. Out-of-scope items below that this brings in: owner share, shooting and add-ons income, average appointment value, the chart bucket toggle. The backend delivered everything the design needed; field names follow `docs/api/business-overview.md` (see the contract migration addendum below).
 
 - **Approach:** rework the existing Dashboard page and view state; keep the data and domain layers and the notifier tests.
-- **Cards:** My earnings (from the logged-in Member's row; hidden when no row matches), Business earnings / Owner take (owner only, hidden when `owner_take` is null), Commission payable, Total income, Booked revenue, Appointments made, Average appointment value. Each has its change versus the previous period where the API provides one.
-- **Splits:** Total income splits Deposit / Shooting session / Add-ons from `deposit_income`, `package_balance`, `addon_income`, with shares computed against the sum of the three. A sum that differs from `total_income` is flagged to the user, not silently adjusted. "My earnings" and "Business earnings" show the same three-slice bar with every slice at 0 until the backend returns the split; the bar logic takes three numbers.
+- **Cards:** My earnings (from the logged-in Member's row, found through `my_member_id`; hidden when no row matches), Business earnings / Owner take (owner only, hidden when `owner_share_total` is null), Commission payable, Total income, Booked revenue, Appointments made, Appointments booked, Average appointment value. Each has its change versus the previous period where the API provides one.
+- **Splits:** Total income splits Deposit / Shooting session / Add-ons from `deposit_income`, `shooting_income`, `addons_income`, with shares computed against the sum of the three. My earnings splits the own row's `photographer_share_deposit/shooting/addons`, Business earnings splits `owner_share_deposit/shooting/addons`. A split that differs from its card's total is flagged to the user on that card, not silently adjusted. The bar logic takes three numbers.
 - **Dropped from the design:** Next payout footer, the Average booking value sparkline, "View all" on the members table.
-- **Average appointment value:** replaces "Average booking value". The previous value is not in the API, so the change shows a neutral "$0 from last period" placeholder.
-- **Members table:** name with initials avatar, income, appointments, commission earned, Effective rate (`commission_earned / income`, a dash when income is 0).
+- **Average appointment value:** replaces "Average booking value". The change is the amount gained or lost versus `comparison.previous.average_appointment_value` ("Up $X from last period"), good when up and bad when down; no change without a comparison.
+- **Members table:** name with initials avatar, income (`total_income`), appointments made, commission earned (`photographer_share_total`) and Commission rate (`photographer_share_rate`, a dash when null). The row with a null `member_id` is shown last as "Unassigned", without avatar or rate, and does not count toward showing the table.
 - **Chart toggle:** Daily | Weekly | Monthly, defaulting to the automatic bucket and overriding it; resets when the Timeframe changes.
-- **Photographer / admin:** hide whatever is null, no role branching. A photographer sees My earnings, Booked revenue, Appointments and Average appointment value from their own row. An admin lacks only Business earnings, and the other cards fill the row.
+- **Photographer / admin:** hide whatever is null, no role branching. A photographer sees My earnings, Booked revenue, Appointments made, Appointments booked and Average appointment value from their own row. An admin lacks only Business earnings, and the other cards fill the row.
 - **Alert chips:** Unresolved Add-ons only navigates to Appointments (no Unresolved Add-ons filter exists there).
+
+## Addendum: overview contract migration
+
+The backend simplified the overview response. Field mapping: `commission_payable` is `business.photographer_share_total`; `owner_take` is `business.owner_share_total`; `package_balance` is `shooting_income`; `addon_income` is `addons_income`; Member `income` is `total_income`; Member `commission_earned` is `photographer_share_total`; series `balance_income` is `shooting_income` + `addons_income`.
+
+- **Appointments booked:** a card of its own right after Appointments made, with a percent change (good when up) from `appointments_booked`. It deviates from the Figma, which has no such card. A photographer's fallback reads the own row; the card hides when there is no row. `appointments_booked` counts as activity, so a booked-but-unpaid period is not "No activity".
+- **Logged-in Member:** `my_member_id` from the response replaces the separate Members lookup.
+- **Still out of scope:** `outstanding_balance`, `cancellation_rate`, `addon_attach_rate`, `top_addons`, `revenue_by_package`, `revenue_by_category`, `referral_sources`, `shot_revenue`, the `member_id` filter.

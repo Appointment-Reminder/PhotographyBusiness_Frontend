@@ -1,9 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photography_business_frontend/core/network/dio_provider.dart';
 import 'package:photography_business_frontend/features/business/presentation/providers/business_providers.dart';
-import 'package:photography_business_frontend/features/business/presentation/providers/member_providers.dart';
-import 'package:photography_business_frontend/features/user_create/presentation/providers/auth_provders.dart';
-import 'package:photography_business_frontend/features/user_create/presentation/providers/state/auth_state.dart';
 import '../../data/datasources/overview_remote_datasource.dart';
 import '../../data/repositories/overview_repository_impl.dart';
 import '../../domain/entities/overview.dart';
@@ -89,20 +86,8 @@ final overviewProvider = FutureProvider.autoDispose<Overview>((ref) async {
   return result.fold((f) => throw DashboardLoadException(f.message), (o) => o);
 });
 
-/// The logged-in Member's id in the Selected Business, once the Members are loaded.
-final myMemberIdProvider = Provider.autoDispose<int?>((ref) {
-  final businessId = ref.watch(selectedBusinessProvider.select((b) => b?.id));
-  final auth = ref.watch(authNotifierProvider);
-  if (businessId == null || auth is! AuthAuthenticated) return null;
-  final members = ref.watch(businessMembersProvider(businessId)).members;
-  for (final m in members) {
-    if (m.userId == auth.user.id) return m.id;
-  }
-  return null;
-});
-
-/// What the Dashboard renders. Knowing the logged-in Member does not refetch the overview.
+/// What the Dashboard renders.
 final dashboardProvider = FutureProvider.autoDispose<DashboardViewState>((ref) async {
   final overview = await ref.watch(overviewProvider.future);
-  return DashboardViewState.fromOverview(overview, myMemberId: ref.watch(myMemberIdProvider));
+  return DashboardViewState.fromOverview(overview);
 });

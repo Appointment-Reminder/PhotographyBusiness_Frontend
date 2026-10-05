@@ -52,12 +52,16 @@ DateTime _d(int y, int m, int d) => DateTime.utc(y, m, d);
 const _figures = BusinessFigures(
   totalIncome: 1000,
   depositIncome: 400,
-  packageBalance: 500,
-  addonIncome: 100,
+  shootingIncome: 500,
+  addonsIncome: 100,
   bookedRevenue: 1500,
   appointmentsMade: 12,
+  appointmentsBooked: 20,
   commissionPayable: 300,
   ownerTake: 250,
+  ownerTakeDeposit: 150,
+  ownerTakeShooting: 80,
+  ownerTakeAddons: 20,
   averageAppointmentValue: 125,
   unresolvedAddons: 0,
   commissionsAboveBalance: 0,
@@ -67,12 +71,16 @@ const _figures = BusinessFigures(
 BusinessFigures _figs({
   double totalIncome = 1000,
   double depositIncome = 400,
-  double packageBalance = 500,
-  double addonIncome = 100,
+  double shootingIncome = 500,
+  double addonsIncome = 100,
   double bookedRevenue = 1500,
   int appointmentsMade = 12,
+  int appointmentsBooked = 20,
   double commissionPayable = 300,
   double? ownerTake = 250,
+  double ownerTakeDeposit = 150,
+  double ownerTakeShooting = 80,
+  double ownerTakeAddons = 20,
   double averageAppointmentValue = 125,
   int unresolvedAddons = 0,
   int commissionsAboveBalance = 0,
@@ -80,12 +88,16 @@ BusinessFigures _figs({
     BusinessFigures(
       totalIncome: totalIncome,
       depositIncome: depositIncome,
-      packageBalance: packageBalance,
-      addonIncome: addonIncome,
+      shootingIncome: shootingIncome,
+      addonsIncome: addonsIncome,
       bookedRevenue: bookedRevenue,
       appointmentsMade: appointmentsMade,
+      appointmentsBooked: appointmentsBooked,
       commissionPayable: commissionPayable,
       ownerTake: ownerTake,
+      ownerTakeDeposit: ownerTakeDeposit,
+      ownerTakeShooting: ownerTakeShooting,
+      ownerTakeAddons: ownerTakeAddons,
       averageAppointmentValue: averageAppointmentValue,
       unresolvedAddons: unresolvedAddons,
       commissionsAboveBalance: commissionsAboveBalance,
@@ -97,7 +109,12 @@ const _me = MemberRow(
   income: 400,
   bookedRevenue: 250,
   appointmentsMade: 3,
+  appointmentsBooked: 5,
   commissionEarned: 80,
+  commissionDeposit: 10,
+  commissionShooting: 60,
+  commissionAddons: 10,
+  commissionRate: 0.8,
   averageAppointmentValue: 83,
 );
 const _other = MemberRow(
@@ -106,7 +123,10 @@ const _other = MemberRow(
   income: 200,
   bookedRevenue: 300,
   appointmentsMade: 2,
+  appointmentsBooked: 4,
   commissionEarned: 50,
+  commissionShooting: 50,
+  commissionRate: 0.75,
   averageAppointmentValue: 150,
 );
 const _idle = MemberRow(
@@ -115,16 +135,29 @@ const _idle = MemberRow(
   income: 0,
   bookedRevenue: 0,
   appointmentsMade: 0,
+  appointmentsBooked: 0,
   commissionEarned: 0,
   averageAppointmentValue: 0,
+);
+
+/// Booked appointments with no photographer yet: the backend sends a null member.
+const _unassigned = MemberRow(
+  name: '',
+  income: 1850,
+  bookedRevenue: 8380,
+  appointmentsMade: 0,
+  appointmentsBooked: 37,
+  commissionEarned: 0,
 );
 
 Comparison _comparison({
   double? income = 10,
   double? booked = -5,
   double? appointments,
+  double? appointmentsBooked = 12,
   double? commission = 20,
   double? ownerTake = 5,
+  double previousAverage = 100,
 }) =>
     Comparison(
       previousFrom: _d(2026, 9, 1),
@@ -132,26 +165,25 @@ Comparison _comparison({
       totalIncomeChange: income,
       bookedRevenueChange: booked,
       appointmentsMadeChange: appointments,
+      appointmentsBookedChange: appointmentsBooked,
       commissionPayableChange: commission,
       ownerTakeChange: ownerTake,
+      previousAverageAppointmentValue: previousAverage,
     );
 
 void main() {
   late FakeOverviewRepository repo;
   late StateProvider<int> businessId;
-  late StateProvider<int?> me;
   late ProviderContainer container;
   var subscribed = false;
 
   setUp(() {
     repo = FakeOverviewRepository();
     businessId = StateProvider<int>((_) => 1);
-    me = StateProvider<int?>((_) => null);
     container = ProviderContainer(overrides: [
       overviewRepositoryProvider.overrideWithValue(repo),
       clockProvider.overrideWithValue(() => DateTime(2026, 10, 15, 14, 30)),
       selectedBusinessProvider.overrideWith((ref) => _business(ref.watch(businessId))),
-      myMemberIdProvider.overrideWith((ref) => ref.watch(me)),
     ]);
     addTearDown(container.dispose);
     subscribed = false;
@@ -338,12 +370,33 @@ void main() {
       expect(s.previousTo, _d(2026, 9, 30));
     });
 
+    test('Appointments booked is its own card with its change and tone', () async {
+      repo.overview = Overview(business: _figures, comparison: _comparison());
+      final s = await loaded();
+
+      expect(s.appointmentsBooked!.label, 'Appointments booked');
+      expect(s.appointmentsBooked!.value, 20);
+      expect(s.appointmentsBooked!.changePercent, 12);
+      expect(s.appointmentsBooked!.tone, ChangeTone.good);
+      expect(s.appointments!.value, 12);
+    });
+
+    test('a null change on Appointments booked is neutral', () async {
+      repo.overview = Overview(business: _figures, comparison: _comparison(appointmentsBooked: null));
+      final s = await loaded();
+
+      expect(s.appointmentsBooked!.changePercent, isNull);
+      expect(s.appointmentsBooked!.showChange, isTrue);
+      expect(s.appointmentsBooked!.tone, ChangeTone.neutral);
+    });
+
     test('a null comparison hides change badges', () async {
       repo.overview = const Overview(business: _figures);
       final s = await loaded();
 
       expect(s.totalIncome!.kpi.showChange, isFalse);
       expect(s.commissionPayable!.showChange, isFalse);
+      expect(s.appointmentsBooked!.showChange, isFalse);
       expect(s.previousFrom, isNull);
     });
 
@@ -365,15 +418,30 @@ void main() {
       expect(s.totalIncome, isNotNull);
     });
 
-    test('Average appointment value carries a neutral zero delta until the backend sends a previous value',
-        () async {
-      repo.overview = Overview(business: _figures, comparison: _comparison());
+    test('Average appointment value shows the amount gained since the previous period', () async {
+      repo.overview = Overview(business: _figures, comparison: _comparison(previousAverage: 100));
       final s = await loaded();
 
       expect(s.averageAppointmentValue!.label, 'Average appointment value');
       expect(s.averageAppointmentValue!.value, 125);
-      expect(s.averageAppointmentValue!.deltaAmount, 0);
-      expect(s.averageAppointmentValue!.tone, ChangeTone.neutral);
+      expect(s.averageAppointmentValue!.deltaAmount, 25);
+      expect(s.averageAppointmentValue!.tone, ChangeTone.good);
+    });
+
+    test('Average appointment value shows the amount lost as bad', () async {
+      repo.overview = Overview(business: _figures, comparison: _comparison(previousAverage: 150));
+      final s = await loaded();
+
+      expect(s.averageAppointmentValue!.deltaAmount, -25);
+      expect(s.averageAppointmentValue!.tone, ChangeTone.bad);
+    });
+
+    test('Average appointment value has no change without a comparison', () async {
+      repo.overview = const Overview(business: _figures);
+      final s = await loaded();
+
+      expect(s.averageAppointmentValue!.value, 125);
+      expect(s.averageAppointmentValue!.deltaAmount, isNull);
     });
   });
 
@@ -387,39 +455,52 @@ void main() {
       expect(split.share(split.deposit), 0.4);
       expect(split.share(split.session), 0.5);
       expect(split.share(split.addons), 0.1);
-      expect(s.splitMismatch, isFalse);
+      expect(s.totalIncome!.mismatch, isFalse);
     });
 
     test('a split that does not add up to Total income is flagged, not adjusted', () async {
       repo.overview = Overview(business: _figs(totalIncome: 900));
       final s = await loaded();
 
-      expect(s.splitMismatch, isTrue);
+      expect(s.totalIncome!.mismatch, isTrue);
       expect(s.totalIncome!.kpi.value, 900);
       expect(s.totalIncome!.split.deposit, 400);
     });
 
     test('an all-zero split has zero shares', () {
-      expect(IncomeSplit.unavailable.share(0), 0);
+      expect(const IncomeSplit(deposit: 0, session: 0, addons: 0).share(0), 0);
     });
 
-    test('My earnings and Business earnings show a zero split until the backend sends one', () async {
-      repo.overview = const Overview(
-        business: _figures,
-        members: [_me, _other],
-      );
-      container.read(me.notifier).state = 7;
+    test('My earnings splits the logged-in Member commission by Income source', () async {
+      repo.overview = const Overview(business: _figures, members: [_me, _other], myMemberId: 7);
+      final s = await loaded();
+      final split = s.myEarnings!.split;
+
+      expect((split.deposit, split.session, split.addons), (10, 60, 10));
+      expect(s.myEarnings!.mismatch, isFalse);
+    });
+
+    test('Business earnings splits the owner take by Income source', () async {
+      repo.overview = const Overview(business: _figures, members: [_me, _other], myMemberId: 7);
+      final s = await loaded();
+      final split = s.businessEarnings!.split;
+
+      expect((split.deposit, split.session, split.addons), (150, 80, 20));
+      expect(s.businessEarnings!.mismatch, isFalse);
+    });
+
+    test('an earnings split that does not add up to its total is flagged', () async {
+      repo.overview = Overview(business: _figs(ownerTake: 300), members: const [_me], myMemberId: 7);
       final s = await loaded();
 
-      expect(s.myEarnings!.split, IncomeSplit.unavailable);
-      expect(s.businessEarnings!.split, IncomeSplit.unavailable);
+      expect(s.businessEarnings!.mismatch, isTrue);
+      expect(s.myEarnings!.mismatch, isFalse);
     });
   });
 
   group('My earnings', () {
     test("is the commission earned on the logged-in Member's row", () async {
-      repo.overview = const Overview(business: _figures, members: [_other, _me]);
-      container.read(me.notifier).state = 7;
+      repo.overview = const Overview(business: _figures, members: [_other, _me], myMemberId: 7);
       final s = await loaded();
 
       expect(s.myEarnings!.kpi.label, 'My earnings');
@@ -428,8 +509,7 @@ void main() {
     });
 
     test('is hidden when no row matches the logged-in Member', () async {
-      repo.overview = const Overview(business: _figures, members: [_other, _me]);
-      container.read(me.notifier).state = 99;
+      repo.overview = const Overview(business: _figures, members: [_other, _me], myMemberId: 99);
       final s = await loaded();
 
       expect(s.myEarnings, isNull);
@@ -441,6 +521,13 @@ void main() {
 
       expect(s.myEarnings, isNull);
     });
+
+    test('knowing the logged-in Member needs no extra fetch', () async {
+      repo.overview = const Overview(business: _figures, members: [_other, _me], myMemberId: 7);
+      await loaded();
+
+      expect(repo.calls, hasLength(1));
+    });
   });
 
   group('photographer view (no business figures)', () {
@@ -451,12 +538,14 @@ void main() {
       expect(s.myEarnings!.kpi.value, 80);
       expect(s.bookedRevenue!.value, 250);
       expect(s.appointments!.value, 3);
+      expect(s.appointmentsBooked!.value, 5);
       expect(s.averageAppointmentValue!.value, 83);
       expect(s.averageAppointmentValue!.deltaAmount, isNull);
       expect(s.totalIncome, isNull);
       expect(s.businessEarnings, isNull);
       expect(s.commissionPayable, isNull);
       expect(s.bookedRevenue!.showChange, isFalse);
+      expect(s.appointmentsBooked!.showChange, isFalse);
       expect(s.members, isEmpty);
       expect(s.isEmpty, isFalse);
     });
@@ -467,12 +556,13 @@ void main() {
 
       expect(s.myEarnings, isNull);
       expect(s.bookedRevenue, isNull);
+      expect(s.appointmentsBooked, isNull);
       expect(s.isEmpty, isTrue);
     });
   });
 
   group('members', () {
-    test('several rows are listed with initials and effective rate', () async {
+    test('several rows are listed with initials and the backend commission rate', () async {
       repo.overview = const Overview(business: _figures, members: [_other, _me]);
       final s = await loaded();
 
@@ -481,18 +571,37 @@ void main() {
       expect(s.members.map((m) => m.income), [200, 400]);
       expect(s.members.map((m) => m.appointmentsMade), [2, 3]);
       expect(s.members.map((m) => m.commissionEarned), [50, 80]);
-      expect(s.members.map((m) => m.effectiveRate), [0.25, 0.2]);
+      expect(s.members.map((m) => m.commissionRate), [0.75, 0.8]);
     });
 
-    test('the effective rate is absent when a Member earned no income', () async {
+    test('the commission rate is absent when the backend sends none', () async {
       repo.overview = const Overview(business: _figures, members: [_other, _idle]);
       final s = await loaded();
 
-      expect(s.members.last.effectiveRate, isNull);
+      expect(s.members.last.commissionRate, isNull);
     });
 
     test('a single row is hidden', () async {
       repo.overview = const Overview(business: _figures, members: [_other]);
+      final s = await loaded();
+
+      expect(s.members, isEmpty);
+    });
+
+    test('the unassigned row comes last as Unassigned, without initials or rate', () async {
+      repo.overview = const Overview(business: _figures, members: [_unassigned, _other, _me]);
+      final s = await loaded();
+
+      expect(s.members.map((m) => m.name), ['Olivia Martin', 'Noah', 'Unassigned']);
+      expect(s.members.last.initials, '');
+      expect(s.members.last.income, 1850);
+      expect(s.members.last.isUnassigned, isTrue);
+      expect(s.members.last.commissionRate, isNull);
+      expect(s.members.first.isUnassigned, isFalse);
+    });
+
+    test('the unassigned row does not count toward showing the table', () async {
+      repo.overview = const Overview(business: _figures, members: [_other, _unassigned]);
       final s = await loaded();
 
       expect(s.members, isEmpty);
@@ -525,12 +634,16 @@ void main() {
         business: _figs(
           totalIncome: 0,
           depositIncome: 0,
-          packageBalance: 0,
-          addonIncome: 0,
+          shootingIncome: 0,
+          addonsIncome: 0,
           bookedRevenue: 0,
           appointmentsMade: 0,
+          appointmentsBooked: 0,
           commissionPayable: 0,
           ownerTake: 0,
+          ownerTakeDeposit: 0,
+          ownerTakeShooting: 0,
+          ownerTakeAddons: 0,
           averageAppointmentValue: 0,
         ),
         series: [SeriesPoint(start: _d(2026, 10, 1), depositIncome: 0, balanceIncome: 0)],
@@ -540,7 +653,30 @@ void main() {
       expect(s.isEmpty, isTrue);
       expect(s.totalIncome!.kpi.value, 0);
       expect(s.bookedRevenue!.value, 0);
-      expect(s.splitMismatch, isFalse);
+      expect(s.totalIncome!.mismatch, isFalse);
+    });
+
+    test('booked appointments alone are activity', () async {
+      repo.overview = Overview(
+        business: _figs(
+          totalIncome: 0,
+          depositIncome: 0,
+          shootingIncome: 0,
+          addonsIncome: 0,
+          bookedRevenue: 0,
+          appointmentsMade: 0,
+          appointmentsBooked: 4,
+          commissionPayable: 0,
+          ownerTake: 0,
+          ownerTakeDeposit: 0,
+          ownerTakeShooting: 0,
+          ownerTakeAddons: 0,
+          averageAppointmentValue: 0,
+        ),
+      );
+      final s = await loaded();
+
+      expect(s.isEmpty, isFalse);
     });
   });
 

@@ -48,9 +48,15 @@
 
 **Income source**: One of the three parts money is received as: Deposit, Shooting session (the balance paid on the Package) or Add-ons.
 
-**Average appointment value**: Booked revenue divided by the Appointments made over the Timeframe.
+**Appointments made**: The Appointments that were shot over the Timeframe.
 
-**Effective rate**: A Member's commission earned divided by their income over the Timeframe; not the configured Member Commission.
+**Appointments booked**: The Appointments booked over the Timeframe, shot or not yet shot.
+
+**Average appointment value**: The average value of an Appointment over the Timeframe, as the backend computes it; the Dashboard shows the amount it gained or lost versus the previous period.
+
+**Commission rate**: A Member's commission as a share of what they shot over the Timeframe, as the backend computes it; not the configured Member Commission.
+
+**Unassigned**: The Dashboard row of Appointments that have no photographer yet; it is shown last in the members table, without a Commission rate.
 
 **Analytics**: Interactive, live, non-financial metrics about a Business's activity, such as Appointments per Appointment Status or load per Business Member. Not built yet.
 
