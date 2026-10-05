@@ -14,6 +14,8 @@ import '../providers/state/dashboard_view_state.dart';
 const _good = Color(0xFF16A34A);
 const _bad = Color(0xFFDC2626);
 const _depositColor = Color(0xFF18181B);
+const _sessionColor = Color(0xFF9DB5A0);
+const _addonsColor = Color(0xFFD4D4D8);
 const _balanceColor = Color(0xFFA1A1AA);
 
 final _short = DateFormat('d MMM');
@@ -34,16 +36,12 @@ class DashboardPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('PHOTOGRAPHY STUDIO', style: AppTextStyles.monoMuted10.copyWith(letterSpacing: 2.8)),
-          const SizedBox(height: 8),
-          Text('Dashboard', style: AppTextStyles.heading24),
-          const SizedBox(height: 24),
-          const _TimeframeBar(),
+          const _Header(),
           const SizedBox(height: 24),
           if (async.hasError && !async.isLoading)
             _ErrorBanner(
               message: async.error.toString(),
-              onRetry: () => ref.invalidate(dashboardProvider),
+              onRetry: () => ref.invalidate(overviewProvider),
             ),
           if (data == null && async.isLoading)
             const Padding(
@@ -60,12 +58,72 @@ class DashboardPage extends ConsumerWidget {
   }
 }
 
+class _Header extends StatelessWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.start,
+      runSpacing: 16,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Business overview', style: AppTextStyles.heading24),
+            const SizedBox(height: 4),
+            Text('Track revenue, earnings, and your team\'s performance.', style: AppTextStyles.muted14),
+          ],
+        ),
+        const _TimeframePicker(),
+      ],
+    );
+  }
+}
+
+/// Lays children side by side with the given flex when wide, stacked when narrow.
+class _Cards extends StatelessWidget {
+  final List<(int flex, Widget child)> items;
+  const _Cards(this.items);
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: LayoutBuilder(builder: (context, c) {
+        if (c.maxWidth < 760) {
+          return Column(children: [
+            for (final (i, it) in items.indexed) ...[
+              if (i > 0) const SizedBox(height: 16),
+              SizedBox(width: double.infinity, child: it.$2),
+            ],
+          ]);
+        }
+        return IntrinsicHeight(
+          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            for (final (i, it) in items.indexed) ...[
+              if (i > 0) const SizedBox(width: 16),
+              Expanded(flex: it.$1, child: it.$2),
+            ],
+          ]),
+        );
+      }),
+    );
+  }
+}
+
 class _Body extends ConsumerWidget {
   final DashboardViewState data;
   const _Body({required this.data});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final topCards = [data.myEarnings, data.businessEarnings].whereType<SplitKpi>();
+    final bottomCards = [data.bookedRevenue, data.appointments, data.averageAppointmentValue].whereType<Kpi>();
+    final chart = _ChartPanel(data: data);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -85,106 +143,290 @@ class _Body extends ConsumerWidget {
           ]),
           const SizedBox(height: 16),
         ],
-        Wrap(
-          spacing: 16,
-          runSpacing: 16,
-          children: [for (final k in data.kpis) _KpiCard(kpi: k, data: data)],
-        ),
-        const SizedBox(height: 24),
-        _Panel(
-          title: 'Income',
-          child: data.isEmpty
-              ? const SizedBox(
-                  height: 120,
-                  child: Center(child: Text('No activity in this period')),
-                )
-              : data.chart.isEmpty
-                  ? const SizedBox.shrink()
-                  : _IncomeChart(points: data.chart, bucket: ref.watch(timeframeProvider).bucket),
-        ),
-        if (data.members.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          _Panel(title: 'Members', child: _MembersTable(rows: data.members)),
-        ],
+        _Cards([
+          for (final c in topCards) (1, _EarningsCard(card: c, data: data)),
+          if (data.commissionPayable != null) (1, _StatCard(kpi: data.commissionPayable!, data: data)),
+        ]),
+        if (data.totalIncome != null)
+          _Cards([(2, _TotalIncomeCard(card: data.totalIncome!, data: data)), (3, chart)])
+        else
+          _Cards([(1, chart)]),
+        _Cards([for (final k in bottomCards) (1, _StatCard(kpi: k, data: data))]),
+        if (data.members.isNotEmpty) _Panel(title: 'Member performance', child: _MembersTable(rows: data.members)),
       ],
     );
   }
 }
 
-class _TimeframeBar extends ConsumerWidget {
-  const _TimeframeBar();
+class _TimeframePicker extends ConsumerWidget {
+  const _TimeframePicker();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = ref.watch(timeframeProvider);
     final notifier = ref.read(timeframeProvider.notifier);
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
+    return PopupMenuButton<TimeframePreset>(
+      tooltip: 'Timeframe',
+      onSelected: (p) async {
+        if (p != TimeframePreset.custom) return notifier.selectPreset(p);
+        final picked = await showDateRangePicker(
+          context: context,
+          firstDate: DateTime(2000),
+          lastDate: DateTime(2100),
+          initialDateRange: DateTimeRange(start: t.start, end: t.end),
+        );
+        if (picked != null) notifier.selectCustom(picked.start, picked.end);
+      },
+      itemBuilder: (_) => [
         for (final p in TimeframePreset.values)
-          ChoiceChip(
-            label: Text(p.label),
-            selected: t.preset == p,
-            onSelected: (_) async {
-              if (p != TimeframePreset.custom) return notifier.selectPreset(p);
-              final picked = await showDateRangePicker(
-                context: context,
-                firstDate: DateTime(2000),
-                lastDate: DateTime(2100),
-                initialDateRange: DateTimeRange(start: t.start, end: t.end),
-              );
-              if (picked != null) notifier.selectCustom(picked.start, picked.end);
-            },
-          ),
-        const SizedBox(width: 8),
-        Text(
-          '${_short.format(t.start)} – ${_long.format(t.end)}',
-          style: AppTextStyles.monoMuted10.copyWith(fontSize: 12),
-        ),
+          CheckedPopupMenuItem(value: p, checked: t.preset == p, child: Text(p.label)),
       ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: _boxDecoration,
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          const Icon(Icons.calendar_today_outlined, size: 16),
+          const SizedBox(width: 10),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(t.preset.label, style: AppTextStyles.body.copyWith(fontSize: 12, fontWeight: FontWeight.w600)),
+            Text('${_short.format(t.start)} – ${_long.format(t.end)}', style: AppTextStyles.muted12),
+          ]),
+          const SizedBox(width: 12),
+          const Icon(Icons.keyboard_arrow_down, size: 18),
+        ]),
+      ),
     );
   }
 }
 
-class _KpiCard extends StatelessWidget {
-  final Kpi kpi;
-  final DashboardViewState data;
-  const _KpiCard({required this.kpi, required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    final change = kpi.changePercent;
-    final color = switch (kpi.tone) {
+Color _toneColor(ChangeTone tone) => switch (tone) {
       ChangeTone.good => _good,
       ChangeTone.bad => _bad,
       ChangeTone.neutral => AppColors.mutedText,
     };
 
+/// The change badge and previous-range caption under a figure; nothing when the card has none.
+class _Change extends StatelessWidget {
+  final Kpi kpi;
+  final DashboardViewState data;
+  const _Change({required this.kpi, required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final delta = kpi.deltaAmount;
+    if (delta != null) {
+      final prefix = delta == 0 ? '' : (delta > 0 ? 'Up ' : 'Down ');
+      return Text('$prefix${formatAmount(delta.abs())} from last period',
+          style: AppTextStyles.muted.copyWith(fontSize: 11));
+    }
+    if (!kpi.showChange) return const SizedBox.shrink();
+    final change = kpi.changePercent;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(
+        change == null ? '—' : '${change > 0 ? '+' : ''}${change.toStringAsFixed(1)}%',
+        style: AppTextStyles.body.copyWith(fontSize: 13, color: _toneColor(kpi.tone), fontWeight: FontWeight.w600),
+      ),
+      if (data.previousFrom != null && data.previousTo != null)
+        Text('vs ${_short.format(data.previousFrom!)} – ${_short.format(data.previousTo!)}',
+            style: AppTextStyles.muted.copyWith(fontSize: 11)),
+    ]);
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final Kpi kpi;
+  final DashboardViewState data;
+  const _StatCard({required this.kpi, required this.data});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: _boxDecoration,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(kpi.label, style: AppTextStyles.muted14),
+            const SizedBox(height: 8),
+            Text(formatAmount(kpi.value), style: AppTextStyles.heading24),
+            const SizedBox(height: 6),
+            _Change(kpi: kpi, data: data),
+          ],
+        ),
+      );
+}
+
+class _EarningsCard extends StatelessWidget {
+  final SplitKpi card;
+  final DashboardViewState data;
+  const _EarningsCard({required this.card, required this.data});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: _boxDecoration,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(card.kpi.label, style: AppTextStyles.muted14),
+            const SizedBox(height: 8),
+            Text(formatAmount(card.kpi.value), style: AppTextStyles.heading24),
+            const SizedBox(height: 6),
+            _Change(kpi: card.kpi, data: data),
+            const SizedBox(height: 16),
+            _SplitBar(split: card.split),
+            const SizedBox(height: 12),
+            _SplitLegend(split: card.split),
+          ],
+        ),
+      );
+}
+
+class _TotalIncomeCard extends StatelessWidget {
+  final SplitKpi card;
+  final DashboardViewState data;
+  const _TotalIncomeCard({required this.card, required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = card.split;
+    Widget line(Color color, String label, double amount) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(children: [
+            Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+            const SizedBox(width: 10),
+            Expanded(child: Text(label, style: AppTextStyles.body14)),
+            Text('${(s.share(amount) * 100).round()}%', style: AppTextStyles.muted12),
+            const SizedBox(width: 20),
+            SizedBox(
+              width: 80,
+              child: Text(formatAmount(amount), textAlign: TextAlign.right, style: AppTextStyles.body14),
+            ),
+          ]),
+        );
+
     return Container(
-      width: 230,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: _boxDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(kpi.label.toUpperCase(), style: AppTextStyles.monoMuted10.copyWith(letterSpacing: 1.6)),
+          Text(card.kpi.label, style: AppTextStyles.muted14),
           const SizedBox(height: 8),
-          Text(formatAmount(kpi.value), style: AppTextStyles.heading24),
-          if (data.showChange) ...[
-            const SizedBox(height: 8),
-            Text(
-              change == null ? '—' : '${change > 0 ? '+' : ''}${change.toStringAsFixed(1)}%',
-              style: AppTextStyles.body.copyWith(fontSize: 13, color: color, fontWeight: FontWeight.w600),
+          Text(formatAmount(card.kpi.value), style: AppTextStyles.heading24),
+          const SizedBox(height: 6),
+          _Change(kpi: card.kpi, data: data),
+          const SizedBox(height: 16),
+          _SplitBar(split: s),
+          const SizedBox(height: 8),
+          line(_depositColor, 'Deposit', s.deposit),
+          line(_sessionColor, 'Shooting session', s.session),
+          line(_addonsColor, 'Add-ons', s.addons),
+          if (data.splitMismatch)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text('The breakdown does not add up to Total income.',
+                  style: AppTextStyles.muted12.copyWith(color: _bad)),
             ),
-            if (data.previousFrom != null && data.previousTo != null)
-              Text(
-                'vs ${_short.format(data.previousFrom!)} – ${_short.format(data.previousTo!)}',
-                style: AppTextStyles.muted.copyWith(fontSize: 11),
-              ),
-          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Deposit / Shooting session / Add-ons as one proportional bar; a neutral track when all are 0.
+class _SplitBar extends StatelessWidget {
+  final IncomeSplit split;
+  const _SplitBar({required this.split});
+
+  @override
+  Widget build(BuildContext context) {
+    final parts = [
+      (split.deposit, _depositColor),
+      (split.session, _sessionColor),
+      (split.addons, _addonsColor),
+    ].where((p) => p.$1 > 0);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: SizedBox(
+        height: 8,
+        child: split.sum == 0
+            ? const ColoredBox(color: _addonsColor)
+            : Row(children: [
+                for (final p in parts) Expanded(flex: (split.share(p.$1) * 1000).round().clamp(1, 1000), child: ColoredBox(color: p.$2)),
+              ]),
+      ),
+    );
+  }
+}
+
+class _SplitLegend extends StatelessWidget {
+  final IncomeSplit split;
+  const _SplitLegend({required this.split});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget item(Color color, String label, double amount) => Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+              const SizedBox(width: 6),
+              Flexible(child: Text(label, overflow: TextOverflow.ellipsis, style: AppTextStyles.muted12)),
+            ]),
+            const SizedBox(height: 2),
+            Text(formatAmount(amount), style: AppTextStyles.body14.copyWith(fontWeight: FontWeight.w600)),
+          ]),
+        );
+    return Row(children: [
+      item(_depositColor, 'Deposit', split.deposit),
+      item(_sessionColor, 'Session', split.session),
+      item(_addonsColor, 'Add-ons', split.addons),
+    ]);
+  }
+}
+
+class _ChartPanel extends ConsumerWidget {
+  final DashboardViewState data;
+  const _ChartPanel({required this.data});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bucket = ref.watch(bucketProvider);
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: _boxDecoration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Income over time', style: AppTextStyles.heading16),
+                const SizedBox(height: 2),
+                Text('Deposit and balance collected this period', style: AppTextStyles.muted12),
+              ]),
+            ),
+            SegmentedButton<OverviewBucket>(
+              showSelectedIcon: false,
+              style: const ButtonStyle(visualDensity: VisualDensity.compact),
+              segments: const [
+                ButtonSegment(value: OverviewBucket.day, label: Text('Daily')),
+                ButtonSegment(value: OverviewBucket.week, label: Text('Weekly')),
+                ButtonSegment(value: OverviewBucket.month, label: Text('Monthly')),
+              ],
+              selected: {bucket},
+              onSelectionChanged: (s) => ref.read(bucketChoiceProvider.notifier).select(s.single),
+            ),
+          ]),
+          const SizedBox(height: 16),
+          if (data.isEmpty)
+            const SizedBox(height: 160, child: Center(child: Text('No activity in this period')))
+          else if (data.chart.isEmpty)
+            const SizedBox(height: 160, child: Center(child: Text('No chart data')))
+          else
+            _IncomeChart(points: data.chart, bucket: bucket),
         ],
       ),
     );
@@ -296,7 +538,7 @@ class _Legend extends StatelessWidget {
 }
 
 class _MembersTable extends StatelessWidget {
-  final List<MemberRow> rows;
+  final List<MemberResult> rows;
   const _MembersTable({required this.rows});
 
   @override
@@ -310,15 +552,25 @@ class _MembersTable extends StatelessWidget {
           DataColumn(label: Text('MEMBER')),
           DataColumn(label: Text('INCOME'), numeric: true),
           DataColumn(label: Text('APPOINTMENTS'), numeric: true),
-          DataColumn(label: Text('COMMISSION'), numeric: true),
+          DataColumn(label: Text('COMMISSION EARNED'), numeric: true),
+          DataColumn(label: Text('EFFECTIVE RATE'), numeric: true),
         ],
         rows: [
           for (final m in rows)
             DataRow(cells: [
-              DataCell(Text(m.name)),
+              DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
+                CircleAvatar(
+                  radius: 14,
+                  backgroundColor: AppColors.TNB_greyText,
+                  child: Text(m.initials, style: const TextStyle(fontSize: 10, color: Colors.white)),
+                ),
+                const SizedBox(width: 10),
+                Text(m.name),
+              ])),
               DataCell(Text(formatAmount(m.income))),
               DataCell(Text('${m.appointmentsMade}')),
               DataCell(Text(formatAmount(m.commissionEarned))),
+              DataCell(Text(m.effectiveRate == null ? '—' : '${(m.effectiveRate! * 100).round()}%')),
             ]),
         ],
       ),
@@ -340,12 +592,12 @@ class _Panel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: _boxDecoration,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title.toUpperCase(), style: AppTextStyles.monoMuted10.copyWith(letterSpacing: 1.6)),
+            Text(title, style: AppTextStyles.heading16),
             const SizedBox(height: 12),
             child,
           ],

@@ -12,20 +12,27 @@ Overview overviewFromJson(Map<String, dynamic> j) {
         ? null
         : BusinessFigures(
             totalIncome: _d(b['total_income']),
+            depositIncome: _d(b['deposit_income']),
+            packageBalance: _d(b['package_balance']),
+            addonIncome: _d(b['addon_income']),
             bookedRevenue: _d(b['booked_revenue']),
             appointmentsMade: b['appointments_made'],
             commissionPayable: _d(b['commission_payable']),
+            ownerTake: _dn(b['owner_take']),
+            averageAppointmentValue: _d(b['average_appointment_value']),
             unresolvedAddons: b['unresolved_addons'],
             commissionsAboveBalance: b['commissions_above_balance'],
           ),
     members: [
       for (final m in (j['members'] as List? ?? const []))
         MemberRow(
+          memberId: m['member_id'],
           name: m['name'] ?? '',
           income: _d(m['income']),
           bookedRevenue: _d(m['booked_revenue']),
           appointmentsMade: m['appointments_made'],
           commissionEarned: _d(m['commission_earned']),
+          averageAppointmentValue: _d(m['average_appointment_value']),
         ),
     ],
     comparison: c == null
@@ -37,6 +44,7 @@ Overview overviewFromJson(Map<String, dynamic> j) {
             bookedRevenueChange: _dn(c['change_percent']['booked_revenue']),
             appointmentsMadeChange: _dn(c['change_percent']['appointments_made']),
             commissionPayableChange: _dn(c['change_percent']['commission_payable']),
+            ownerTakeChange: _dn(c['change_percent']['owner_take']),
           ),
     series: s == null
         ? null
